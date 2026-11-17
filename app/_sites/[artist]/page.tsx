@@ -3,6 +3,7 @@ import { createFileAdapter } from '@/lib/storage'
 import { createFileWorksAdapter } from '@/lib/works/file-adapter'
 import MinimalGallery from '@/components/templates/minimal-gallery'
 import EditorialTemplate from '@/components/templates/editorial'
+import ImmersiveTemplate from '@/components/templates/immersive'
 
 type Props = {
   params: { artist: string }
@@ -40,9 +41,15 @@ export default async function ArtistSitePage({ params }: Props) {
     return <EditorialTemplate config={config} works={works} artistSlug={params.artist} />
   }
 
+  if (config.template === 'immersive') {
+    const worksRepo = createFileWorksAdapter()
+    const works = await worksRepo.getWorks(params.artist)
+    return <ImmersiveTemplate config={config} works={works} artistSlug={params.artist} />
+  }
+
   return (
-    <main style={{ padding: '4rem 2rem' }}>
-      <div>Template {config.template} - proximamente</div>
+    <main style={{ padding: '2rem' }}>
+      <h1>Sitio en construccion</h1>
     </main>
   )
 }
