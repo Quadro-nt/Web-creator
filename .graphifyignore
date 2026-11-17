@@ -1,0 +1,23 @@
+# Secrets y credenciales
+.env*
+*credential*
+*secret*
+*.key
+*.pem
+*.p12
+*.pfx
+
+# Dependencias
+node_modules/
+.venv/
+venv/
+__pycache__/
+
+# Outputs de graphify
+graphify-out/
+
+# Build
+dist/
+build/
+.next/
+out/
