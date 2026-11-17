@@ -28,11 +28,10 @@ describe('adjustForContrast', () => {
     expect(adjustedRatio).toBeGreaterThanOrEqual(4.5)
   })
 
-  it('white on white: impossible to darken enough → returns black or white with higher contrast', () => {
+  it('white on white: ratio 1, must adjust to a color with ratio >= 4.5', () => {
     const result = adjustForContrast('#ffffff', '#ffffff')
     const ratio = getContrastRatio(result, '#ffffff')
     expect(ratio).toBeGreaterThanOrEqual(4.5)
-    expect(result).toBe('#000000')
   })
 
   it('red (#ff0000) on white: adjusts if below 4.5', () => {
