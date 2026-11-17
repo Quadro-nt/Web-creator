@@ -15,11 +15,11 @@ describe('middleware — subdomain resolution', () => {
     expect(res.headers.get('x-middleware-rewrite')).toBeNull()
   })
 
-  it('request to luna-vega.quadro-nt.com/ rewrites to /_sites/luna-vega/', () => {
+  it('request to luna-vega.quadro-nt.com/ rewrites to /sites/luna-vega/', () => {
     const res = middleware(makeReq('http://luna-vega.quadro-nt.com/', 'luna-vega.quadro-nt.com'))
     const dest = res.headers.get('x-middleware-rewrite')
     expect(dest).not.toBeNull()
-    expect(new URL(dest!).pathname).toMatch(/^\/_sites\/luna-vega\/?$/)
+    expect(new URL(dest!).pathname).toMatch(/^\/sites\/luna-vega\/?$/)
   })
 
   it('request to luna-vega.quadro-nt.com/obras/formas-01 rewrites correctly', () => {
@@ -28,7 +28,7 @@ describe('middleware — subdomain resolution', () => {
     )
     const dest = res.headers.get('x-middleware-rewrite')
     expect(dest).not.toBeNull()
-    expect(new URL(dest!).pathname).toBe('/_sites/luna-vega/obras/formas-01')
+    expect(new URL(dest!).pathname).toBe('/sites/luna-vega/obras/formas-01')
   })
 
   it('request to localhost:3000/editor/token-luna passes without rewriting', () => {
