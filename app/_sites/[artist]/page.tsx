@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { createFileAdapter } from '@/lib/storage'
 import { createFileWorksAdapter } from '@/lib/works/file-adapter'
 import MinimalGallery from '@/components/templates/minimal-gallery'
+import EditorialTemplate from '@/components/templates/editorial'
 
 type Props = {
   params: { artist: string }
@@ -31,6 +32,12 @@ export default async function ArtistSitePage({ params }: Props) {
     const worksRepo = createFileWorksAdapter()
     const works = await worksRepo.getWorks(params.artist)
     return <MinimalGallery config={config} works={works} artistSlug={params.artist} />
+  }
+
+  if (config.template === 'editorial') {
+    const worksRepo = createFileWorksAdapter()
+    const works = await worksRepo.getWorks(params.artist)
+    return <EditorialTemplate config={config} works={works} artistSlug={params.artist} />
   }
 
   return (
