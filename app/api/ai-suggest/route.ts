@@ -5,6 +5,8 @@ import { askAI } from '@/lib/ai/ask-ai'
 import { MockProvider } from '@/lib/ai/mock-provider'
 import { AnthropicProvider } from '@/lib/ai/anthropic-provider'
 import type { AIProvider } from '@/lib/ai/provider'
+import { checkLimit, incrementCount } from '@/lib/ai/rate-limiter'
+import { logAIRequest } from '@/lib/ai/logger'
 
 const BodySchema = z.object({
   artistSlug: z.string().min(1),
@@ -48,6 +50,16 @@ export async function POST(request: Request) {
     )
   }
 
+  const { artistSlug, prompt } = parsedBody.data
+
+  const limit = await checkLimit(artistSlug)
+  if (!limit.allowed) {
+    return NextResponse.json(
+      { error: 'Límite diario alcanzado', remaining: 0, resetAt: limit.resetAt.toISOString() },
+      { status: 429 }
+    )
+  }
+
   let provider: AIProvider
   try {
     provider = pickProvider()
@@ -59,8 +71,19 @@ export async function POST(request: Request) {
   try {
     const suggestion = await askAI({
       currentConfig: configResult.data,
-      prompt: parsedBody.data.prompt,
+      prompt,
       provider,
+    })
+    await incrementCount(artistSlug)
+    logAIRequest({
+      timestamp: new Date().toISOString(),
+      artistSlug,
+      prompt,
+      applied: false,
+      unsatisfied: suggestion.unsatisfied,
+      validationError: suggestion.validationError,
+    }).catch(() => {
+      // el log no bloquea la respuesta
     })
     return NextResponse.json({ suggestion })
   } catch (err) {
