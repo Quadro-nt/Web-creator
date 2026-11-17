@@ -1,0 +1,40 @@
+{
+  "_comentario": "Generado desde seguridad/claude-base.json. Ajustar allow por tarea.",
+  "permissions": {
+    "allow": [
+      "Bash(*)",
+      "Read(./**)",
+      "Edit(./**)",
+      "Write(./**)"
+    ],
+    "deny": [
+      "Bash(git push:*)",
+      "Bash(git reset --hard:*)",
+      "Bash(git clean:*)",
+      "Bash(rm:*)",
+      "Bash(rmdir:*)",
+      "Bash(del:*)",
+      "Bash(Remove-Item:*)",
+      "Bash(curl:*)",
+      "Bash(wget:*)",
+      "Bash(Invoke-WebRequest:*)",
+      "Bash(Invoke-RestMethod:*)",
+      "Bash(npm install:*)",
+      "Bash(pip install:*)",
+      "Bash(vercel:*)",
+      "Bash(ssh:*)",
+      "Read(./.env)",
+      "Read(./.env.*)",
+      "Read(./**/*credential*)",
+      "Read(./**/*secret*)",
+      "Edit(./.claude/**)",
+      "Write(./.claude/**)",
+      "Edit(./seguridad/**)",
+      "Write(./seguridad/**)",
+      "Edit(./CONSTITUCION.md)",
+      "WebFetch",
+      "WebSearch"
+    ],
+    "defaultMode": "acceptEdits"
+  }
+}

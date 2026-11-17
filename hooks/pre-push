@@ -1,0 +1,35 @@
+#!/bin/sh
+# pre-push hook — instalado por squad-init
+# Bloquea pushes cuando el proceso es un agente IA (Claude Code u Orca).
+# Los pushes desde GitHub Desktop u otros clientes sin esas variables pasan.
+
+AGENT_DETECTED=0
+AGENT_NAME=""
+
+# Claude Code
+if [ -n "$CLAUDECODE" ]; then
+    AGENT_DETECTED=1
+    AGENT_NAME="Claude Code (CLAUDECODE=$CLAUDECODE)"
+fi
+
+# Orca (cualquier variable ORCA_AGENT_* o ORCA_WORKTREE_ID)
+if [ -n "$ORCA_AGENT_LAUNCH" ]; then
+    AGENT_DETECTED=1
+    AGENT_NAME="Orca (ORCA_AGENT_LAUNCH set)"
+fi
+
+if [ -n "$ORCA_WORKTREE_ID" ] && [ "$AGENT_DETECTED" -eq 0 ]; then
+    AGENT_DETECTED=1
+    AGENT_NAME="Orca (ORCA_WORKTREE_ID set)"
+fi
+
+if [ "$AGENT_DETECTED" -eq 1 ]; then
+    echo ""
+    echo "ERROR: push bloqueado — detectado agente IA: $AGENT_NAME"
+    echo "Solo Lionel hace push (Art. 2 de la Constitucion de los escuadrones Quadro)."
+    echo "Haz commit en tu rama y envia merge_ready o worker_done."
+    echo ""
+    exit 1
+fi
+
+exit 0

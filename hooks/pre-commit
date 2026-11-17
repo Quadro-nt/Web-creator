@@ -1,0 +1,39 @@
+#!/bin/sh
+# pre-commit hook — instalado por squad-init
+# Bloquea commits de agentes IA que toquen archivos protegidos:
+#   .claude/, seguridad/, roles/, CONSTITUCION.md
+# Los commits de Lionel (sin variables de agente) pasan sin restriccion.
+
+AGENT_DETECTED=0
+AGENT_NAME=""
+
+# Claude Code
+if [ -n "$CLAUDECODE" ]; then
+    AGENT_DETECTED=1
+    AGENT_NAME="Claude Code (CLAUDECODE=$CLAUDECODE)"
+fi
+
+# Orca (cualquier variable ORCA_AGENT_* o ORCA_WORKTREE_ID)
+if [ -n "$ORCA_AGENT_LAUNCH" ]; then
+    AGENT_DETECTED=1
+    AGENT_NAME="Orca (ORCA_AGENT_LAUNCH set)"
+fi
+
+if [ -n "$ORCA_WORKTREE_ID" ] && [ "$AGENT_DETECTED" -eq 0 ]; then
+    AGENT_DETECTED=1
+    AGENT_NAME="Orca (ORCA_WORKTREE_ID set)"
+fi
+
+if [ "$AGENT_DETECTED" -eq 1 ]; then
+    PROTECTED=$(git diff --cached --name-only | grep -E '^(\.claude/|\.squad/|seguridad/|roles/|CONSTITUCION\.md$)')
+    if [ -n "$PROTECTED" ]; then
+        echo ""
+        echo "ERROR: commit bloqueado — agente $AGENT_NAME intentó modificar archivos protegidos:"
+        echo "$PROTECTED"
+        echo "Solo Lionel puede commitear cambios en .claude/, .squad/, seguridad/, roles/ o CONSTITUCION.md"
+        echo ""
+        exit 1
+    fi
+fi
+
+exit 0
