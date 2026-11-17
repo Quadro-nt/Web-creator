@@ -1,4 +1,4 @@
-export type SiteConfig = Record<string, unknown>
+export type { SiteConfig } from '../schemas/site-config.schema'
 
 export interface StorageAdapter {
   getPublished(slug: string): Promise<SiteConfig | null>
