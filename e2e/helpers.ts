@@ -4,11 +4,15 @@ import * as path from 'path'
 const DATA_DIR = path.join(process.cwd(), 'data', 'artists')
 
 export function getEditorUrl(token: string): string {
-  return `/editor/${token}`
+  return `http://localhost:3000/editor/${token}`
 }
 
 export function getPublicSiteUrl(slug: string): string {
-  return `/_sites/${slug}`
+  return `http://${slug}.localhost:3000`
+}
+
+export function getArtworkUrl(slug: string, workSlug: string): string {
+  return `http://${slug}.localhost:3000/obras/${workSlug}`
 }
 
 export function backupArtistConfig(slug: string): void {

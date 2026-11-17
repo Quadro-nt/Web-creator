@@ -96,7 +96,7 @@ export default function ArtworksSection({ section, works, artistSlug }: Props) {
           {works.map((work, i) => (
             <Link
               key={work.slug}
-              href={`/_sites/${artistSlug}/obras/${work.slug}`}
+              href={`/obras/${work.slug}`}
               style={{
                 display: 'grid',
                 gridTemplateColumns: `${imgSize} 1fr auto`,
@@ -181,7 +181,7 @@ export default function ArtworksSection({ section, works, artistSlug }: Props) {
           {works.map((work) => (
             <Link
               key={work.slug}
-              href={`/_sites/${artistSlug}/obras/${work.slug}`}
+              href={`/obras/${work.slug}`}
               style={{
                 display: 'block',
                 marginBottom: '3px',
@@ -275,7 +275,7 @@ type EditorialCardProps = {
 function EditorialCard({ work, artistSlug, style, showCaption }: EditorialCardProps) {
   return (
     <Link
-      href={`/_sites/${artistSlug}/obras/${work.slug}`}
+      href={`/obras/${work.slug}`}
       style={{ textDecoration: 'none', color: 'inherit', display: 'block', position: 'relative', ...style }}
     >
       <div style={{ position: 'relative', aspectRatio: '1', overflow: 'hidden' }}>

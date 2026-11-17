@@ -2,3 +2,6 @@
 # Quadro squad-init
 graphify-out/
 .claude/settings.local.json
+
+# Local env overrides (never commit)
+.env*.local

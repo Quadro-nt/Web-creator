@@ -13,7 +13,7 @@ export function BuyButton({ artwork, artistSlug }: Props) {
   if (!number) return null
 
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? ''
-  const message = `Hola, me interesa la obra '${artwork.title}' (${artwork.year}) de ${artistSlug}. Mas info en: ${baseUrl}/_sites/${artistSlug}/obras/${artwork.slug}`
+  const message = `Hola, me interesa la obra '${artwork.title}' (${artwork.year}) de ${artistSlug}. Mas info en: ${baseUrl}/obras/${artwork.slug}`
   const url = `https://wa.me/${number}?text=${encodeURIComponent(message)}`
 
   return (
