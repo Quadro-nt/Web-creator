@@ -1,18 +1,32 @@
-import { notFound } from 'next/navigation'
+import { validateEditorToken } from '@/lib/auth/token-validator'
+import { createFileAdapter } from '@/lib/storage'
+import { createFileWorksAdapter } from '@/lib/works/file-adapter'
+import { defaultSiteConfig } from '@/lib/schemas/site-config.schema'
+import EditorClient from './EditorClient'
 
 type Props = {
   params: { token: string }
 }
 
-export default function EditorPage({ params }: Props) {
-  if (!params.token) {
-    notFound()
+export default async function EditorPage({ params }: Props) {
+  const slug = await validateEditorToken(params.token)
+
+  if (!slug) {
+    return (
+      <main style={{ padding: '4rem 2rem', textAlign: 'center' }}>
+        <h1 style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>Acceso denegado</h1>
+        <p style={{ opacity: 0.7 }}>El token proporcionado no es válido.</p>
+      </main>
+    )
   }
 
-  return (
-    <main>
-      <h1>Editor</h1>
-      <p>Token: {params.token}</p>
-    </main>
-  )
+  const storage = createFileAdapter()
+  const draft = await storage.getDraft(slug)
+  const published = draft ? null : await storage.getPublished(slug)
+  const config = draft ?? published ?? defaultSiteConfig
+
+  const worksRepo = createFileWorksAdapter()
+  const works = await worksRepo.getWorks(slug)
+
+  return <EditorClient initialConfig={config} artistSlug={slug} works={works} />
 }
