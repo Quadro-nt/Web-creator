@@ -100,7 +100,7 @@ export default function ImmersiveArtworks({ section, works, artistSlug }: Props)
           {works.map((work, i) => (
             <Link
               key={work.slug}
-              href={`/_sites/${artistSlug}/obras/${work.slug}`}
+              href={`/obras/${work.slug}`}
               style={{
                 display: 'grid',
                 gridTemplateColumns: `${imgSize} 1fr`,
@@ -190,7 +190,7 @@ export default function ImmersiveArtworks({ section, works, artistSlug }: Props)
           {works.map((work) => (
             <Link
               key={work.slug}
-              href={`/_sites/${artistSlug}/obras/${work.slug}`}
+              href={`/obras/${work.slug}`}
               style={{
                 display: 'block',
                 marginBottom: '2px',
@@ -290,7 +290,7 @@ type ImmersiveCardProps = {
 function ImmersiveCard({ work, artistSlug, style }: ImmersiveCardProps) {
   return (
     <Link
-      href={`/_sites/${artistSlug}/obras/${work.slug}`}
+      href={`/obras/${work.slug}`}
       style={{
         display: 'block',
         textDecoration: 'none',
