@@ -1,0 +1,88 @@
+{
+  "template": "editorial",
+  "styleTokens": {
+    "background": "#f2ede6",
+    "text": "#1c1c1c",
+    "accent": "#c8420a",
+    "fontPair": "fraunces-nunito",
+    "spacing": "normal",
+    "artworkTreatment": "frame"
+  },
+  "button": {
+    "shape": "square",
+    "style": "filled",
+    "buyText": "Adquirir obra"
+  },
+  "sizes": {
+    "typeScale": "medium",
+    "artworkSize": "medium",
+    "columns": "2",
+    "contentWidth": "full"
+  },
+  "animations": {
+    "scrollReveal": "bold",
+    "hoverEffect": "info",
+    "pageTransition": "none"
+  },
+  "navigation": {
+    "type": "hamburger",
+    "sticky": false
+  },
+  "sections": [
+    {
+      "id": "s1",
+      "type": "cover",
+      "variant": "magazine",
+      "visible": true,
+      "content": {
+        "title": "Marco Torres",
+        "subtitle": "Fotografia documental — Lima"
+      }
+    },
+    {
+      "id": "s2",
+      "type": "artworks",
+      "variant": "list",
+      "visible": true,
+      "content": {}
+    },
+    {
+      "id": "s3",
+      "type": "bio",
+      "variant": "with-photo",
+      "visible": true,
+      "content": {
+        "text": "Marco Torres (Lima, 1988) retrata la ciudad desde sus esquinas. Trabaja en analogico y digital, siempre sin flash, siempre a pie.",
+        "photoUrl": "https://picsum.photos/seed/marco-bio/600/800"
+      }
+    },
+    {
+      "id": "s4",
+      "type": "exhibitions",
+      "variant": "timeline",
+      "visible": true,
+      "content": {
+        "exhibitions": [
+          { "title": "Calles paralelas", "year": 2024, "place": "Centro de la Imagen, Lima" },
+          { "title": "Rutas cortas", "year": 2022, "place": "Galeria Impakto, Barranco" },
+          { "title": "Primer plano", "year": 2020, "place": "ICPNA, Miraflores" }
+        ]
+      }
+    },
+    {
+      "id": "s5",
+      "type": "contact",
+      "variant": "form",
+      "visible": true,
+      "content": {
+        "email": "marco@ejemplo.com",
+        "instagram": "@marcotorres.foto"
+      }
+    }
+  ],
+  "identity": {
+    "siteTitle": "Marco Torres — Fotografia",
+    "coverImageUrl": "https://picsum.photos/seed/marco-cover/1600/900",
+    "ogImageUrl": "https://picsum.photos/seed/marco-og/1200/630"
+  }
+}

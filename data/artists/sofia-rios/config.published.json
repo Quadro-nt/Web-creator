@@ -1,0 +1,87 @@
+{
+  "template": "immersive",
+  "styleTokens": {
+    "background": "#0d0d0d",
+    "text": "#f0f0f0",
+    "accent": "#e8c547",
+    "fontPair": "dm-serif-inter",
+    "spacing": "compact",
+    "artworkTreatment": "bleed"
+  },
+  "button": {
+    "shape": "rounded",
+    "style": "outlined",
+    "buyText": "Contactar"
+  },
+  "sizes": {
+    "typeScale": "large",
+    "artworkSize": "large",
+    "columns": "2",
+    "contentWidth": "full"
+  },
+  "animations": {
+    "scrollReveal": "bold",
+    "hoverEffect": "zoom",
+    "pageTransition": "fade"
+  },
+  "navigation": {
+    "type": "side",
+    "sticky": true
+  },
+  "sections": [
+    {
+      "id": "s1",
+      "type": "cover",
+      "variant": "cinematic",
+      "visible": true,
+      "content": {
+        "title": "Sofia Rios",
+        "subtitle": "Escultura e instalacion"
+      }
+    },
+    {
+      "id": "s2",
+      "type": "artworks",
+      "variant": "mosaic",
+      "visible": true,
+      "content": {}
+    },
+    {
+      "id": "s3",
+      "type": "bio",
+      "variant": "simple",
+      "visible": true,
+      "content": {
+        "text": "Sofia Rios trabaja la escultura y la instalacion desde el gesto minimo. Sus piezas buscan la oscuridad como material y el silencio como forma."
+      }
+    },
+    {
+      "id": "s4",
+      "type": "exhibitions",
+      "variant": "timeline",
+      "visible": true,
+      "content": {
+        "exhibitions": [
+          { "title": "Cuarto propio", "year": 2024, "place": "MALI, Lima" },
+          { "title": "Peso ausente", "year": 2023, "place": "Galeria 80m2, Barranco" },
+          { "title": "Muda", "year": 2022, "place": "Fundacion Wiese, Lima" }
+        ]
+      }
+    },
+    {
+      "id": "s5",
+      "type": "contact",
+      "variant": "simple",
+      "visible": true,
+      "content": {
+        "email": "sofia@ejemplo.com",
+        "instagram": "@sofiarios.estudio"
+      }
+    }
+  ],
+  "identity": {
+    "siteTitle": "Sofia Rios",
+    "coverImageUrl": "https://picsum.photos/seed/sofia-cover/1600/900",
+    "ogImageUrl": "https://picsum.photos/seed/sofia-og/1200/630"
+  }
+}
