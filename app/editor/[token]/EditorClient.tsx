@@ -7,6 +7,7 @@ import ControlPanel from '@/components/editor/ControlPanel'
 import SectionList from '@/components/editor/SectionList'
 import PreviewFrame from '@/components/editor/PreviewFrame'
 import PreviewToggle from '@/components/editor/PreviewToggle'
+import AIRequestPanel from '@/components/editor/AIRequestPanel'
 import type { Viewport } from './EditorConfig'
 
 type Status = 'idle' | 'saving' | 'saved' | 'publishing' | 'published' | 'error'
@@ -25,6 +26,12 @@ export default function EditorClient({ initialConfig, artistSlug, works }: Props
   const [status, setStatus] = useState<Status>('idle')
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
   const [mobileTab, setMobileTab] = useState<MobileTab>('controls')
+  const [aiOpen, setAiOpen] = useState(false)
+
+  const handleAiApply = useCallback((next: SiteConfig) => {
+    setConfig(next)
+    setAiOpen(false)
+  }, [])
 
   const handlePatch = useCallback((patch: Partial<SiteConfig>) => {
     setConfig((prev) => ({ ...prev, ...patch }))
@@ -94,6 +101,9 @@ export default function EditorClient({ initialConfig, artistSlug, works }: Props
 
   const controlsPanel = (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+      {aiOpen && (
+        <AIRequestPanel currentConfig={config} artistSlug={artistSlug} onApply={handleAiApply} />
+      )}
       <ControlPanel config={config} onChange={handlePatch} />
       <section
         style={{
@@ -169,6 +179,14 @@ export default function EditorClient({ initialConfig, artistSlug, works }: Props
               {statusLabel}
             </span>
           )}
+          <button
+            type="button"
+            onClick={() => setAiOpen((v) => !v)}
+            aria-pressed={aiOpen}
+            style={btnSecondary}
+          >
+            Pídeselo a la IA
+          </button>
           <button
             type="button"
             onClick={handleSaveDraft}
