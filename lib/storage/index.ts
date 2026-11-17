@@ -1,4 +1,6 @@
-export type { SiteConfig } from '../schemas/site-config.schema'
+import type { SiteConfig } from '../schemas/site-config.schema'
+
+export type { SiteConfig }
 
 export interface StorageAdapter {
   getPublished(slug: string): Promise<SiteConfig | null>

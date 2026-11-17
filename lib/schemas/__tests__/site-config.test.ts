@@ -1,3 +1,4 @@
+import { describe, it, expect } from '@jest/globals'
 import { SiteConfigSchema, defaultSiteConfig, SiteConfig } from '../site-config.schema'
 
 const validConfig: SiteConfig = {
