@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { mediaUrlSchema } from './site-config.schema'
 
 export const ArtworkSchema = z.object({
   slug: z.string().min(1),
@@ -9,7 +10,7 @@ export const ArtworkSchema = z.object({
   price: z.number().positive().optional(),
   currency: z.enum(['PEN', 'USD']).default('PEN'),
   sold: z.boolean().default(false),
-  images: z.array(z.string().url()).min(1),
+  images: z.array(mediaUrlSchema).min(1),
   description: z.string().max(600).optional(),
   tags: z.array(z.string()).default([]),
 })

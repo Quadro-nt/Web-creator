@@ -1,4 +1,4 @@
-import { SiteConfigSchema, type SiteConfig } from '@/lib/schemas/site-config.schema'
+import { SECTION_TYPES, SiteConfigSchema, type SiteConfig } from '@/lib/schemas/site-config.schema'
 import type { AIProvider } from './provider'
 
 export type AISuggestion = {
@@ -49,8 +49,16 @@ const SCHEMA_SUMMARY = {
         },
         spacing: { enum: ['compact', 'normal', 'spacious'] },
         artworkTreatment: { enum: ['frame', 'margin', 'bleed'] },
+        headingFont: { type: 'string' },
+        bodyFont: { type: 'string' },
+        uppercaseHeadings: { type: 'boolean' },
+        borderRadius: { enum: ['none', 'sm', 'md', 'lg'] },
+        cardBorder: { type: 'boolean' },
       },
     },
+    announcementBar: { type: 'object' },
+    header: { type: 'object' },
+    footer: { type: 'object' },
     button: {
       type: 'object',
       required: ['shape', 'style', 'buyText'],
@@ -94,7 +102,7 @@ const SCHEMA_SUMMARY = {
         required: ['id', 'type', 'variant', 'visible', 'content'],
         properties: {
           id: { type: 'string' },
-          type: { enum: ['cover', 'artworks', 'bio', 'exhibitions', 'contact'] },
+          type: { enum: [...SECTION_TYPES] },
           variant: { type: 'string' },
           visible: { type: 'boolean' },
           content: { type: 'object' },
@@ -124,11 +132,15 @@ export async function askAI(params: {
   currentConfig: SiteConfig
   prompt: string
   provider: AIProvider
+  selectedSectionId?: string
 }): Promise<AISuggestion> {
   const schema = getSiteConfigJsonSchema()
+  const contextualPrompt = params.selectedSectionId
+    ? `[Sección seleccionada: ${params.selectedSectionId}] ${params.prompt}`
+    : params.prompt
   const response = await params.provider.suggestConfig({
     currentConfig: params.currentConfig,
-    prompt: params.prompt,
+    prompt: contextualPrompt,
     schema,
   })
 

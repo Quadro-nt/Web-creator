@@ -1,5 +1,7 @@
 import Image from 'next/image'
 import type { SiteConfig } from '@/lib/schemas/site-config.schema'
+import { Button } from '@/components/Button'
+import { sanitizeHref } from '@/components/templates/shared/template-helpers'
 
 type SectionConfig = SiteConfig['sections'][number]
 
@@ -9,7 +11,20 @@ type Props = {
 }
 
 export default function ImmersiveCover({ section, config }: Props) {
-  const { siteTitle, coverImageUrl } = config.identity
+  const headline = (section.content.headline as string)?.trim() || config.identity.siteTitle
+  const subtitle = (section.content.subtitle as string)?.trim() || ''
+  const ctaText = (section.content.ctaText as string)?.trim() || ''
+  const ctaHref = sanitizeHref(section.content.ctaHref) ?? '#artworks'
+  const coverImageUrl =
+    (section.content.imageUrl as string)?.trim() || config.identity.coverImageUrl
+
+  const ctaButton = ctaText ? (
+    <div style={{ marginTop: '1.75rem' }}>
+      <Button shape={config.button.shape} style={config.button.style} href={ctaHref}>
+        {ctaText}
+      </Button>
+    </div>
+  ) : null
 
   if (section.variant === 'fullscreen-video') {
     return (
@@ -17,6 +32,7 @@ export default function ImmersiveCover({ section, config }: Props) {
         style={{
           position: 'relative',
           width: '100%',
+          minHeight: '520px',
           height: '100%',
           backgroundColor: '#000',
           display: 'flex',
@@ -26,13 +42,7 @@ export default function ImmersiveCover({ section, config }: Props) {
         }}
       >
         {coverImageUrl && (
-          <Image
-            src={coverImageUrl}
-            alt={siteTitle}
-            fill
-            unoptimized
-            style={{ objectFit: 'cover', opacity: 0.5 }}
-          />
+          <Image src={coverImageUrl} alt={headline} fill unoptimized style={{ objectFit: 'cover', opacity: 0.5 }} />
         )}
         <div
           style={{
@@ -42,12 +52,13 @@ export default function ImmersiveCover({ section, config }: Props) {
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
-            gap: '2.5rem',
+            gap: '1.75rem',
+            padding: '3rem 2rem',
           }}
         >
           <h1
             style={{
-              fontSize: 'clamp(3rem, 8vw, 7rem)',
+              fontSize: 'clamp(2.5rem, 7vw, 6rem)',
               fontWeight: 300,
               letterSpacing: '0.15em',
               textTransform: 'uppercase',
@@ -56,54 +67,33 @@ export default function ImmersiveCover({ section, config }: Props) {
               lineHeight: 1,
             }}
           >
-            {siteTitle}
+            {headline}
           </h1>
-          <button
-            aria-label="Reproducir video"
-            style={{
-              width: '72px',
-              height: '72px',
-              borderRadius: '50%',
-              border: '2px solid rgba(240,240,240,0.6)',
-              backgroundColor: 'transparent',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: '#f0f0f0',
-              fontSize: '1.5rem',
-            }}
-          >
-            ▶
-          </button>
+          {subtitle && (
+            <p style={{ margin: 0, color: 'rgba(240,240,240,0.8)', fontSize: 'var(--text-lg)' }}>{subtitle}</p>
+          )}
+          {ctaButton}
         </div>
       </div>
     )
   }
 
-  if (section.variant === 'parallax') {
+  if (section.variant === 'parallax' || section.variant === 'fullscreen' || section.variant === 'full-screen') {
     return (
       <div
         style={{
           position: 'relative',
           width: '100%',
+          minHeight: '520px',
           height: '100%',
           overflow: 'hidden',
           display: 'flex',
           alignItems: 'flex-end',
+          backgroundColor: '#0a0a0a',
         }}
       >
         {coverImageUrl && (
-          <div
-            style={{
-              position: 'absolute',
-              inset: '-20%',
-              backgroundImage: `url(${coverImageUrl})`,
-              backgroundSize: 'cover',
-              backgroundPosition: 'center',
-              backgroundAttachment: 'fixed',
-            }}
-          />
+          <Image src={coverImageUrl} alt={headline} fill unoptimized style={{ objectFit: 'cover', opacity: 0.6 }} />
         )}
         <div
           style={{
@@ -112,21 +102,15 @@ export default function ImmersiveCover({ section, config }: Props) {
             background: 'linear-gradient(to top, rgba(10,10,10,0.9) 0%, transparent 60%)',
           }}
         />
-        <div
-          style={{
-            position: 'relative',
-            zIndex: 1,
-            padding: '4rem 5rem',
-          }}
-        >
+        <div className="qs-section-pad" style={{ position: 'relative', zIndex: 1, padding: '4rem 5rem' }}>
           <span
             style={{
               fontSize: '0.7rem',
               letterSpacing: '0.4em',
               textTransform: 'uppercase',
-              opacity: 0.4,
+              opacity: 0.6,
               display: 'block',
-              marginBottom: '1.5rem',
+              marginBottom: '1.25rem',
               color: '#f0f0f0',
             }}
           >
@@ -134,7 +118,7 @@ export default function ImmersiveCover({ section, config }: Props) {
           </span>
           <h1
             style={{
-              fontSize: 'clamp(3rem, 7vw, 6rem)',
+              fontSize: 'clamp(2.5rem, 6vw, 5.5rem)',
               fontWeight: 300,
               letterSpacing: '0.08em',
               color: '#f0f0f0',
@@ -142,31 +126,41 @@ export default function ImmersiveCover({ section, config }: Props) {
               lineHeight: 1,
             }}
           >
-            {siteTitle}
+            {headline}
           </h1>
+          {subtitle && (
+            <p style={{ margin: '1rem 0 0', color: 'rgba(240,240,240,0.8)', fontSize: 'var(--text-lg)' }}>
+              {subtitle}
+            </p>
+          )}
+          {ctaButton}
         </div>
       </div>
     )
   }
 
-  if (section.variant === 'split-dark') {
+  if (section.variant === 'split-dark' || section.variant === 'split') {
     return (
       <div
+        className="qs-split-responsive"
         style={{
           display: 'grid',
           gridTemplateColumns: '1fr 1fr',
           width: '100%',
+          minHeight: '520px',
           height: '100%',
-          backgroundColor: '#0a0a0a',
+          backgroundColor: 'var(--color-bg)',
+          color: 'var(--color-text)',
         }}
       >
         <div
+          className="qs-section-pad"
           style={{
             display: 'flex',
             flexDirection: 'column',
             justifyContent: 'center',
-            padding: '5rem',
-            borderRight: '1px solid rgba(240,240,240,0.08)',
+            padding: '4rem 5rem',
+            borderRight: '1px solid rgba(128,128,128,0.18)',
           }}
         >
           <span
@@ -176,47 +170,70 @@ export default function ImmersiveCover({ section, config }: Props) {
               textTransform: 'uppercase',
               color: 'var(--color-accent)',
               display: 'block',
-              marginBottom: '2rem',
+              marginBottom: '1.5rem',
             }}
           >
             Arte
           </span>
-          <h1
-            style={{
-              fontSize: 'clamp(3.5rem, 6vw, 6rem)',
-              fontWeight: 700,
-              lineHeight: 0.9,
-              letterSpacing: '-0.02em',
-              color: '#f0f0f0',
-              margin: 0,
-            }}
-          >
-            {siteTitle}
+          <h1 style={{ fontSize: 'clamp(2.75rem, 5.5vw, 5rem)', fontWeight: 700, lineHeight: 0.95, letterSpacing: '-0.02em', margin: 0 }}>
+            {headline}
           </h1>
+          {subtitle && (
+            <p style={{ margin: '1.25rem 0 0', opacity: 0.75, fontSize: 'var(--text-lg)' }}>{subtitle}</p>
+          )}
+          {ctaButton}
         </div>
         {coverImageUrl ? (
-          <div style={{ position: 'relative', overflow: 'hidden' }}>
+          <div style={{ position: 'relative', overflow: 'hidden', minHeight: '340px' }}>
             <Image
               src={coverImageUrl}
-              alt={siteTitle}
+              alt={headline}
               fill
               unoptimized
-              style={{ objectFit: 'cover', filter: 'brightness(0.75)' }}
+              style={{ objectFit: 'cover', filter: 'brightness(0.8)' }}
             />
           </div>
         ) : (
-          <div style={{ backgroundColor: '#111' }} />
+          <div style={{ backgroundColor: 'rgba(128,128,128,0.1)' }} />
         )}
       </div>
     )
   }
 
-  // Default: 'cinematic'
+  if (section.variant === 'minimal') {
+    return (
+      <div
+        className="qs-section-pad"
+        style={{
+          width: '100%',
+          minHeight: '420px',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          textAlign: 'center',
+          padding: '5rem 2rem',
+          backgroundColor: 'var(--color-bg)',
+          color: 'var(--color-text)',
+        }}
+      >
+        <h1 style={{ fontSize: 'clamp(2.75rem, 7vw, 6rem)', fontWeight: 300, letterSpacing: '0.08em', margin: 0 }}>
+          {headline}
+        </h1>
+        {subtitle && (
+          <p style={{ margin: '1rem 0 0', opacity: 0.75, fontSize: 'var(--text-lg)' }}>{subtitle}</p>
+        )}
+        {ctaButton}
+      </div>
+    )
+  }
+
   return (
     <div
       style={{
         position: 'relative',
         width: '100%',
+        minHeight: '520px',
         height: '100%',
         backgroundColor: '#000',
         display: 'flex',
@@ -225,22 +242,9 @@ export default function ImmersiveCover({ section, config }: Props) {
       }}
     >
       {coverImageUrl && (
-        <Image
-          src={coverImageUrl}
-          alt={siteTitle}
-          fill
-          unoptimized
-          style={{ objectFit: 'cover', filter: 'brightness(0.4)' }}
-        />
+        <Image src={coverImageUrl} alt={headline} fill unoptimized style={{ objectFit: 'cover', filter: 'brightness(0.4)' }} />
       )}
-      <div
-        style={{
-          position: 'relative',
-          zIndex: 1,
-          textAlign: 'center',
-          padding: '2rem',
-        }}
-      >
+      <div style={{ position: 'relative', zIndex: 1, textAlign: 'center', padding: '2rem' }}>
         <span
           style={{
             fontSize: '0.65rem',
@@ -248,14 +252,14 @@ export default function ImmersiveCover({ section, config }: Props) {
             textTransform: 'uppercase',
             color: 'var(--color-accent)',
             display: 'block',
-            marginBottom: '2rem',
+            marginBottom: '1.75rem',
           }}
         >
           — Portfolio —
         </span>
         <h1
           style={{
-            fontSize: 'clamp(3.5rem, 9vw, 8rem)',
+            fontSize: 'clamp(3rem, 8vw, 7rem)',
             fontWeight: 300,
             letterSpacing: '0.1em',
             color: '#f0f0f0',
@@ -263,14 +267,20 @@ export default function ImmersiveCover({ section, config }: Props) {
             lineHeight: 1,
           }}
         >
-          {siteTitle}
+          {headline}
         </h1>
+        {subtitle && (
+          <p style={{ margin: '1.25rem 0 0', color: 'rgba(240,240,240,0.8)', fontSize: 'var(--text-lg)' }}>
+            {subtitle}
+          </p>
+        )}
+        {ctaButton}
         <div
           style={{
             width: '60px',
             height: '1px',
             backgroundColor: 'var(--color-accent)',
-            margin: '2.5rem auto 0',
+            margin: '2rem auto 0',
           }}
         />
       </div>

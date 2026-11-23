@@ -21,12 +21,22 @@ export default async function EditorPage({ params }: Props) {
   }
 
   const storage = createFileAdapter()
-  const draft = await storage.getDraft(slug)
-  const published = draft ? null : await storage.getPublished(slug)
+  const [draft, published] = await Promise.all([
+    storage.getDraft(slug),
+    storage.getPublished(slug),
+  ])
   const config = draft ?? published ?? defaultSiteConfig
 
   const worksRepo = createFileWorksAdapter()
   const works = await worksRepo.getWorks(slug)
 
-  return <EditorClient initialConfig={config} artistSlug={slug} works={works} />
+  return (
+    <EditorClient
+      initialConfig={config}
+      publishedConfig={published}
+      artistSlug={slug}
+      editorToken={params.token}
+      works={works}
+    />
+  )
 }

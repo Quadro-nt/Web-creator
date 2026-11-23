@@ -1,225 +1,228 @@
 import type { SiteConfig } from '@/lib/schemas/site-config.schema'
+import { Button } from '@/components/Button'
+import { ContentWrapper } from '@/components/ContentWrapper'
+import { buildWhatsappUrl } from '@/components/templates/shared/template-helpers'
 
 type SectionConfig = SiteConfig['sections'][number]
 
 type Props = {
   section: SectionConfig
+  config?: SiteConfig
 }
 
-export default function Contact({ section }: Props) {
+export default function Contact({ section, config }: Props) {
+  const heading = (section.content.heading as string) || 'Hablemos'
+  const intro = (section.content.intro as string) || 'Consultas sobre obras, precios y encargos.'
   const email = (section.content.email as string) ?? ''
   const instagram = (section.content.instagram as string) ?? ''
+  const whatsappUrl = buildWhatsappUrl(section.content.whatsapp, 'Hola, te escribo desde tu sitio editorial.')
+  const width = config?.sizes.contentWidth ?? 'full'
+  const btnShape = config?.button.shape ?? 'square'
+  const btnStyle = config?.button.style ?? 'filled'
+
+  const infoBlock = (
+    <div>
+      <h2 style={{ fontSize: 'var(--text-3xl)', fontWeight: 800, letterSpacing: '-0.03em', margin: '0 0 1.25rem', lineHeight: 0.95 }}>
+        {heading}
+      </h2>
+      <p style={{ opacity: 0.65, fontSize: 'var(--text-sm)', lineHeight: 1.6, margin: '0 0 1.75rem' }}>{intro}</p>
+      {email && (
+        <a href={`mailto:${email}`} style={{ display: 'block', color: 'var(--color-bg)', textDecoration: 'none', fontSize: 'var(--text-sm)', opacity: 0.8, marginBottom: '0.5rem' }}>
+          {email}
+        </a>
+      )}
+      {instagram && (
+        <a href={`https://instagram.com/${instagram.replace('@', '')}`} target="_blank" rel="noopener noreferrer" style={{ display: 'block', color: 'var(--color-bg)', textDecoration: 'none', fontSize: 'var(--text-sm)', opacity: 0.8, marginBottom: '1rem' }}>
+          {instagram}
+        </a>
+      )}
+      {whatsappUrl && (
+        <Button shape={btnShape} style={btnStyle} href={whatsappUrl}>
+          Escribir por WhatsApp
+        </Button>
+      )}
+    </div>
+  )
 
   if (section.variant === 'form') {
     return (
       <section
+        className="qs-section-pad"
         style={{
           padding: '6rem 5rem',
           backgroundColor: 'var(--color-text)',
           color: 'var(--color-bg)',
-          borderTop: '1px solid rgba(0,0,0,0.1)',
+          borderTop: '1px solid rgba(128,128,128,0.18)',
         }}
       >
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6rem', alignItems: 'start' }}>
-          <div>
-            <h2
-              style={{
-                fontSize: 'clamp(2.5rem, 5vw, 4.5rem)',
-                fontWeight: 800,
-                letterSpacing: '-0.03em',
-                margin: '0 0 1.5rem',
-                lineHeight: 0.9,
-              }}
-            >
-              Hablemos
-            </h2>
-            <p
-              style={{
-                opacity: 0.5,
-                fontSize: '0.9rem',
-                lineHeight: 1.6,
-                margin: '0 0 2rem',
-              }}
-            >
-              Consultas sobre obras, precios y encargos.
-            </p>
-            {email && (
-              <a
-                href={`mailto:${email}`}
-                style={{
-                  display: 'block',
-                  color: 'var(--color-bg)',
-                  textDecoration: 'none',
-                  fontSize: '0.85rem',
-                  letterSpacing: '0.08em',
-                  opacity: 0.6,
-                  marginBottom: '0.5rem',
-                }}
-              >
-                {email}
-              </a>
-            )}
-            {instagram && (
-              <a
-                href={`https://instagram.com/${instagram.replace('@', '')}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{
-                  display: 'block',
-                  color: 'var(--color-bg)',
-                  textDecoration: 'none',
-                  fontSize: '0.85rem',
-                  letterSpacing: '0.08em',
-                  opacity: 0.6,
-                }}
-              >
-                {instagram}
-              </a>
-            )}
-          </div>
-          <div>
-            {email && (
-              <form action={`mailto:${email}`} method="post" encType="text/plain">
-                <div style={{ marginBottom: '2rem' }}>
-                  <label
-                    htmlFor="ed-contact-name"
+        <ContentWrapper width={width}>
+          <div className="qs-split-responsive" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4rem', alignItems: 'start' }}>
+            {infoBlock}
+            <div>
+              {email && (
+                <form action={`mailto:${email}`} method="post" encType="text/plain">
+                  <div style={{ marginBottom: '2rem' }}>
+                    <label htmlFor="ed-contact-name" style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.7rem', letterSpacing: '0.2em', textTransform: 'uppercase', opacity: 0.6 }}>
+                      Nombre
+                    </label>
+                    <input
+                      id="ed-contact-name"
+                      name="nombre"
+                      type="text"
+                      style={{
+                        width: '100%',
+                        padding: '0.75rem 0',
+                        border: 'none',
+                        borderBottom: '1px solid rgba(245,240,232,0.35)',
+                        background: 'transparent',
+                        color: 'var(--color-bg)',
+                        fontSize: 'var(--text-base)',
+                        outline: 'none',
+                      }}
+                    />
+                  </div>
+                  <div style={{ marginBottom: '2rem' }}>
+                    <label htmlFor="ed-contact-message" style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.7rem', letterSpacing: '0.2em', textTransform: 'uppercase', opacity: 0.6 }}>
+                      Mensaje
+                    </label>
+                    <textarea
+                      id="ed-contact-message"
+                      name="mensaje"
+                      rows={4}
+                      style={{
+                        width: '100%',
+                        padding: '0.75rem 0',
+                        border: 'none',
+                        borderBottom: '1px solid rgba(245,240,232,0.35)',
+                        background: 'transparent',
+                        color: 'var(--color-bg)',
+                        fontSize: 'var(--text-base)',
+                        resize: 'none',
+                        outline: 'none',
+                      }}
+                    />
+                  </div>
+                  <button
+                    type="submit"
                     style={{
-                      display: 'block',
-                      marginBottom: '0.5rem',
-                      fontSize: '0.7rem',
-                      letterSpacing: '0.2em',
+                      padding: '0.9rem 3rem',
+                      backgroundColor: 'var(--color-accent)',
+                      color: '#ffffff',
+                      border: 'none',
+                      cursor: 'pointer',
+                      fontSize: '0.8rem',
+                      letterSpacing: '0.15em',
                       textTransform: 'uppercase',
-                      opacity: 0.5,
+                      fontWeight: 600,
                     }}
                   >
-                    Nombre
-                  </label>
-                  <input
-                    id="ed-contact-name"
-                    name="nombre"
-                    type="text"
-                    style={{
-                      width: '100%',
-                      padding: '0.75rem 0',
-                      border: 'none',
-                      borderBottom: '1px solid rgba(245,240,232,0.3)',
-                      background: 'transparent',
-                      color: 'var(--color-bg)',
-                      fontSize: '1rem',
-                      outline: 'none',
-                    }}
-                  />
-                </div>
-                <div style={{ marginBottom: '2rem' }}>
-                  <label
-                    htmlFor="ed-contact-message"
-                    style={{
-                      display: 'block',
-                      marginBottom: '0.5rem',
-                      fontSize: '0.7rem',
-                      letterSpacing: '0.2em',
-                      textTransform: 'uppercase',
-                      opacity: 0.5,
-                    }}
-                  >
-                    Mensaje
-                  </label>
-                  <textarea
-                    id="ed-contact-message"
-                    name="mensaje"
-                    rows={4}
-                    style={{
-                      width: '100%',
-                      padding: '0.75rem 0',
-                      border: 'none',
-                      borderBottom: '1px solid rgba(245,240,232,0.3)',
-                      background: 'transparent',
-                      color: 'var(--color-bg)',
-                      fontSize: '1rem',
-                      resize: 'none',
-                      outline: 'none',
-                    }}
-                  />
-                </div>
-                <button
-                  type="submit"
-                  style={{
-                    padding: '0.9rem 3rem',
-                    backgroundColor: 'var(--color-accent)',
-                    color: '#ffffff',
-                    border: 'none',
-                    cursor: 'pointer',
-                    fontSize: '0.8rem',
-                    letterSpacing: '0.15em',
-                    textTransform: 'uppercase',
-                    fontWeight: 600,
-                  }}
-                >
-                  Enviar
-                </button>
-              </form>
-            )}
+                    Enviar
+                  </button>
+                </form>
+              )}
+            </div>
           </div>
-        </div>
+        </ContentWrapper>
       </section>
     )
   }
 
-  // Default: 'simple'
+  if (section.variant === 'split') {
+    return (
+      <section
+        className="qs-section-pad"
+        style={{
+          padding: '6rem 5rem',
+          backgroundColor: 'var(--color-text)',
+          color: 'var(--color-bg)',
+          borderTop: '1px solid rgba(128,128,128,0.18)',
+        }}
+      >
+        <ContentWrapper width={width}>
+          <div className="qs-split-responsive" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4rem', alignItems: 'center' }}>
+            <div>
+              <h2 style={{ fontSize: 'var(--text-4xl)', fontWeight: 800, letterSpacing: '-0.03em', margin: '0 0 1rem', lineHeight: 0.9 }}>
+                {heading}
+              </h2>
+              <p style={{ margin: 0, opacity: 0.7 }}>{intro}</p>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              {email && (
+                <a href={`mailto:${email}`} style={{ color: 'var(--color-bg)', textDecoration: 'none', fontSize: 'var(--text-lg)' }}>
+                  {email}
+                </a>
+              )}
+              {instagram && (
+                <a href={`https://instagram.com/${instagram.replace('@', '')}`} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--color-bg)', textDecoration: 'none', fontSize: 'var(--text-base)', opacity: 0.8 }}>
+                  {instagram}
+                </a>
+              )}
+              {whatsappUrl && (
+                <div>
+                  <Button shape={btnShape} style={btnStyle} href={whatsappUrl}>
+                    Escribir por WhatsApp
+                  </Button>
+                </div>
+              )}
+            </div>
+          </div>
+        </ContentWrapper>
+      </section>
+    )
+  }
+
   return (
     <section
+      className="qs-section-pad"
       style={{
         padding: '6rem 5rem',
         backgroundColor: 'var(--color-text)',
         color: 'var(--color-bg)',
-        borderTop: '1px solid rgba(0,0,0,0.1)',
+        borderTop: '1px solid rgba(128,128,128,0.18)',
       }}
     >
-      <h2
-        style={{
-          fontSize: 'clamp(3rem, 7vw, 6rem)',
-          fontWeight: 800,
-          letterSpacing: '-0.03em',
-          margin: '0 0 2.5rem',
-          lineHeight: 0.85,
-        }}
-      >
-        Contacto
-      </h2>
-      <div style={{ display: 'flex', gap: '3rem', flexWrap: 'wrap' }}>
-        {email && (
-          <a
-            href={`mailto:${email}`}
-            style={{
-              color: 'var(--color-bg)',
-              textDecoration: 'none',
-              fontSize: '1rem',
-              borderBottom: '1px solid rgba(245,240,232,0.3)',
-              paddingBottom: '0.2rem',
-              opacity: 0.85,
-            }}
-          >
-            {email}
-          </a>
-        )}
-        {instagram && (
-          <a
-            href={`https://instagram.com/${instagram.replace('@', '')}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{
-              color: 'var(--color-bg)',
-              textDecoration: 'none',
-              fontSize: '1rem',
-              borderBottom: '1px solid rgba(245,240,232,0.3)',
-              paddingBottom: '0.2rem',
-              opacity: 0.85,
-            }}
-          >
-            {instagram}
-          </a>
-        )}
-      </div>
+      <ContentWrapper width={width}>
+        <h2 style={{ fontSize: 'var(--text-4xl)', fontWeight: 800, letterSpacing: '-0.03em', margin: '0 0 2rem', lineHeight: 0.9 }}>
+          {heading}
+        </h2>
+        <div style={{ display: 'flex', gap: '2.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
+          {email && (
+            <a
+              href={`mailto:${email}`}
+              style={{
+                color: 'var(--color-bg)',
+                textDecoration: 'none',
+                fontSize: 'var(--text-base)',
+                borderBottom: '1px solid rgba(245,240,232,0.35)',
+                paddingBottom: '0.2rem',
+              }}
+            >
+              {email}
+            </a>
+          )}
+          {instagram && (
+            <a
+              href={`https://instagram.com/${instagram.replace('@', '')}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                color: 'var(--color-bg)',
+                textDecoration: 'none',
+                fontSize: 'var(--text-base)',
+                borderBottom: '1px solid rgba(245,240,232,0.35)',
+                paddingBottom: '0.2rem',
+              }}
+            >
+              {instagram}
+            </a>
+          )}
+          {whatsappUrl && (
+            <Button shape={btnShape} style={btnStyle} href={whatsappUrl}>
+              WhatsApp
+            </Button>
+          )}
+        </div>
+      </ContentWrapper>
     </section>
   )
 }

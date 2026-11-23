@@ -1,16 +1,34 @@
 'use client'
 
+import { SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
 import type { SiteConfig } from '@/lib/schemas/site-config.schema'
-import { SECTION_TYPE_LABELS, SECTION_VARIANTS } from '@/app/editor/[token]/EditorConfig'
+import {
+  SECTION_TYPE_LABELS,
+  SECTION_VARIANTS,
+  getVariantLabelEs,
+} from '@/app/editor/[token]/EditorConfig'
+import { STUDIO_COLORS, studioIconBtn, studioSelectStyle } from './studio-styles'
 
 type SectionConfig = SiteConfig['sections'][number]
 
 type Props = {
   sections: SectionConfig[]
+  selectedSectionId?: string | null
+  onSelect?: (sectionId: string) => void
   onChange: (sections: SectionConfig[]) => void
+  onDuplicate?: (sectionId: string) => void
+  onDelete?: (sectionId: string) => void
 }
 
-export default function SectionList({ sections, onChange }: Props) {
+export default function SectionList({
+  sections,
+  selectedSectionId = null,
+  onSelect,
+  onChange,
+  onDuplicate,
+  onDelete,
+}: Props) {
   function toggleVisible(index: number) {
     const next = sections.map((s, i) => (i === index ? { ...s, visible: !s.visible } : s))
     onChange(next)
@@ -32,101 +50,189 @@ export default function SectionList({ sections, onChange }: Props) {
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-      {sections.map((section, index) => {
-        const variants = SECTION_VARIANTS[section.type] ?? [section.variant]
-        return (
-          <div
+    <SortableContext
+      items={sections.map((s) => `layer:${s.id}`)}
+      strategy={verticalListSortingStrategy}
+    >
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+        {sections.map((section, index) => (
+          <SortableLayerItem
             key={section.id}
-            style={{
-              border: '1px solid #e5e7eb',
-              borderRadius: '6px',
-              padding: '0.6rem 0.75rem',
-              background: section.visible ? '#ffffff' : '#f9fafb',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '0.5rem',
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.5rem' }}>
-              <span style={{ fontWeight: 600, fontSize: '0.9rem' }}>
-                {SECTION_TYPE_LABELS[section.type] ?? section.type}
-              </span>
-              <div style={{ display: 'flex', gap: '0.25rem' }}>
-                <button
-                  type="button"
-                  onClick={() => move(index, -1)}
-                  aria-label={`Subir ${SECTION_TYPE_LABELS[section.type] ?? section.type}`}
-                  disabled={index === 0}
-                  style={iconBtn(index === 0)}
-                >
-                  ↑
-                </button>
-                <button
-                  type="button"
-                  onClick={() => move(index, 1)}
-                  aria-label={`Bajar ${SECTION_TYPE_LABELS[section.type] ?? section.type}`}
-                  disabled={index === sections.length - 1}
-                  style={iconBtn(index === sections.length - 1)}
-                >
-                  ↓
-                </button>
-                <label style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.8rem' }}>
-                  <input
-                    type="checkbox"
-                    checked={section.visible}
-                    onChange={() => toggleVisible(index)}
-                    aria-label={`Visibilidad de ${SECTION_TYPE_LABELS[section.type] ?? section.type}`}
-                  />
-                  Visible
-                </label>
-              </div>
-            </div>
-            <label style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem', fontSize: '0.75rem', color: '#4b5563' }}>
-              <span>Variante</span>
-              <select
-                value={section.variant}
-                onChange={(e) => setVariant(index, e.target.value)}
-                style={selectStyle}
-              >
-                {variants.map((v) => (
-                  <option key={v} value={v}>
-                    {v}
-                  </option>
-                ))}
-                {!variants.includes(section.variant) && (
-                  <option value={section.variant}>{section.variant}</option>
-                )}
-              </select>
-            </label>
-          </div>
-        )
-      })}
-    </div>
+            section={section}
+            index={index}
+            total={sections.length}
+            isSelected={selectedSectionId === section.id}
+            onSelect={() => onSelect?.(section.id)}
+            onMove={(dir) => move(index, dir)}
+            onToggleVisible={() => toggleVisible(index)}
+            onVariantChange={(v) => setVariant(index, v)}
+            onDuplicate={onDuplicate ? () => onDuplicate(section.id) : undefined}
+            onDelete={onDelete ? () => onDelete(section.id) : undefined}
+          />
+        ))}
+      </div>
+    </SortableContext>
   )
 }
 
-function iconBtn(disabled: boolean): React.CSSProperties {
-  return {
-    width: '24px',
-    height: '24px',
-    display: 'inline-flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    border: '1px solid #d4d4d8',
-    borderRadius: '4px',
-    background: disabled ? '#f3f4f6' : '#ffffff',
-    color: disabled ? '#9ca3af' : '#111827',
-    cursor: disabled ? 'not-allowed' : 'pointer',
-    fontSize: '0.8rem',
-    lineHeight: 1,
-  }
-}
+function SortableLayerItem({
+  section,
+  index,
+  total,
+  isSelected,
+  onSelect,
+  onMove,
+  onToggleVisible,
+  onVariantChange,
+  onDuplicate,
+  onDelete,
+}: {
+  section: SectionConfig
+  index: number
+  total: number
+  isSelected: boolean
+  onSelect: () => void
+  onMove: (dir: -1 | 1) => void
+  onToggleVisible: () => void
+  onVariantChange: (variant: string) => void
+  onDuplicate?: () => void
+  onDelete?: () => void
+}) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: `layer:${section.id}`,
+    data: { source: 'layer', sectionId: section.id },
+  })
 
-const selectStyle: React.CSSProperties = {
-  padding: '0.3rem 0.4rem',
-  border: '1px solid #d4d4d8',
-  borderRadius: '4px',
-  fontSize: '0.8rem',
-  background: '#ffffff',
+  const label = SECTION_TYPE_LABELS[section.type] ?? section.type
+  const variants = SECTION_VARIANTS[section.type] ?? [section.variant]
+
+  return (
+    <div
+      ref={setNodeRef}
+      onClick={onSelect}
+      style={{
+        border: isSelected ? `1.5px solid ${STUDIO_COLORS.accent}` : `1px solid ${STUDIO_COLORS.border}`,
+        borderRadius: '7px',
+        padding: '0.55rem 0.65rem',
+        background: isSelected
+          ? STUDIO_COLORS.accentSoft
+          : section.visible
+            ? STUDIO_COLORS.surface
+            : STUDIO_COLORS.chrome,
+        opacity: isDragging ? 0.55 : section.visible ? 1 : 0.72,
+        transform: CSS.Transform.toString(transform),
+        transition,
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '0.45rem',
+        cursor: 'pointer',
+      }}
+    >
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.4rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', minWidth: 0 }}>
+          <button
+            type="button"
+            aria-label={`Arrastrar ${label}`}
+            onClick={(e) => e.stopPropagation()}
+            {...attributes}
+            {...listeners}
+            style={{
+              ...studioIconBtn(false),
+              cursor: 'grab',
+              border: 'none',
+              background: 'transparent',
+              fontSize: '0.9rem',
+            }}
+          >
+            ≡
+          </button>
+          <span
+            style={{
+              fontWeight: 600,
+              fontSize: '0.82rem',
+              color: STUDIO_COLORS.text,
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            {label}
+          </span>
+        </div>
+        <div style={{ display: 'flex', gap: '0.2rem', alignItems: 'center' }} onClick={(e) => e.stopPropagation()}>
+          <button
+            type="button"
+            onClick={() => onMove(-1)}
+            aria-label={`Subir ${label}`}
+            disabled={index === 0}
+            style={studioIconBtn(index === 0)}
+          >
+            ↑
+          </button>
+          <button
+            type="button"
+            onClick={() => onMove(1)}
+            aria-label={`Bajar ${label}`}
+            disabled={index === total - 1}
+            style={studioIconBtn(index === total - 1)}
+          >
+            ↓
+          </button>
+          {onDuplicate && (
+            <button
+              type="button"
+              onClick={onDuplicate}
+              aria-label={`Duplicar ${label}`}
+              title="Duplicar"
+              style={studioIconBtn(false)}
+            >
+              ⧉
+            </button>
+          )}
+          {onDelete && (
+            <button
+              type="button"
+              onClick={onDelete}
+              aria-label={`Eliminar ${label}`}
+              title="Eliminar"
+              style={{ ...studioIconBtn(false), color: STUDIO_COLORS.danger }}
+            >
+              ✕
+            </button>
+          )}
+        </div>
+      </div>
+
+      <div
+        style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.5rem' }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <select
+          aria-label={`Variante de ${label}`}
+          value={section.variant}
+          onChange={(e) => onVariantChange(e.target.value)}
+          style={{ ...studioSelectStyle, flex: 1, padding: '0.28rem 0.4rem', fontSize: '0.75rem' }}
+        >
+          {variants.map((v) => (
+            <option key={v} value={v}>
+              {getVariantLabelEs(v)}
+            </option>
+          ))}
+          {!variants.includes(section.variant) && (
+            <option value={section.variant}>{getVariantLabelEs(section.variant)}</option>
+          )}
+        </select>
+
+        <label style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.75rem', color: '#334155', whiteSpace: 'nowrap' }}>
+          <input
+            type="checkbox"
+            checked={section.visible}
+            onChange={onToggleVisible}
+            aria-label={`Visibilidad de ${label}`}
+          />
+          Visible
+        </label>
+      </div>
+    </div>
+  )
 }

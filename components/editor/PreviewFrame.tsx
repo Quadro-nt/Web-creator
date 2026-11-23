@@ -1,8 +1,8 @@
 'use client'
 
 import { createElement } from 'react'
-import type { ComponentType } from 'react'
-import type { SiteConfig } from '@/lib/schemas/site-config.schema'
+import type { ComponentType, ReactNode } from 'react'
+import type { SectionConfig, SiteConfig } from '@/lib/schemas/site-config.schema'
 import type { Artwork } from '@/lib/schemas/works.schema'
 import MinimalGallery from '@/components/templates/minimal-gallery'
 import EditorialTemplate from '@/components/templates/editorial'
@@ -13,6 +13,9 @@ type TemplateProps = {
   config: SiteConfig
   works: Artwork[]
   artistSlug: string
+  inPreview?: boolean
+  onSelectChrome?: (target: 'announcement' | 'header' | 'footer') => void
+  renderSectionWrapper?: (section: SectionConfig, children: ReactNode, index: number) => ReactNode
 }
 
 const TEMPLATES: Record<SiteConfig['template'], ComponentType<TemplateProps>> = {
@@ -26,30 +29,41 @@ type Props = {
   works: Artwork[]
   artistSlug: string
   viewport: Viewport
+  onSelectChrome?: (target: 'announcement' | 'header' | 'footer') => void
+  renderSectionWrapper?: (section: SectionConfig, children: ReactNode, index: number) => ReactNode
 }
 
-export default function PreviewFrame({ config, works, artistSlug, viewport }: Props) {
+export default function PreviewFrame({
+  config,
+  works,
+  artistSlug,
+  viewport,
+  onSelectChrome,
+  renderSectionWrapper,
+}: Props) {
   const Template = TEMPLATES[config.template] ?? MinimalGallery
 
-  const isMobile = viewport === 'mobile'
+  const isFramed = viewport !== 'desktop'
+  const frameWidth = viewport === 'mobile' ? '390px' : viewport === 'tablet' ? '768px' : '100%'
+
   const outerStyle: React.CSSProperties = {
     width: '100%',
     display: 'flex',
     justifyContent: 'center',
-    background: '#f3f4f6',
-    padding: isMobile ? '1rem' : '0',
+    background: '#e2e8f0',
+    padding: isFramed ? '1.25rem' : '0',
     minHeight: '100%',
   }
 
-  const frameStyle: React.CSSProperties = isMobile
+  const frameStyle: React.CSSProperties = isFramed
     ? {
-        width: '390px',
+        width: frameWidth,
         maxWidth: '100%',
         overflowX: 'hidden',
         background: '#ffffff',
         border: '1px solid #d4d4d8',
         borderRadius: '12px',
-        boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
+        boxShadow: '0 4px 16px rgba(0,0,0,0.08)',
       }
     : {
         width: '100%',
@@ -59,7 +73,14 @@ export default function PreviewFrame({ config, works, artistSlug, viewport }: Pr
   return (
     <div data-testid="preview-frame" data-viewport={viewport} style={outerStyle}>
       <div style={frameStyle}>
-        {createElement(Template, { config, works, artistSlug })}
+        {createElement(Template, {
+          config,
+          works,
+          artistSlug,
+          inPreview: true,
+          onSelectChrome,
+          renderSectionWrapper,
+        })}
       </div>
     </div>
   )

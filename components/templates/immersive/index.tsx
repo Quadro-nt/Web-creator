@@ -1,5 +1,15 @@
-import type { SiteConfig } from '@/lib/schemas/site-config.schema'
+import type { ReactNode } from 'react'
+import type { SectionConfig, SiteConfig } from '@/lib/schemas/site-config.schema'
 import type { Artwork } from '@/lib/schemas/works.schema'
+import { generateTokenStyles } from '@/lib/tokens/token-engine'
+import { AnimationProvider } from '@/components/AnimationProvider'
+import AnnouncementBar from '@/components/templates/shared/AnnouncementBar'
+import ChromeRegion from '@/components/templates/shared/ChromeRegion'
+import ExtraSection from '@/components/templates/shared/ExtraSections'
+import SectionSurface from '@/components/templates/shared/SectionSurface'
+import SiteFooter from '@/components/templates/shared/SiteFooter'
+import SiteHeader from '@/components/templates/shared/SiteHeader'
+import { isExtraSectionType } from '@/components/templates/shared/template-helpers'
 import Nav from './nav'
 import Cover from './sections/cover'
 import ArtworksSection from './sections/artworks'
@@ -11,99 +21,184 @@ type Props = {
   config: SiteConfig
   works: Artwork[]
   artistSlug: string
+  inPreview?: boolean
+  onSelectChrome?: (target: 'announcement' | 'header' | 'footer') => void
+  renderSectionWrapper?: (section: SectionConfig, children: ReactNode, index: number) => ReactNode
 }
 
-type SectionConfig = SiteConfig['sections'][number]
-
-export default function ImmersiveTemplate({ config, works, artistSlug }: Props) {
-  const cssVars = [
-    `--color-bg: ${config.styleTokens.background || '#0a0a0a'};`,
-    `--color-text: ${config.styleTokens.text || '#f0f0f0'};`,
-    `--color-accent: ${config.styleTokens.accent || '#e8c547'};`,
-  ].join(' ')
-
+export default function ImmersiveTemplate({
+  config,
+  works,
+  artistSlug,
+  inPreview = false,
+  onSelectChrome,
+  renderSectionWrapper,
+}: Props) {
+  const tokenCss = generateTokenStyles(config, '.qs-site-root')
   const visibleSections = config.sections.filter((s) => s.visible)
 
-  function renderSection(section: SectionConfig) {
-    switch (section.type) {
-      case 'cover':
-        return (
-          <section
-            key={section.id}
-            id={section.id}
-            style={{ height: '100vh', scrollSnapAlign: 'start', flexShrink: 0 }}
-          >
-            <Cover section={section} config={config} />
-          </section>
-        )
-      case 'artworks': {
-        const enriched = {
-          ...section,
-          content: {
-            ...section.content,
-            columns: section.content.columns ?? config.sizes.columns,
-            artworkSize: section.content.artworkSize ?? config.sizes.artworkSize,
-          },
+  function renderSectionContent(section: SectionConfig): ReactNode {
+    let inner: ReactNode = null
+
+    if (isExtraSectionType(section.type)) {
+      inner = (
+        <section
+          id={section.id}
+          style={{
+            minHeight: inPreview ? 'auto' : '70vh',
+            scrollSnapAlign: inPreview ? undefined : 'start',
+            flexShrink: 0,
+          }}
+        >
+          <ExtraSection
+            section={section}
+            config={config}
+            works={works}
+            artistSlug={artistSlug}
+            inPreview={inPreview}
+          />
+        </section>
+      )
+    } else {
+      switch (section.type) {
+        case 'cover':
+          inner = (
+            <section
+              id={section.id}
+              style={{
+                height: inPreview ? 'auto' : '100vh',
+                minHeight: inPreview ? '520px' : '100vh',
+                scrollSnapAlign: inPreview ? undefined : 'start',
+                flexShrink: 0,
+              }}
+            >
+              <Cover section={section} config={config} />
+            </section>
+          )
+          break
+        case 'artworks': {
+          const enriched = {
+            ...section,
+            content: {
+              ...section.content,
+              columns: section.content.columns ?? config.sizes.columns,
+              artworkSize: section.content.artworkSize ?? config.sizes.artworkSize,
+            },
+          }
+          inner = (
+            <section
+              id={section.id}
+              style={{
+                minHeight: inPreview ? 'auto' : '100vh',
+                scrollSnapAlign: inPreview ? undefined : 'start',
+                flexShrink: 0,
+              }}
+            >
+              <ArtworksSection section={enriched} works={works} artistSlug={artistSlug} config={config} />
+            </section>
+          )
+          break
         }
-        return (
-          <section
-            key={section.id}
-            id={section.id}
-            style={{ minHeight: '100vh', scrollSnapAlign: 'start', flexShrink: 0 }}
-          >
-            <ArtworksSection section={enriched} works={works} artistSlug={artistSlug} />
-          </section>
-        )
+        case 'bio':
+          inner = (
+            <section
+              id={section.id}
+              style={{
+                minHeight: inPreview ? 'auto' : '100vh',
+                scrollSnapAlign: inPreview ? undefined : 'start',
+                flexShrink: 0,
+              }}
+            >
+              <Bio section={section} config={config} />
+            </section>
+          )
+          break
+        case 'exhibitions':
+          inner = (
+            <section
+              id={section.id}
+              style={{
+                minHeight: inPreview ? 'auto' : '100vh',
+                scrollSnapAlign: inPreview ? undefined : 'start',
+                flexShrink: 0,
+              }}
+            >
+              <Exhibitions section={section} config={config} />
+            </section>
+          )
+          break
+        case 'contact':
+          inner = (
+            <section
+              id={section.id}
+              style={{
+                minHeight: inPreview ? 'auto' : '100vh',
+                scrollSnapAlign: inPreview ? undefined : 'start',
+                flexShrink: 0,
+              }}
+            >
+              <Contact section={section} config={config} />
+            </section>
+          )
+          break
       }
-      case 'bio':
-        return (
-          <section
-            key={section.id}
-            id={section.id}
-            style={{ minHeight: '100vh', scrollSnapAlign: 'start', flexShrink: 0 }}
-          >
-            <Bio section={section} />
-          </section>
-        )
-      case 'exhibitions':
-        return (
-          <section
-            key={section.id}
-            id={section.id}
-            style={{ minHeight: '100vh', scrollSnapAlign: 'start', flexShrink: 0 }}
-          >
-            <Exhibitions section={section} />
-          </section>
-        )
-      case 'contact':
-        return (
-          <section
-            key={section.id}
-            id={section.id}
-            style={{ minHeight: '100vh', scrollSnapAlign: 'start', flexShrink: 0 }}
-          >
-            <Contact section={section} />
-          </section>
-        )
     }
+
+    if (!inner) return null
+    return <SectionSurface styleConfig={section.style}>{inner}</SectionSurface>
   }
 
   return (
-    <>
-      <style>{`:root { ${cssVars} }`}</style>
+    <AnimationProvider config={config}>
+      <style dangerouslySetInnerHTML={{ __html: tokenCss }} />
       <div
+        className="qs-site-root"
         style={{
           backgroundColor: 'var(--color-bg)',
           color: 'var(--color-text)',
-          height: '100vh',
-          overflowY: 'scroll',
-          scrollSnapType: 'y mandatory',
+          minHeight: inPreview ? '100%' : '100vh',
+          height: inPreview ? 'auto' : '100vh',
+          overflowY: inPreview ? 'visible' : 'scroll',
+          scrollSnapType: inPreview ? undefined : 'y mandatory',
           scrollBehavior: 'smooth',
+          containerType: 'inline-size',
+          containerName: 'qs-canvas',
+          position: 'relative',
         }}
       >
-        <Nav config={config} sections={visibleSections} artistSlug={artistSlug} />
-        {visibleSections.map(renderSection)}
+        <AnnouncementBar config={config} inPreview={inPreview} onSelectChrome={onSelectChrome} />
+        {config.header ? (
+          <SiteHeader
+            config={config}
+            artistSlug={artistSlug}
+            inPreview={inPreview}
+            onSelectChrome={onSelectChrome}
+          />
+        ) : (
+          <ChromeRegion
+            target="header"
+            onSelectChrome={onSelectChrome}
+            title={inPreview ? 'Clic para editar encabezado' : undefined}
+          >
+            <Nav config={config} sections={visibleSections} artistSlug={artistSlug} inPreview={inPreview} />
+          </ChromeRegion>
+        )}
+
+        {visibleSections.map((section, index) => {
+          const node = renderSectionContent(section)
+          if (renderSectionWrapper) {
+            return renderSectionWrapper(section, node, index)
+          }
+          return <div key={section.id}>{node}</div>
+        })}
+
+        <SiteFooter
+          config={config}
+          artistSlug={artistSlug}
+          inPreview={inPreview}
+          onSelectChrome={onSelectChrome}
+        />
       </div>
-    </>
+    </AnimationProvider>
   )
 }

@@ -7,11 +7,13 @@ import { AnthropicProvider } from '@/lib/ai/anthropic-provider'
 import type { AIProvider } from '@/lib/ai/provider'
 import { checkLimit, incrementCount } from '@/lib/ai/rate-limiter'
 import { logAIRequest } from '@/lib/ai/logger'
+import { verifyEditorRequest } from '@/lib/auth/verify-api-request'
 
 const BodySchema = z.object({
   artistSlug: z.string().min(1),
   prompt: z.string().min(1),
   currentConfig: z.unknown(),
+  selectedSectionId: z.string().optional(),
 })
 
 function pickProvider(): AIProvider {
@@ -42,6 +44,11 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'artistSlug y prompt requeridos' }, { status: 400 })
   }
 
+  const auth = await verifyEditorRequest(request, parsedBody.data.artistSlug)
+  if (!auth.ok) {
+    return NextResponse.json({ error: auth.error }, { status: auth.status })
+  }
+
   const configResult = SiteConfigSchema.safeParse(parsedBody.data.currentConfig)
   if (!configResult.success) {
     return NextResponse.json(
@@ -50,7 +57,8 @@ export async function POST(request: Request) {
     )
   }
 
-  const { artistSlug, prompt } = parsedBody.data
+  const { prompt, selectedSectionId } = parsedBody.data
+  const artistSlug = auth.artistSlug
 
   const limit = await checkLimit(artistSlug)
   if (!limit.allowed) {
@@ -73,6 +81,7 @@ export async function POST(request: Request) {
       currentConfig: configResult.data,
       prompt,
       provider,
+      selectedSectionId,
     })
     await incrementCount(artistSlug)
     logAIRequest({

@@ -7,6 +7,7 @@ import { FONT_PAIR_LABELS } from '@/app/editor/[token]/EditorConfig'
 type Props = {
   config: SiteConfig
   onChange: (patch: Partial<SiteConfig>) => void
+  hideIdentity?: boolean
 }
 
 const FONT_PAIR_KEYS = [
@@ -24,71 +25,73 @@ const FONT_PAIR_KEYS = [
   'alice-rubik',
 ] as const
 
-export default function ControlPanel({ config, onChange }: Props) {
+export default function ControlPanel({ config, onChange, hideIdentity = false }: Props) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-      <Section title="Identidad">
-        <Field label="Título">
-          <input
-            type="text"
-            value={config.identity.siteTitle}
-            onChange={(e) => onChange({ identity: { ...config.identity, siteTitle: e.target.value } })}
-            maxLength={80}
-            style={textInput}
-          />
-        </Field>
+      {!hideIdentity && (
+        <Section title="Identidad">
+          <Field label="Título">
+            <input
+              type="text"
+              value={config.identity.siteTitle}
+              onChange={(e) => onChange({ identity: { ...config.identity, siteTitle: e.target.value } })}
+              maxLength={80}
+              style={textInput}
+            />
+          </Field>
+          <Field label="URL de logo">
+            <input
+              type="url"
+              value={config.identity.logoUrl ?? ''}
+              onChange={(e) => onChange({ identity: { ...config.identity, logoUrl: emptyToUndefined(e.target.value) } })}
+              placeholder="https://..."
+              style={textInput}
+            />
+          </Field>
+          <Field label="URL de favicon">
+            <input
+              type="url"
+              value={config.identity.faviconUrl ?? ''}
+              onChange={(e) => onChange({ identity: { ...config.identity, faviconUrl: emptyToUndefined(e.target.value) } })}
+              placeholder="https://..."
+              style={textInput}
+            />
+          </Field>
+          <Field label="URL de imagen de portada">
+            <input
+              type="url"
+              value={config.identity.coverImageUrl ?? ''}
+              onChange={(e) =>
+                onChange({ identity: { ...config.identity, coverImageUrl: emptyToUndefined(e.target.value) } })
+              }
+              placeholder="https://..."
+              style={textInput}
+            />
+          </Field>
+          <Field label="URL imagen Open Graph">
+            <input
+              type="url"
+              value={config.identity.ogImageUrl ?? ''}
+              onChange={(e) => onChange({ identity: { ...config.identity, ogImageUrl: emptyToUndefined(e.target.value) } })}
+              placeholder="https://..."
+              style={textInput}
+            />
+          </Field>
+        </Section>
+      )}
+
+      <Section title="Estilo general">
         <Field label="Template">
           <select
             value={config.template}
             onChange={(e) => onChange({ template: e.target.value as SiteConfig['template'] })}
             style={selectStyle}
           >
-            <option value="minimal-gallery">Minimal Gallery</option>
-            <option value="editorial">Editorial</option>
-            <option value="immersive">Immersive</option>
+            <option value="minimal-gallery">Galería minimalista</option>
+            <option value="editorial">Editorial / Revista</option>
+            <option value="immersive">Inmersivo / Oscuro</option>
           </select>
         </Field>
-        <Field label="URL de logo">
-          <input
-            type="url"
-            value={config.identity.logoUrl ?? ''}
-            onChange={(e) => onChange({ identity: { ...config.identity, logoUrl: emptyToUndefined(e.target.value) } })}
-            placeholder="https://..."
-            style={textInput}
-          />
-        </Field>
-        <Field label="URL de favicon">
-          <input
-            type="url"
-            value={config.identity.faviconUrl ?? ''}
-            onChange={(e) => onChange({ identity: { ...config.identity, faviconUrl: emptyToUndefined(e.target.value) } })}
-            placeholder="https://..."
-            style={textInput}
-          />
-        </Field>
-        <Field label="URL de imagen de portada">
-          <input
-            type="url"
-            value={config.identity.coverImageUrl ?? ''}
-            onChange={(e) =>
-              onChange({ identity: { ...config.identity, coverImageUrl: emptyToUndefined(e.target.value) } })
-            }
-            placeholder="https://..."
-            style={textInput}
-          />
-        </Field>
-        <Field label="URL imagen Open Graph">
-          <input
-            type="url"
-            value={config.identity.ogImageUrl ?? ''}
-            onChange={(e) => onChange({ identity: { ...config.identity, ogImageUrl: emptyToUndefined(e.target.value) } })}
-            placeholder="https://..."
-            style={textInput}
-          />
-        </Field>
-      </Section>
-
-      <Section title="Estilo">
         <Field label="Color de fondo">
           <ColorInput
             value={config.styleTokens.background}
@@ -107,7 +110,7 @@ export default function ControlPanel({ config, onChange }: Props) {
             onChange={(v) => onChange({ styleTokens: { ...config.styleTokens, accent: v } })}
           />
         </Field>
-        <Field label="Combinación tipográfica">
+        <Field label="Combinación sugerida">
           <select
             value={config.styleTokens.fontPair}
             onChange={(e) =>
@@ -115,6 +118,8 @@ export default function ControlPanel({ config, onChange }: Props) {
                 styleTokens: {
                   ...config.styleTokens,
                   fontPair: e.target.value as SiteConfig['styleTokens']['fontPair'],
+                  headingFont: undefined,
+                  bodyFont: undefined,
                 },
               })
             }
@@ -127,7 +132,7 @@ export default function ControlPanel({ config, onChange }: Props) {
             ))}
           </select>
         </Field>
-        <Field label="Espaciado">
+        <Field label="Aire y espaciado">
           <select
             value={config.styleTokens.spacing}
             onChange={(e) =>
@@ -145,7 +150,7 @@ export default function ControlPanel({ config, onChange }: Props) {
             <option value="spacious">Amplio</option>
           </select>
         </Field>
-        <Field label="Tratamiento de obra">
+        <Field label="Presentación de obras">
           <select
             value={config.styleTokens.artworkTreatment}
             onChange={(e) =>
@@ -160,7 +165,7 @@ export default function ControlPanel({ config, onChange }: Props) {
           >
             <option value="frame">Con marco</option>
             <option value="margin">Con margen</option>
-            <option value="bleed">A sangre</option>
+            <option value="bleed">Borde a borde</option>
           </select>
         </Field>
       </Section>
@@ -172,7 +177,7 @@ export default function ControlPanel({ config, onChange }: Props) {
             onChange={(e) => onChange({ button: { ...config.button, shape: e.target.value as SiteConfig['button']['shape'] } })}
             style={selectStyle}
           >
-            <option value="square">Cuadrado</option>
+            <option value="square">Recto</option>
             <option value="rounded">Redondeado</option>
             <option value="pill">Píldora</option>
           </select>
@@ -183,7 +188,7 @@ export default function ControlPanel({ config, onChange }: Props) {
             onChange={(e) => onChange({ button: { ...config.button, style: e.target.value as SiteConfig['button']['style'] } })}
             style={selectStyle}
           >
-            <option value="filled">Relleno</option>
+            <option value="filled">Relleno sólido</option>
             <option value="outlined">Contorno</option>
             <option value="text">Solo texto</option>
           </select>
@@ -199,8 +204,8 @@ export default function ControlPanel({ config, onChange }: Props) {
         </Field>
       </Section>
 
-      <Section title="Tamaños">
-        <Field label="Escala tipográfica">
+      <Section title="Tamaños y grilla">
+        <Field label="Tamaño de letra">
           <select
             value={config.sizes.typeScale}
             onChange={(e) => onChange({ sizes: { ...config.sizes, typeScale: e.target.value as SiteConfig['sizes']['typeScale'] } })}
@@ -211,7 +216,7 @@ export default function ControlPanel({ config, onChange }: Props) {
             <option value="large">Grande</option>
           </select>
         </Field>
-        <Field label="Tamaño de obra">
+        <Field label="Tamaño de tarjetas">
           <select
             value={config.sizes.artworkSize}
             onChange={(e) => onChange({ sizes: { ...config.sizes, artworkSize: e.target.value as SiteConfig['sizes']['artworkSize'] } })}
@@ -222,18 +227,18 @@ export default function ControlPanel({ config, onChange }: Props) {
             <option value="large">Grande</option>
           </select>
         </Field>
-        <Field label="Columnas">
+        <Field label="Columnas de catálogo">
           <select
             value={config.sizes.columns}
             onChange={(e) => onChange({ sizes: { ...config.sizes, columns: e.target.value as SiteConfig['sizes']['columns'] } })}
             style={selectStyle}
           >
-            <option value="2">2</option>
-            <option value="3">3</option>
-            <option value="4">4</option>
+            <option value="2">2 columnas</option>
+            <option value="3">3 columnas</option>
+            <option value="4">4 columnas</option>
           </select>
         </Field>
-        <Field label="Ancho de contenido">
+        <Field label="Ancho del sitio">
           <select
             value={config.sizes.contentWidth}
             onChange={(e) => onChange({ sizes: { ...config.sizes, contentWidth: e.target.value as SiteConfig['sizes']['contentWidth'] } })}
@@ -241,13 +246,13 @@ export default function ControlPanel({ config, onChange }: Props) {
           >
             <option value="narrow">Angosto</option>
             <option value="mid">Medio</option>
-            <option value="full">Completo</option>
+            <option value="full">Ancho completo</option>
           </select>
         </Field>
       </Section>
 
       <Section title="Animaciones">
-        <Field label="Scroll reveal">
+        <Field label="Aparición al bajar">
           <select
             value={config.animations.scrollReveal}
             onChange={(e) =>
@@ -265,7 +270,7 @@ export default function ControlPanel({ config, onChange }: Props) {
             <option value="bold">Marcado</option>
           </select>
         </Field>
-        <Field label="Efecto hover">
+        <Field label="Efecto al pasar el mouse">
           <select
             value={config.animations.hoverEffect}
             onChange={(e) =>
@@ -279,11 +284,11 @@ export default function ControlPanel({ config, onChange }: Props) {
             style={selectStyle}
           >
             <option value="none">Ninguno</option>
-            <option value="zoom">Zoom</option>
-            <option value="info">Info</option>
+            <option value="zoom">Acercar imagen</option>
+            <option value="info">Mostrar título encima</option>
           </select>
         </Field>
-        <Field label="Transición de página">
+        <Field label="Transición entre páginas">
           <select
             value={config.animations.pageTransition}
             onChange={(e) =>
@@ -297,13 +302,13 @@ export default function ControlPanel({ config, onChange }: Props) {
             style={selectStyle}
           >
             <option value="none">Ninguna</option>
-            <option value="fade">Fundido</option>
+            <option value="fade">Fundido suave</option>
           </select>
         </Field>
       </Section>
 
-      <Section title="Navegación">
-        <Field label="Tipo">
+      <Section title="Navegación base">
+        <Field label="Tipo de menú">
           <select
             value={config.navigation.type}
             onChange={(e) =>
@@ -316,14 +321,14 @@ export default function ControlPanel({ config, onChange }: Props) {
             <option value="hamburger">Hamburguesa</option>
           </select>
         </Field>
-        <Field label="Fija al hacer scroll">
+        <Field label="Fija al bajar">
           <label style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.85rem' }}>
             <input
               type="checkbox"
               checked={config.navigation.sticky}
               onChange={(e) => onChange({ navigation: { ...config.navigation, sticky: e.target.checked } })}
             />
-            Sticky
+            Mantener barra visible
           </label>
         </Field>
       </Section>
@@ -336,8 +341,8 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   return (
     <section
       style={{
-        border: '1px solid #e5e7eb',
-        borderRadius: '6px',
+        border: '1px solid #e2e8f0',
+        borderRadius: '8px',
         background: '#ffffff',
         overflow: 'hidden',
       }}
@@ -352,13 +357,13 @@ function Section({ title, children }: { title: string; children: React.ReactNode
           alignItems: 'center',
           justifyContent: 'space-between',
           padding: '0.6rem 0.75rem',
-          background: '#f9fafb',
+          background: '#f8fafc',
           border: 'none',
-          borderBottom: open ? '1px solid #e5e7eb' : 'none',
+          borderBottom: open ? '1px solid #e2e8f0' : 'none',
           cursor: 'pointer',
-          fontSize: '0.85rem',
+          fontSize: '0.82rem',
           fontWeight: 600,
-          color: '#111827',
+          color: '#0f172a',
           fontFamily: 'inherit',
         }}
       >
@@ -376,7 +381,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <label style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem', fontSize: '0.75rem', color: '#4b5563' }}>
+    <label style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem', fontSize: '0.75rem', color: '#475569' }}>
       <span>{label}</span>
       {children}
     </label>
@@ -390,7 +395,7 @@ function ColorInput({ value, onChange }: { value: string; onChange: (v: string) 
         type="color"
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        style={{ width: '32px', height: '32px', padding: 0, border: '1px solid #d4d4d8', borderRadius: '4px', background: '#ffffff' }}
+        style={{ width: '32px', height: '32px', padding: 0, border: '1px solid #cbd5e1', borderRadius: '4px', background: '#ffffff' }}
       />
       <input
         type="text"
@@ -409,18 +414,18 @@ function emptyToUndefined(v: string): string | undefined {
 
 const textInput: React.CSSProperties = {
   padding: '0.4rem 0.5rem',
-  border: '1px solid #d4d4d8',
-  borderRadius: '4px',
-  fontSize: '0.85rem',
+  border: '1px solid #cbd5e1',
+  borderRadius: '6px',
+  fontSize: '0.82rem',
   background: '#ffffff',
   fontFamily: 'inherit',
 }
 
 const selectStyle: React.CSSProperties = {
   padding: '0.4rem 0.5rem',
-  border: '1px solid #d4d4d8',
-  borderRadius: '4px',
-  fontSize: '0.85rem',
+  border: '1px solid #cbd5e1',
+  borderRadius: '6px',
+  fontSize: '0.82rem',
   background: '#ffffff',
   fontFamily: 'inherit',
 }

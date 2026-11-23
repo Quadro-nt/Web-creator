@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import type { SiteConfig } from '@/lib/schemas/site-config.schema'
+import { getNavItems } from '@/components/templates/shared/template-helpers'
 
 type SectionConfig = SiteConfig['sections'][number]
 
@@ -9,23 +10,15 @@ type Props = {
   config: SiteConfig
   sections: SectionConfig[]
   artistSlug: string
+  inPreview?: boolean
 }
 
-function getSectionLabel(type: string): string {
-  const labels: Record<string, string> = {
-    cover: 'Inicio',
-    artworks: 'Obras',
-    bio: 'Sobre mí',
-    exhibitions: 'Exposiciones',
-    contact: 'Contacto',
-  }
-  return labels[type] ?? type
-}
-
-export default function ImmersiveNav({ sections }: Props) {
+export default function ImmersiveNav({ config, sections, inPreview = false }: Props) {
   const [activeId, setActiveId] = useState<string>('')
+  const navItems = getNavItems({ ...config, sections })
 
   useEffect(() => {
+    if (inPreview || typeof IntersectionObserver === 'undefined') return
     const observer = new IntersectionObserver(
       (entries) => {
         const visible = entries.filter((e) => e.isIntersecting)
@@ -40,18 +33,18 @@ export default function ImmersiveNav({ sections }: Props) {
       if (el) observer.observe(el)
     })
     return () => observer.disconnect()
-  }, [sections])
+  }, [sections, inPreview])
 
-  if (sections.length === 0) return null
+  if (navItems.length === 0) return null
 
   return (
     <nav
       aria-label="Navegación de secciones"
       style={{
-        position: 'fixed',
+        position: inPreview ? 'absolute' : 'fixed',
         right: '1.5rem',
-        top: '50%',
-        transform: 'translateY(-50%)',
+        top: inPreview ? '1.5rem' : '50%',
+        transform: inPreview ? undefined : 'translateY(-50%)',
         zIndex: 200,
         display: 'flex',
         flexDirection: 'column',
@@ -59,19 +52,20 @@ export default function ImmersiveNav({ sections }: Props) {
         alignItems: 'center',
       }}
     >
-      {sections.map((section) => {
-        const isActive = activeId === section.id
+      {navItems.map((item) => {
+        const isActive = activeId === item.id
         return (
           <a
-            key={section.id}
-            href={`#${section.id}`}
-            aria-label={getSectionLabel(section.type)}
-            title={getSectionLabel(section.type)}
+            key={item.id}
+            href={`#${item.id}`}
+            aria-label={item.label}
+            title={item.label}
             style={{
               display: 'block',
               width: isActive ? '24px' : '8px',
               height: '2px',
-              backgroundColor: isActive ? 'var(--color-accent)' : 'rgba(240,240,240,0.4)',
+              backgroundColor: isActive ? 'var(--color-accent)' : 'currentColor',
+              opacity: isActive ? 1 : 0.4,
               transition: 'all 0.3s ease',
               textDecoration: 'none',
             }}

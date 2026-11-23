@@ -45,4 +45,31 @@ describe('generateTokenStyles', () => {
     const css = generateTokenStyles(defaultSiteConfig)
     expect(css).toContain('.artwork-treatment')
   })
+
+  it('scopes variables and rules to custom selector when provided', () => {
+    const css = generateTokenStyles(defaultSiteConfig, '.qs-site-root')
+    expect(css).toContain('.qs-site-root {')
+    expect(css).toContain('.qs-site-root .artwork-treatment')
+    expect(css).not.toContain(':root {')
+  })
+
+  it('aplica tipografías personalizadas, mayúsculas, radios y keyframes de marquee', () => {
+    const css = generateTokenStyles({
+      ...defaultSiteConfig,
+      styleTokens: {
+        ...defaultSiteConfig.styleTokens,
+        headingFont: 'Bagel Fat One',
+        bodyFont: 'Barlow Condensed',
+        uppercaseHeadings: true,
+        borderRadius: 'lg',
+        cardBorder: true,
+      },
+    })
+    expect(css).toContain('Bagel+Fat+One')
+    expect(css).toContain('Barlow+Condensed')
+    expect(css).toContain('--heading-transform: uppercase;')
+    expect(css).toContain('--radius-media: 14px;')
+    expect(css).toContain('--card-border: 1px solid currentColor;')
+    expect(css).toContain('@keyframes qs-marquee-left')
+  })
 })

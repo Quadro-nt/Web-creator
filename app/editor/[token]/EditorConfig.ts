@@ -1,20 +1,578 @@
-export type Viewport = 'desktop' | 'mobile'
+import type { SectionType, SiteConfig } from '@/lib/schemas/site-config.schema'
 
-export const SECTION_TYPE_LABELS: Record<string, string> = {
+export type Viewport = 'desktop' | 'tablet' | 'mobile'
+
+export const SECTION_TYPE_LABELS: Record<SectionType, string> = {
   cover: 'Portada',
   artworks: 'Obras',
   bio: 'Biografía',
   exhibitions: 'Exposiciones',
   contact: 'Contacto',
+  'featured-work': 'Obra destacada',
+  statement: 'Manifiesto / Cita',
+  gallery: 'Galería de taller',
+  press: 'Prensa y premios',
+  video: 'Video / Recorrido',
+  cta: 'Encargos / CTA',
+  divider: 'Separador',
+  marquee: 'Cinta animada',
+  'category-grid': 'Tarjetas de colecciones',
+  'feature-split': 'Tarjeta Historia / Collab',
+  'social-strip': 'Tira social animada',
+  reviews: 'Reseñas y testimonios',
+  newsletter: 'Newsletter / Club',
 }
 
-export const SECTION_VARIANTS: Record<string, string[]> = {
-  cover: ['fullscreen', 'split', 'minimal'],
-  artworks: ['grid', 'masonry', 'carousel'],
-  bio: ['split', 'centered', 'stacked'],
+export const SECTION_VARIANTS: Record<SectionType, string[]> = {
+  cover: ['fullscreen', 'split', 'minimal', 'centered'],
+  artworks: ['grid', 'masonry', 'carousel', 'list'],
+  bio: ['split', 'simple', 'centered', 'stacked'],
   exhibitions: ['list', 'timeline', 'cards'],
   contact: ['simple', 'form', 'split'],
+  'featured-work': ['split', 'spotlight', 'card'],
+  statement: ['centered', 'editorial', 'accent'],
+  gallery: ['grid', 'masonry', 'carousel'],
+  press: ['list', 'cards'],
+  video: ['wide', 'split'],
+  cta: ['banner', 'minimal', 'split'],
+  divider: ['line', 'space', 'ornament'],
+  marquee: ['pills', 'text'],
+  'category-grid': ['overlay', 'framed'],
+  'feature-split': ['framed', 'open', 'reversed'],
+  'social-strip': ['strip', 'grid'],
+  reviews: ['cards', 'video-strip', 'minimal'],
+  newsletter: ['framed', 'minimal'],
 }
+
+export const VARIANT_LABELS_ES: Record<string, string> = {
+  fullscreen: 'Pantalla completa',
+  'full-screen': 'Pantalla completa',
+  split: 'Mitad y mitad',
+  minimal: 'Minimalista',
+  centered: 'Centrada',
+  grid: 'Cuadrícula',
+  masonry: 'Mosaico',
+  mosaic: 'Mosaico',
+  carousel: 'Carrusel',
+  list: 'Lista',
+  simple: 'Simple',
+  'with-photo': 'Con foto',
+  stacked: 'Apilada',
+  timeline: 'Línea de tiempo',
+  cards: 'Tarjetas',
+  form: 'Formulario',
+  spotlight: 'Foco central',
+  card: 'Tarjeta',
+  editorial: 'Editorial',
+  accent: 'Color de acento',
+  wide: 'Ancho completo',
+  banner: 'Banner destacado',
+  line: 'Línea sutil',
+  space: 'Espacio en blanco',
+  ornament: 'Detalle curatorial',
+  pills: 'Pastillas con borde',
+  text: 'Texto gigante',
+  overlay: 'Foto con texto encima',
+  framed: 'Enmarcada',
+  open: 'Abierta sin marco',
+  reversed: 'Imagen a la derecha',
+  strip: 'Tira continua',
+  'video-strip': 'Clips verticales',
+  magazine: 'Revista',
+  headline: 'Titular grande',
+  poster: 'Afiche',
+  typographic: 'Tipográfica',
+  cinematic: 'Cinematográfica',
+  parallax: 'Parallax',
+  'split-dark': 'Dividida oscura',
+  'fullscreen-video': 'Video pantalla completa',
+}
+
+export function getVariantLabelEs(variant: string): string {
+  return VARIANT_LABELS_ES[variant] ?? variant
+}
+
+export type ModuleCategory = 'esenciales' | 'contenido' | 'conversion'
+
+export interface ModuleDefinition {
+  type: SectionType
+  label: string
+  category: ModuleCategory
+  description: string
+  defaultVariant: string
+  repeatable: boolean
+  createDefaultContent: () => Record<string, unknown>
+}
+
+export const MODULE_CATALOG: ModuleDefinition[] = [
+  {
+    type: 'cover',
+    label: 'Portada',
+    category: 'esenciales',
+    description: 'Encabezado principal con título, subtítulo e imagen de portada.',
+    defaultVariant: 'minimal',
+    repeatable: false,
+    createDefaultContent: () => ({
+      subtitle: 'Artista visual',
+    }),
+  },
+  {
+    type: 'artworks',
+    label: 'Obras',
+    category: 'esenciales',
+    description: 'Catálogo automático con filtros por colección, búsqueda y orden.',
+    defaultVariant: 'grid',
+    repeatable: true,
+    createDefaultContent: () => ({
+      title: 'Obras',
+      showSold: true,
+      enableFilters: true,
+      enableSearch: true,
+      showPrices: true,
+    }),
+  },
+  {
+    type: 'bio',
+    label: 'Biografía',
+    category: 'esenciales',
+    description: 'Historia artística, formación y retrato opcional del estudio.',
+    defaultVariant: 'split',
+    repeatable: false,
+    createDefaultContent: () => ({
+      heading: 'Sobre mí',
+      text: 'Comparte tu recorrido artístico, técnica y búsquedas actuales.',
+    }),
+  },
+  {
+    type: 'exhibitions',
+    label: 'Exposiciones',
+    category: 'esenciales',
+    description: 'Muestras individuales, colectivas y ferias en lista o línea de tiempo.',
+    defaultVariant: 'list',
+    repeatable: false,
+    createDefaultContent: () => ({
+      heading: 'Exposiciones',
+      exhibitions: [
+        { title: 'Muestra reciente', year: new Date().getFullYear(), place: 'Galería local' },
+      ],
+    }),
+  },
+  {
+    type: 'contact',
+    label: 'Contacto',
+    category: 'esenciales',
+    description: 'Correo, Instagram, WhatsApp y formulario directo de consultas.',
+    defaultVariant: 'simple',
+    repeatable: false,
+    createDefaultContent: () => ({
+      heading: 'Contacto',
+      intro: 'Consultas sobre obras disponibles, visitas al taller y encargos.',
+      email: '',
+      instagram: '',
+      whatsapp: '',
+    }),
+  },
+  {
+    type: 'marquee',
+    label: 'Cinta animada',
+    category: 'contenido',
+    description: 'Franja en movimiento estilo marca con pastillas o texto gigante e inclinación.',
+    defaultVariant: 'pills',
+    repeatable: true,
+    createDefaultContent: () => ({
+      items: ['OBRAS ORIGINALES', 'EDICIONES LIMITADAS', 'ENVÍO ASEGURADO'],
+      angle: '-2',
+      direction: 'left',
+      bgColor: 'transparent',
+      pillBg: '#EC9FBF',
+      pillText: '#4B0303',
+    }),
+  },
+  {
+    type: 'category-grid',
+    label: 'Tarjetas de colecciones',
+    category: 'conversion',
+    description: 'Tarjetas fotográficas grandes (ej. Originales / Prints) que filtran tu catálogo.',
+    defaultVariant: 'overlay',
+    repeatable: true,
+    createDefaultContent: () => ({
+      columns: '2',
+      cards: [
+        { title: 'ORIGINALES', ctaLabel: 'VER COLECCIÓN', imageUrl: 'https://picsum.photos/seed/cat-1/900/700', filterTag: '' },
+        { title: 'PRINTS', ctaLabel: 'VER COLECCIÓN', imageUrl: 'https://picsum.photos/seed/cat-2/900/700', filterTag: '' },
+      ],
+    }),
+  },
+  {
+    type: 'feature-split',
+    label: 'Tarjeta Historia / Collab',
+    category: 'contenido',
+    description: 'Tarjeta enmarcada 50/50 para historia del taller, técnica o colaboraciones.',
+    defaultVariant: 'framed',
+    repeatable: true,
+    createDefaultContent: () => ({
+      eyebrow: '¿POR QUÉ MI TÉCNICA?',
+      heading: 'EL ALMA DE CADA PIEZA',
+      text: 'Cada obra nace de materiales seleccionados y un proceso artesanal pensado para dialogar con tu espacio.',
+      buttonText: 'Conocer más',
+      buttonHref: '#bio',
+      imageUrl: 'https://picsum.photos/seed/split-story/900/900',
+    }),
+  },
+  {
+    type: 'social-strip',
+    label: 'Tira social animada',
+    category: 'contenido',
+    description: 'Encabezado doble + galería continua de fotos del taller e Instagram.',
+    defaultVariant: 'strip',
+    repeatable: true,
+    createDefaultContent: () => ({
+      eyebrow: 'ENCUÉNTRANOS EN REDES',
+      handle: '@TU.ESTUDIO',
+      images: [],
+    }),
+  },
+  {
+    type: 'reviews',
+    label: 'Reseñas y testimonios',
+    category: 'conversion',
+    description: 'Opiniones de coleccionistas o clips de unboxing para generar confianza.',
+    defaultVariant: 'cards',
+    repeatable: true,
+    createDefaultContent: () => ({
+      eyebrow: 'LO QUE DICEN QUIENES COLECCIONAN',
+      title: 'RESEÑAS',
+      items: [
+        { author: 'Camila R.', role: 'Coleccionista · Lima', quote: 'La textura y los colores en persona superan cualquier foto. Llegó impecable.', rating: 5 },
+        { author: 'Diego M.', role: 'Arquitecto', quote: 'Encargamos una pieza a medida para un proyecto y transformó todo el ambiente.', rating: 5 },
+      ],
+    }),
+  },
+  {
+    type: 'newsletter',
+    label: 'Newsletter / Club',
+    category: 'conversion',
+    description: 'Caja de suscripción para avisar lanzamientos de series y reapertura de encargos.',
+    defaultVariant: 'framed',
+    repeatable: true,
+    createDefaultContent: () => ({
+      heading: 'ÚNETE AL CLUB DEL TALLER',
+      description: 'Recibe acceso anticipado a nuevas series, exposiciones y aperturas de encargos.',
+      placeholder: 'Tu correo electrónico',
+      buttonText: 'Suscribirme',
+    }),
+  },
+  {
+    type: 'featured-work',
+    label: 'Obra destacada',
+    category: 'conversion',
+    description: 'Hero dedicado a una pieza clave con nota curatorial y compra directa.',
+    defaultVariant: 'split',
+    repeatable: true,
+    createDefaultContent: () => ({
+      eyebrow: 'Pieza destacada',
+      note: 'Obra disponible directamente desde el taller del artista.',
+    }),
+  },
+  {
+    type: 'statement',
+    label: 'Manifiesto / Cita',
+    category: 'contenido',
+    description: 'Cita curatorial, declaración artística o texto editorial libre.',
+    defaultVariant: 'centered',
+    repeatable: true,
+    createDefaultContent: () => ({
+      eyebrow: 'Declaración',
+      quote: 'Cada obra busca detener el ritmo cotidiano para abrir una pregunta visual.',
+      author: '',
+    }),
+  },
+  {
+    type: 'gallery',
+    label: 'Galería de taller',
+    category: 'contenido',
+    description: 'Imágenes de proceso, bocetos, taller y detalles de textura.',
+    defaultVariant: 'grid',
+    repeatable: true,
+    createDefaultContent: () => ({
+      title: 'En el taller',
+      subtitle: 'Registros de proceso y preparación de obra.',
+      images: [],
+    }),
+  },
+  {
+    type: 'press',
+    label: 'Prensa y premios',
+    category: 'contenido',
+    description: 'Reseñas, catálogos, reconocimientos y entrevistas publicadas.',
+    defaultVariant: 'list',
+    repeatable: true,
+    createDefaultContent: () => ({
+      title: 'Prensa y reconocimientos',
+      items: [
+        {
+          title: 'Entrevista sobre obra reciente',
+          publication: 'Revista de Arte Contemporáneo',
+          year: String(new Date().getFullYear()),
+          url: '',
+          quote: '',
+        },
+      ],
+    }),
+  },
+  {
+    type: 'video',
+    label: 'Video / Recorrido',
+    category: 'contenido',
+    description: 'Video de YouTube o Vimeo con recorrido de muestra o entrevista.',
+    defaultVariant: 'wide',
+    repeatable: true,
+    createDefaultContent: () => ({
+      title: 'Recorrido de estudio',
+      url: '',
+      caption: '',
+    }),
+  },
+  {
+    type: 'cta',
+    label: 'Encargos / CTA',
+    category: 'conversion',
+    description: 'Llamado a la acción para obras por encargo (con modo abierto o lista cerrada).',
+    defaultVariant: 'banner',
+    repeatable: true,
+    createDefaultContent: () => ({
+      title: '¿Buscas una obra a medida?',
+      description: 'Conversamos sobre formato, paleta y plazos para tu espacio.',
+      buttonText: 'Consultar por encargo',
+      status: 'open',
+      closedMessage: 'Lista de encargos cerrada temporalmente — déjanos tu correo abajo para enterarte cuando reabramos.',
+      whatsapp: '',
+      buttonHref: '',
+    }),
+  },
+  {
+    type: 'divider',
+    label: 'Separador',
+    category: 'contenido',
+    description: 'Respiro visual, línea sutil o detalle editorial entre secciones.',
+    defaultVariant: 'line',
+    repeatable: true,
+    createDefaultContent: () => ({
+      label: '',
+      height: 'md',
+    }),
+  },
+]
+
+export interface StylePreset {
+  id: string
+  name: string
+  description: string
+  patch: Partial<
+    Pick<
+      SiteConfig,
+      'template' | 'styleTokens' | 'button' | 'sizes' | 'announcementBar' | 'header' | 'footer'
+    >
+  >
+}
+
+export const STYLE_PRESETS: StylePreset[] = [
+  {
+    id: 'pop-studio',
+    name: 'Pop Studio (estilo marca)',
+    description: 'Barra de anuncios, header negro centrado, display audaz en mayúsculas y bordes 1px.',
+    patch: {
+      template: 'minimal-gallery',
+      styleTokens: {
+        background: '#ffffff',
+        text: '#000000',
+        accent: '#d73578',
+        fontPair: 'playfair-raleway',
+        headingFont: 'Bagel Fat One',
+        bodyFont: 'Barlow Condensed',
+        uppercaseHeadings: true,
+        headingTracking: 'normal',
+        spacing: 'normal',
+        artworkTreatment: 'bleed',
+        borderRadius: 'lg',
+        cardBorder: true,
+        secondaryBg: '#ec9fbf',
+      },
+      button: { shape: 'rounded', style: 'filled', buyText: 'Consultar obra' },
+      sizes: { typeScale: 'large', artworkSize: 'medium', columns: '3', contentWidth: 'full' },
+      announcementBar: {
+        enabled: true,
+        backgroundColor: '#ec9fbf',
+        textColor: '#4b0303',
+        messages: [
+          'NUEVA COLECCIÓN DISPONIBLE',
+          'ENVÍO GRATIS EN OBRAS ORIGINALES',
+          'SUSCRÍBETE AL CLUB DEL TALLER',
+        ],
+        autoRotate: true,
+      },
+      header: {
+        layout: 'centered',
+        backgroundColor: '#000000',
+        textColor: '#ffffff',
+        logoHeight: 'md',
+        uppercaseLinks: true,
+        showSearchIcon: true,
+        showWhatsappIcon: true,
+      },
+      footer: {
+        enabled: true,
+        backgroundColor: '#000000',
+        textColor: '#ffffff',
+        bio: 'Arte original, ediciones limitadas y encargos directamente desde el taller.',
+      },
+    },
+  },
+  {
+    id: 'galeria-blanca',
+    name: 'Galería Blanca',
+    description: 'Luminoso, aireado y museográfico con acento sutil.',
+    patch: {
+      template: 'minimal-gallery',
+      styleTokens: {
+        background: '#ffffff',
+        text: '#1a1a1a',
+        accent: '#7c5cbf',
+        fontPair: 'cormorant-jost',
+        headingFont: 'Cormorant Garamond',
+        bodyFont: 'Jost',
+        uppercaseHeadings: false,
+        headingTracking: 'normal',
+        spacing: 'spacious',
+        artworkTreatment: 'margin',
+        borderRadius: 'none',
+        cardBorder: false,
+      },
+      button: { shape: 'pill', style: 'outlined', buyText: 'Consultar precio' },
+      sizes: { typeScale: 'large', artworkSize: 'large', columns: '3', contentWidth: 'mid' },
+    },
+  },
+  {
+    id: 'editorial-crema',
+    name: 'Editorial Crema',
+    description: 'Estética de revista impresa sobre papel hueso con serif marcada.',
+    patch: {
+      template: 'editorial',
+      styleTokens: {
+        background: '#f5f0e8',
+        text: '#1a1a1a',
+        accent: '#b44314',
+        fontPair: 'playfair-raleway',
+        headingFont: 'Playfair Display',
+        bodyFont: 'Raleway',
+        uppercaseHeadings: false,
+        headingTracking: 'tight',
+        spacing: 'normal',
+        artworkTreatment: 'frame',
+        borderRadius: 'none',
+        cardBorder: false,
+      },
+      button: { shape: 'square', style: 'filled', buyText: 'Adquirir obra' },
+      sizes: { typeScale: 'medium', artworkSize: 'medium', columns: '3', contentWidth: 'full' },
+    },
+  },
+  {
+    id: 'noche-inmersiva',
+    name: 'Noche Inmersiva',
+    description: 'Fondo oscuro cinematográfico para obras de alto contraste.',
+    patch: {
+      template: 'immersive',
+      styleTokens: {
+        background: '#0d0d0d',
+        text: '#f2f0ec',
+        accent: '#e2be53',
+        fontPair: 'bodoni-moda-figtree',
+        headingFont: 'Bodoni Moda',
+        bodyFont: 'Space Grotesk',
+        uppercaseHeadings: false,
+        headingTracking: 'normal',
+        spacing: 'spacious',
+        artworkTreatment: 'bleed',
+        borderRadius: 'none',
+        cardBorder: false,
+      },
+      button: { shape: 'square', style: 'outlined', buyText: 'Solicitar obra' },
+      sizes: { typeScale: 'large', artworkSize: 'large', columns: '2', contentWidth: 'full' },
+    },
+  },
+  {
+    id: 'terracota-andina',
+    name: 'Terracota Andina',
+    description: 'Tonos arcilla suaves y tipografía humanista cálida.',
+    patch: {
+      template: 'minimal-gallery',
+      styleTokens: {
+        background: '#faf5ef',
+        text: '#291f1a',
+        accent: '#9c4221',
+        fontPair: 'fraunces-nunito',
+        headingFont: 'Fraunces',
+        bodyFont: 'DM Sans',
+        uppercaseHeadings: false,
+        headingTracking: 'normal',
+        spacing: 'spacious',
+        artworkTreatment: 'frame',
+        borderRadius: 'sm',
+        cardBorder: false,
+      },
+      button: { shape: 'rounded', style: 'filled', buyText: 'Consultar obra' },
+      sizes: { typeScale: 'medium', artworkSize: 'large', columns: '3', contentWidth: 'mid' },
+    },
+  },
+  {
+    id: 'monocromo-minimal',
+    name: 'Monocromo Minimal',
+    description: 'Gris galería puro sin distracciones para fotografía o dibujo.',
+    patch: {
+      template: 'minimal-gallery',
+      styleTokens: {
+        background: '#f4f4f5',
+        text: '#111111',
+        accent: '#18181b',
+        fontPair: 'dm-serif-inter',
+        headingFont: 'DM Serif Display',
+        bodyFont: 'Inter',
+        uppercaseHeadings: false,
+        headingTracking: 'tight',
+        spacing: 'compact',
+        artworkTreatment: 'margin',
+        borderRadius: 'none',
+        cardBorder: false,
+      },
+      button: { shape: 'square', style: 'outlined', buyText: 'Consultar' },
+      sizes: { typeScale: 'small', artworkSize: 'medium', columns: '4', contentWidth: 'mid' },
+    },
+  },
+  {
+    id: 'atmosfera-botanica',
+    name: 'Atmósfera Botánica',
+    description: 'Papel marfil y verde profundo con ritmo editorial sosegado.',
+    patch: {
+      template: 'editorial',
+      styleTokens: {
+        background: '#f6f7f2',
+        text: '#1c241b',
+        accent: '#3b6e4c',
+        fontPair: 'garamond-lato',
+        headingFont: 'EB Garamond',
+        bodyFont: 'Open Sans',
+        uppercaseHeadings: false,
+        headingTracking: 'normal',
+        spacing: 'spacious',
+        artworkTreatment: 'margin',
+        borderRadius: 'sm',
+        cardBorder: false,
+      },
+      button: { shape: 'pill', style: 'filled', buyText: 'Consultar disponibilidad' },
+      sizes: { typeScale: 'medium', artworkSize: 'medium', columns: '3', contentWidth: 'mid' },
+    },
+  },
+]
 
 export const FONT_PAIR_LABELS: Record<string, string> = {
   'playfair-raleway': 'Playfair + Raleway',

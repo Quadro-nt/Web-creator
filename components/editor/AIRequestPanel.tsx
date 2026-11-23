@@ -1,16 +1,43 @@
 'use client'
 
 import { useState } from 'react'
-import type { SiteConfig } from '@/lib/schemas/site-config.schema'
+import type { SectionConfig, SiteConfig } from '@/lib/schemas/site-config.schema'
 import type { AISuggestion } from '@/lib/ai/ask-ai'
+import { SECTION_TYPE_LABELS } from '@/app/editor/[token]/EditorConfig'
+import {
+  STUDIO_COLORS,
+  studioCardStyle,
+  studioPrimaryBtn,
+  studioSecondaryBtn,
+  studioTextareaStyle,
+} from './studio-styles'
 
 type Props = {
   currentConfig: SiteConfig
   artistSlug: string
+  editorToken?: string
+  selectedSectionId?: string | null
+  selectedSection?: SectionConfig | null
   onApply: (config: SiteConfig) => void
+  onPreviewChange?: (previewConfig: SiteConfig | null) => void
 }
 
-export default function AIRequestPanel({ currentConfig, artistSlug, onApply }: Props) {
+const QUICK_PROMPTS = [
+  'Paleta oscura inmersiva',
+  'Agregar sección de encargos',
+  'Cambiar a template Editorial',
+  'Grilla de 4 columnas',
+]
+
+export default function AIRequestPanel({
+  currentConfig,
+  artistSlug,
+  editorToken,
+  selectedSectionId,
+  selectedSection,
+  onApply,
+  onPreviewChange,
+}: Props) {
   const [prompt, setPrompt] = useState('')
   const [suggestion, setSuggestion] = useState<AISuggestion | null>(null)
   const [loading, setLoading] = useState(false)
@@ -18,17 +45,32 @@ export default function AIRequestPanel({ currentConfig, artistSlug, onApply }: P
 
   const trimmed = prompt.trim()
   const disabled = loading || trimmed.length === 0
+  const effectiveSelectedId = selectedSection?.id ?? selectedSectionId ?? undefined
+  const contextLabel = selectedSection
+    ? `Bloque seleccionado: ${SECTION_TYPE_LABELS[selectedSection.type] ?? selectedSection.type}`
+    : 'Todo el sitio'
 
-  async function handleSubmit() {
-    if (disabled) return
+  async function runPrompt(targetPrompt: string) {
+    const clean = targetPrompt.trim()
+    if (loading || clean.length === 0) return
     setLoading(true)
     setError(null)
     setSuggestion(null)
+    onPreviewChange?.(null)
     try {
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' }
+      if (editorToken) {
+        headers['x-editor-token'] = editorToken
+      }
       const res = await fetch('/api/ai-suggest', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ artistSlug, prompt: trimmed, currentConfig }),
+        headers,
+        body: JSON.stringify({
+          artistSlug,
+          prompt: clean,
+          currentConfig,
+          ...(effectiveSelectedId ? { selectedSectionId: effectiveSelectedId } : {}),
+        }),
       })
       if (!res.ok) {
         let message = `Error ${res.status}`
@@ -42,6 +84,9 @@ export default function AIRequestPanel({ currentConfig, artistSlug, onApply }: P
       }
       const data = (await res.json()) as { suggestion: AISuggestion }
       setSuggestion(data.suggestion)
+      if (data.suggestion?.newConfig) {
+        onPreviewChange?.(data.suggestion.newConfig)
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error desconocido')
     } finally {
@@ -53,12 +98,14 @@ export default function AIRequestPanel({ currentConfig, artistSlug, onApply }: P
     if (suggestion?.newConfig) {
       onApply(suggestion.newConfig)
     }
+    onPreviewChange?.(null)
     setSuggestion(null)
     setPrompt('')
     setError(null)
   }
 
   function handleDiscard() {
+    onPreviewChange?.(null)
     setSuggestion(null)
     setPrompt('')
     setError(null)
@@ -68,61 +115,85 @@ export default function AIRequestPanel({ currentConfig, artistSlug, onApply }: P
     <section
       data-testid="ai-request-panel"
       style={{
-        border: '1px solid #e5e7eb',
-        borderRadius: '6px',
-        background: '#ffffff',
-        padding: '0.75rem',
+        ...studioCardStyle,
         display: 'flex',
         flexDirection: 'column',
-        gap: '0.5rem',
+        gap: '0.6rem',
       }}
     >
-      <h2 style={{ margin: 0, fontSize: '0.85rem', fontWeight: 600 }}>Pídeselo a la IA</h2>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.4rem' }}>
+        <h2 style={{ margin: 0, fontSize: '0.85rem', fontWeight: 700, color: STUDIO_COLORS.text }}>
+          Pídeselo a la IA
+        </h2>
+        <span
+          style={{
+            fontSize: '0.68rem',
+            padding: '0.15rem 0.45rem',
+            borderRadius: '9999px',
+            background: selectedSection ? STUDIO_COLORS.accentSoft : STUDIO_COLORS.chrome,
+            color: selectedSection ? STUDIO_COLORS.accent : STUDIO_COLORS.muted,
+            fontWeight: 600,
+          }}
+        >
+          {contextLabel}
+        </span>
+      </div>
+
       <textarea
         aria-label="Pedido para la IA"
         value={prompt}
         onChange={(e) => setPrompt(e.target.value)}
-        placeholder="Describe el cambio que quieres hacer..."
+        placeholder="Describe el cambio que quieres hacer…"
         rows={3}
         disabled={loading}
-        style={{
-          width: '100%',
-          padding: '0.5rem',
-          border: '1px solid #d4d4d8',
-          borderRadius: '6px',
-          fontSize: '0.85rem',
-          fontFamily: 'inherit',
-          resize: 'vertical',
-          boxSizing: 'border-box',
-        }}
+        style={studioTextareaStyle}
       />
+
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem' }}>
+        {QUICK_PROMPTS.map((chip) => (
+          <button
+            key={chip}
+            type="button"
+            disabled={loading}
+            onClick={() => {
+              setPrompt(chip)
+              void runPrompt(chip)
+            }}
+            style={{
+              ...studioSecondaryBtn,
+              padding: '0.2rem 0.45rem',
+              fontSize: '0.68rem',
+              borderRadius: '9999px',
+            }}
+          >
+            {chip}
+          </button>
+        ))}
+      </div>
+
       <button
         type="button"
-        onClick={handleSubmit}
+        onClick={() => void runPrompt(prompt)}
         disabled={disabled}
         style={{
-          padding: '0.5rem 0.9rem',
-          background: disabled ? '#9ca3af' : '#111827',
-          color: '#ffffff',
-          border: 'none',
-          borderRadius: '6px',
-          fontSize: '0.85rem',
+          ...studioPrimaryBtn,
+          background: disabled ? '#94a3b8' : STUDIO_COLORS.primary,
+          borderColor: disabled ? '#94a3b8' : STUDIO_COLORS.primary,
           cursor: disabled ? 'not-allowed' : 'pointer',
-          fontFamily: 'inherit',
           alignSelf: 'flex-start',
         }}
       >
-        {loading ? 'Pensando…' : 'Pídeselo a la IA'}
+        {loading ? 'Pensando…' : 'Probar propuesta'}
       </button>
 
       {error && (
-        <p role="alert" style={{ margin: 0, fontSize: '0.8rem', color: '#b91c1c' }}>
+        <p role="alert" style={{ margin: 0, fontSize: '0.78rem', color: STUDIO_COLORS.danger }}>
           {error}
         </p>
       )}
 
       {suggestion?.validationError && (
-        <p role="alert" style={{ margin: 0, fontSize: '0.8rem', color: '#b91c1c' }}>
+        <p role="alert" style={{ margin: 0, fontSize: '0.78rem', color: STUDIO_COLORS.danger }}>
           La IA devolvió una propuesta inválida: {suggestion.validationError}
         </p>
       )}
@@ -133,15 +204,15 @@ export default function AIRequestPanel({ currentConfig, artistSlug, onApply }: P
             display: 'flex',
             flexDirection: 'column',
             gap: '0.5rem',
-            borderTop: '1px solid #e5e7eb',
-            paddingTop: '0.5rem',
+            borderTop: `1px solid ${STUDIO_COLORS.border}`,
+            paddingTop: '0.55rem',
           }}
         >
-          <p style={{ margin: 0, fontSize: '0.85rem' }}>
-            <strong>Cambios propuestos:</strong> {suggestion.explanation}
+          <p style={{ margin: 0, fontSize: '0.8rem', color: STUDIO_COLORS.text }}>
+            <strong>Propuesta en vista previa:</strong> {suggestion.explanation}
           </p>
           {suggestion.unsatisfied.length > 0 && (
-            <div style={{ fontSize: '0.8rem', color: '#92400e' }}>
+            <div style={{ fontSize: '0.75rem', color: '#92400e' }}>
               <strong>No se pudo cumplir:</strong>
               <ul style={{ margin: '0.25rem 0 0 1rem', padding: 0 }}>
                 {suggestion.unsatisfied.map((item, idx) => (
@@ -151,36 +222,10 @@ export default function AIRequestPanel({ currentConfig, artistSlug, onApply }: P
             </div>
           )}
           <div style={{ display: 'flex', gap: '0.5rem' }}>
-            <button
-              type="button"
-              onClick={handleApply}
-              style={{
-                padding: '0.4rem 0.8rem',
-                background: '#111827',
-                color: '#ffffff',
-                border: 'none',
-                borderRadius: '6px',
-                fontSize: '0.8rem',
-                cursor: 'pointer',
-                fontFamily: 'inherit',
-              }}
-            >
+            <button type="button" onClick={handleApply} style={studioPrimaryBtn}>
               Aplicar
             </button>
-            <button
-              type="button"
-              onClick={handleDiscard}
-              style={{
-                padding: '0.4rem 0.8rem',
-                background: '#ffffff',
-                color: '#111827',
-                border: '1px solid #d4d4d8',
-                borderRadius: '6px',
-                fontSize: '0.8rem',
-                cursor: 'pointer',
-                fontFamily: 'inherit',
-              }}
-            >
+            <button type="button" onClick={handleDiscard} style={studioSecondaryBtn}>
               Descartar
             </button>
           </div>

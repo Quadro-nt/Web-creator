@@ -1,12 +1,108 @@
 import { z } from 'zod'
+import { FONT_FAMILY_NAMES } from '@/lib/tokens/font-catalog'
+
+const SAFE_UPLOAD_PATH_RE = /^\/uploads\/[a-z0-9-]+\/[a-zA-Z0-9._-]+$/
+
+export const mediaUrlSchema = z.union([
+  z
+    .string()
+    .url()
+    .refine((v) => /^https?:\/\//i.test(v), 'La URL debe usar http o https'),
+  z
+    .string()
+    .regex(SAFE_UPLOAD_PATH_RE, 'Ruta de imagen subida inválida')
+    .refine((v) => !v.includes('..'), 'Ruta de imagen inválida'),
+])
+
+export const SECTION_TYPES = [
+  'cover',
+  'artworks',
+  'bio',
+  'exhibitions',
+  'contact',
+  'featured-work',
+  'statement',
+  'gallery',
+  'press',
+  'video',
+  'cta',
+  'divider',
+  'marquee',
+  'category-grid',
+  'feature-split',
+  'social-strip',
+  'reviews',
+  'newsletter',
+] as const
+
+export type SectionType = (typeof SECTION_TYPES)[number]
+
+export const SectionStyleSchema = z.object({
+  colorScheme: z.enum(['default', 'dark', 'accent', 'soft']).optional(),
+  framed: z.boolean().optional(),
+  padding: z.enum(['sm', 'md', 'lg']).optional(),
+})
+
+export type SectionStyleConfig = z.infer<typeof SectionStyleSchema>
 
 const SectionConfigSchema = z.object({
   id: z.string(),
-  type: z.enum(['cover', 'artworks', 'bio', 'exhibitions', 'contact']),
+  type: z.enum(SECTION_TYPES),
   variant: z.string(),
   visible: z.boolean(),
   content: z.record(z.unknown()),
+  style: SectionStyleSchema.optional(),
 })
+
+export type SectionConfig = z.infer<typeof SectionConfigSchema>
+
+export const AnnouncementBarSchema = z.object({
+  enabled: z.boolean(),
+  backgroundColor: z.string(),
+  textColor: z.string(),
+  messages: z.array(z.string()),
+  autoRotate: z.boolean().optional(),
+  linkUrl: z.string().optional(),
+})
+
+export type AnnouncementBarConfig = z.infer<typeof AnnouncementBarSchema>
+
+export const NavLinkItemSchema = z.object({
+  label: z.string(),
+  href: z.string(),
+})
+
+export const HeaderConfigSchema = z.object({
+  layout: z.enum(['left', 'centered', 'minimal']),
+  backgroundColor: z.string().optional(),
+  textColor: z.string().optional(),
+  transparentOverCover: z.boolean().optional(),
+  logoHeight: z.enum(['sm', 'md', 'lg']).optional(),
+  uppercaseLinks: z.boolean().optional(),
+  showSearchIcon: z.boolean().optional(),
+  showWhatsappIcon: z.boolean().optional(),
+  whatsappNumber: z.string().optional(),
+  instagramHandle: z.string().optional(),
+  customLinks: z.array(NavLinkItemSchema).optional(),
+})
+
+export type HeaderConfig = z.infer<typeof HeaderConfigSchema>
+
+export const FooterConfigSchema = z.object({
+  enabled: z.boolean(),
+  backgroundColor: z.string().optional(),
+  textColor: z.string().optional(),
+  bio: z.string().optional(),
+  instagram: z.string().optional(),
+  tiktok: z.string().optional(),
+  pinterest: z.string().optional(),
+  whatsapp: z.string().optional(),
+  email: z.string().optional(),
+  quickLinks: z.array(NavLinkItemSchema).optional(),
+  copyrightText: z.string().optional(),
+})
+
+export type FooterConfig = z.infer<typeof FooterConfigSchema>
 
 export const SiteConfigSchema = z.object({
   template: z.enum(['minimal-gallery', 'editorial', 'immersive']),
@@ -31,6 +127,13 @@ export const SiteConfigSchema = z.object({
     ]),
     spacing: z.enum(['compact', 'normal', 'spacious']),
     artworkTreatment: z.enum(['frame', 'margin', 'bleed']),
+    headingFont: z.enum(FONT_FAMILY_NAMES).optional(),
+    bodyFont: z.enum(FONT_FAMILY_NAMES).optional(),
+    uppercaseHeadings: z.boolean().optional(),
+    headingTracking: z.enum(['tight', 'normal', 'wide']).optional(),
+    borderRadius: z.enum(['none', 'sm', 'md', 'lg']).optional(),
+    cardBorder: z.boolean().optional(),
+    secondaryBg: z.string().optional(),
   }),
 
   button: z.object({
@@ -57,15 +160,19 @@ export const SiteConfigSchema = z.object({
     sticky: z.boolean(),
   }),
 
+  announcementBar: AnnouncementBarSchema.optional(),
+  header: HeaderConfigSchema.optional(),
+  footer: FooterConfigSchema.optional(),
+
   sections: z.array(SectionConfigSchema),
 
   identity: z.object({
     siteTitle: z.string().min(1).max(80),
-    logoUrl: z.string().url().optional(),
-    signatureUrl: z.string().url().optional(),
-    faviconUrl: z.string().url().optional(),
-    coverImageUrl: z.string().url().optional(),
-    ogImageUrl: z.string().url().optional(),
+    logoUrl: mediaUrlSchema.optional(),
+    signatureUrl: mediaUrlSchema.optional(),
+    faviconUrl: mediaUrlSchema.optional(),
+    coverImageUrl: mediaUrlSchema.optional(),
+    ogImageUrl: mediaUrlSchema.optional(),
   }),
 })
 

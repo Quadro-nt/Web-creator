@@ -5,3 +5,12 @@ graphify-out/
 
 # Local env overrides (never commit)
 .env*.local
+
+# Dependencies and build outputs
+node_modules/
+.next/
+tsconfig.tsbuildinfo
+next-env.d.ts
+
+# Uploaded local media
+public/uploads/

@@ -1,5 +1,6 @@
 import type { SiteConfig } from '../schemas/site-config.schema'
 import { adjustForContrast } from './contrast'
+import { buildGoogleFontsUrl, getFontFallback } from './font-catalog'
 import { TYPOGRAPHY_PAIRS } from './typography-pairs'
 
 const SPACING_SCALES = {
@@ -41,17 +42,35 @@ const TYPE_SCALES = {
   },
 } as const
 
+const RADIUS_VALUES = {
+  none: '0px',
+  sm: '6px',
+  md: '10px',
+  lg: '14px',
+} as const
+
+const TRACKING_VALUES = {
+  tight: '-0.025em',
+  normal: '0.02em',
+  wide: '0.08em',
+} as const
+
 const ARTWORK_TREATMENT_CLASSES = {
   frame: `.artwork-treatment {
   border: 2px solid var(--color-text);
   padding: var(--spacing-md);
+  border-radius: var(--radius-media);
 }`,
   margin: `.artwork-treatment {
   padding: var(--spacing-md);
+  border: var(--card-border);
+  border-radius: var(--radius-media);
 }`,
   bleed: `.artwork-treatment {
   padding: 0;
-  border: none;
+  border: var(--card-border);
+  border-radius: var(--radius-media);
+  overflow: hidden;
   width: 100%;
 }`,
 }
@@ -59,34 +78,65 @@ const ARTWORK_TREATMENT_CLASSES = {
 export function getGoogleFontsUrl(fontPairKey: string): string {
   const pair = TYPOGRAPHY_PAIRS[fontPairKey]
   if (!pair) return ''
-  const families = [pair.heading, pair.body]
-    .map((f) => f.replace(/ /g, '+') + ':ital,wght@0,400;0,700;1,400')
-    .join('&family=')
-  return `https://fonts.googleapis.com/css2?family=${families}&display=swap`
+  return buildGoogleFontsUrl([pair.heading, pair.body])
 }
 
-export function generateTokenStyles(config: SiteConfig): string {
+export function generateTokenStyles(config: SiteConfig, scopeSelector = ':root'): string {
   const { styleTokens, sizes } = config
-  const { background, text, accent, fontPair, spacing, artworkTreatment } = styleTokens
+  const {
+    background,
+    text,
+    accent,
+    fontPair,
+    spacing,
+    artworkTreatment,
+    headingFont,
+    bodyFont,
+    uppercaseHeadings,
+    headingTracking,
+    borderRadius,
+    cardBorder,
+    secondaryBg,
+  } = styleTokens
   const { typeScale } = sizes
 
   const adjustedText = adjustForContrast(text, background)
   const adjustedAccent = adjustForContrast(accent, background)
 
   const pair = TYPOGRAPHY_PAIRS[fontPair] ?? TYPOGRAPHY_PAIRS['playfair-raleway']
+  const resolvedHeading = headingFont ?? pair.heading
+  const resolvedBody = bodyFont ?? pair.body
+  const headingFallback = headingFont ? getFontFallback(headingFont) : 'serif'
+  const bodyFallback = bodyFont ? getFontFallback(bodyFont) : 'sans-serif'
+
   const spacingScale = SPACING_SCALES[spacing]
   const typeScaleValues = TYPE_SCALES[typeScale]
-  const fontsUrl = getGoogleFontsUrl(fontPair)
+  const fontsUrl = buildGoogleFontsUrl([resolvedHeading, resolvedBody])
+  const treatmentPrefix = scopeSelector === ':root' ? '' : `${scopeSelector} `
+
+  const radiusVal = RADIUS_VALUES[borderRadius ?? 'none']
+  const cardBorderVal = cardBorder ? '1px solid currentColor' : 'none'
+  const headingTransformVal = uppercaseHeadings ? 'uppercase' : 'none'
+  const headingTrackingVal = TRACKING_VALUES[headingTracking ?? 'normal']
+  const surfaceBgVal = secondaryBg || 'rgba(128,128,128,0.06)'
 
   const lines: string[] = []
-  lines.push(`@import url('${fontsUrl}');`)
-  lines.push('')
-  lines.push(':root {')
+  if (fontsUrl) {
+    lines.push(`@import url('${fontsUrl}');`)
+    lines.push('')
+  }
+  lines.push(`${scopeSelector} {`)
   lines.push(`  --color-bg: ${background};`)
   lines.push(`  --color-text: ${adjustedText};`)
   lines.push(`  --color-accent: ${adjustedAccent};`)
-  lines.push(`  --font-heading: '${pair.heading}', serif;`)
-  lines.push(`  --font-body: '${pair.body}', sans-serif;`)
+  lines.push(`  --color-surface: ${surfaceBgVal};`)
+  lines.push(`  --font-heading: '${resolvedHeading}', ${headingFallback};`)
+  lines.push(`  --font-body: '${resolvedBody}', ${bodyFallback};`)
+  lines.push(`  --heading-transform: ${headingTransformVal};`)
+  lines.push(`  --heading-tracking: ${headingTrackingVal};`)
+  lines.push(`  --radius-media: ${radiusVal};`)
+  lines.push(`  --radius-card: ${radiusVal};`)
+  lines.push(`  --card-border: ${cardBorderVal};`)
   lines.push(`  --spacing-xs: ${spacingScale.xs};`)
   lines.push(`  --spacing-sm: ${spacingScale.sm};`)
   lines.push(`  --spacing-md: ${spacingScale.md};`)
@@ -100,9 +150,39 @@ export function generateTokenStyles(config: SiteConfig): string {
   lines.push(`  --text-2xl: ${typeScaleValues['2xl']};`)
   lines.push(`  --text-3xl: ${typeScaleValues['3xl']};`)
   lines.push(`  --text-4xl: ${typeScaleValues['4xl']};`)
+  lines.push('  font-family: var(--font-body);')
+  lines.push('  font-size: var(--text-base);')
   lines.push('}')
   lines.push('')
-  lines.push(ARTWORK_TREATMENT_CLASSES[artworkTreatment])
+  lines.push(`${treatmentPrefix}h1, ${treatmentPrefix}h2, ${treatmentPrefix}h3 {`)
+  lines.push('  font-family: var(--font-heading);')
+  lines.push('  text-transform: var(--heading-transform);')
+  lines.push('  letter-spacing: var(--heading-tracking);')
+  lines.push('}')
+  lines.push('')
+  lines.push(`${treatmentPrefix}${ARTWORK_TREATMENT_CLASSES[artworkTreatment]}`)
+  lines.push('')
+  lines.push(`${treatmentPrefix}.qs-scheme-dark { background-color: #0d0d0d; color: #f5f5f5; }`)
+  lines.push(`${treatmentPrefix}.qs-scheme-accent { background-color: var(--color-accent); color: var(--color-bg); }`)
+  lines.push(`${treatmentPrefix}.qs-scheme-soft { background-color: var(--color-surface); color: var(--color-text); }`)
+  lines.push('')
+  lines.push('@keyframes qs-marquee-left { 0% { transform: translateX(0%); } 100% { transform: translateX(-50%); } }')
+  lines.push('@keyframes qs-marquee-right { 0% { transform: translateX(-50%); } 100% { transform: translateX(0%); } }')
+  lines.push(`${treatmentPrefix}.qs-marquee-track:hover { animation-play-state: paused; }`)
+  lines.push('')
+  lines.push('@container qs-canvas (max-width: 760px) {')
+  lines.push(`  ${treatmentPrefix}.qs-grid-responsive { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }`)
+  lines.push(`  ${treatmentPrefix}.qs-split-responsive { grid-template-columns: 1fr !important; gap: 2rem !important; }`)
+  lines.push(`  ${treatmentPrefix}.qs-section-pad { padding-left: 2rem !important; padding-right: 2rem !important; }`)
+  lines.push(`  ${treatmentPrefix}.qs-nav-links { gap: 1rem !important; flex-wrap: wrap !important; }`)
+  lines.push('}')
+  lines.push('')
+  lines.push('@container qs-canvas (max-width: 480px) {')
+  lines.push(`  ${treatmentPrefix}.qs-grid-responsive { grid-template-columns: 1fr !important; }`)
+  lines.push(`  ${treatmentPrefix}.qs-split-responsive { grid-template-columns: 1fr !important; gap: 1.5rem !important; }`)
+  lines.push(`  ${treatmentPrefix}.qs-section-pad { padding: 2.5rem 1.25rem !important; }`)
+  lines.push(`  ${treatmentPrefix}.qs-nav-links { gap: 0.75rem !important; font-size: 0.75rem !important; }`)
+  lines.push('}')
 
   return lines.join('\n')
 }
