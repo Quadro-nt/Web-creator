@@ -1,3 +1,10 @@
+import { getArtistByUserId } from '../onboarding/artist-onboarding'
+import {
+  ACCESS_COOKIE,
+  SESSION_SENTINEL_TOKEN,
+  getSessionUserFromRequest,
+  parseCookieHeader,
+} from './session'
 import { validateEditorToken } from './token-validator'
 
 const SAFE_SLUG_RE = /^[a-z0-9-]+$/
@@ -25,9 +32,33 @@ function extractToken(request: Request): string {
 export async function verifyEditorRequest(
   request: Request,
   expectedSlug?: string,
-  validateFn: (token: string) => Promise<string | null> = validateEditorToken
+  validateFn: (token: string) => Promise<string | null> = validateEditorToken,
+  baseDir?: string
 ): Promise<VerifyEditorResult> {
   const token = extractToken(request)
+  const cookies = parseCookieHeader(request.headers.get('cookie'))
+  const hasSessionCookie = Boolean(cookies[ACCESS_COOKIE])
+
+  if (token === SESSION_SENTINEL_TOKEN || (!token && hasSessionCookie)) {
+    const user = await getSessionUserFromRequest(request, baseDir)
+    if (!user) {
+      return { ok: false, status: 401, error: 'Sesión inválida o expirada' }
+    }
+
+    const artist = await getArtistByUserId(user.id, baseDir)
+    if (!artist) {
+      return { ok: false, status: 403, error: 'Aún no has creado tu sitio de artista' }
+    }
+
+    if (expectedSlug !== undefined) {
+      if (!isSafeArtistSlug(expectedSlug) || artist.slug !== expectedSlug) {
+        return { ok: false, status: 403, error: 'No autorizado para este artista' }
+      }
+    }
+
+    return { ok: true, artistSlug: artist.slug }
+  }
+
   if (!token) {
     return { ok: false, status: 401, error: 'Token de editor faltante' }
   }

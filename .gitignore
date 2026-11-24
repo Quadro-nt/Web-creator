@@ -13,6 +13,7 @@ data/artists/*/config.draft.json
 data/artists/*/subscribers.json
 data/artists/*/ai-daily-count.json
 data/artists/*/ai-log.jsonl
+data/auth-users.local.json
 
 # Dependencies and build outputs
 node_modules/

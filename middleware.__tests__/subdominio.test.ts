@@ -76,13 +76,29 @@ describe('middleware — subdomain resolution', () => {
     )
     expect(devRes.headers.get('x-middleware-rewrite')).toBeNull()
   })
+
+  it('www.quadro-nt.com and app.quadro-nt.com (and .localhost equivalents) do not rewrite to /sites/...', () => {
+    for (const host of [
+      'www.quadro-nt.com',
+      'app.quadro-nt.com',
+      'www.localhost:3000',
+      'app.localhost:3000',
+    ]) {
+      const res = middleware(makeReq(`http://${host}/`, host))
+      expect(res.headers.get('x-middleware-rewrite')).toBeNull()
+    }
+  })
 })
 
 describe('config.matcher — _next path exclusion', () => {
-  it('_next/static paths are excluded by the matcher pattern', () => {
+  it('_next/static and app shell routes are excluded by the matcher pattern', () => {
     const inner = config.matcher[0].replace(/^\/\(/, '').replace(/\)$/, '')
     const regex = new RegExp('^(?:' + inner + ')$')
     expect(regex.test('_next/static/chunk.js')).toBe(false)
+    expect(regex.test('studio')).toBe(false)
+    expect(regex.test('login')).toBe(false)
+    expect(regex.test('signup')).toBe(false)
+    expect(regex.test('onboarding')).toBe(false)
   })
 
   it('regular artist paths are included by the matcher pattern', () => {
