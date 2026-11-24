@@ -73,9 +73,14 @@ NEXT_PUBLIC_BASE_URL     # URL base (ej: https://quadro-nt.com)
 
 <!-- El planificador actualiza esta sección al cerrar cada ticket (Art. 10 Constitución) -->
 
-- [Por completar]
+- En Next.js 14 App Router las rutas activas de artistas están en `app/sites/[artist]/` (en local: `http://<slug>.localhost:3000` o `/sites/<slug>`), no en `app/_sites/`.
+- En Next.js 14 `next build` falla si un `route.ts` exporta funciones que no sean handlers HTTP o metadata de segmento; los helpers de rate limit y reset de pruebas deben vivir en `lib/`.
+- Con `@jest/globals` y `next/jest`, los `import` estáticos se evalúan antes de mocks dinámicos; usar `await import(...)` tras `jest.mock(...)` cuando se mockeen módulos en tests de rutas API.
+- `jsdom` imprime `Error: Could not parse CSS stylesheet` al encontrar `@container qs-canvas` en `<style>` inyectados, pero las 24 suites pasan sin fallo.
+- En Windows con sandbox de Antigravity: `.git/` solo tiene permiso de lectura/ejecución en sandbox (los comandos git que escriben requieren `BypassSandbox: true`), y `run_workflow` evalúa las regex `Deny` de Terminal Commands contra el texto fuente completo de `.agents/workflows/squad_ticket.py`.
 
 ## Historial de tiempos
 
 | Fecha | Ticket | Tamaño | N° tareas | ETA inicial | Fin real | Desvío |
 |-------|--------|--------|-----------|-------------|----------|--------|
+| 2026-11-24 | pilot-hardening-and-fixes | M | 3 | 09:45 | 09:36 | -9 min (0 rondas compuerta / 0 rondas verificación) |
