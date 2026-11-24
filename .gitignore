@@ -4,7 +4,15 @@ graphify-out/
 .claude/settings.local.json
 
 # Local env overrides (never commit)
-.env*.local
+.env*
+!.env.example
+
+# Artist secrets and runtime state (never commit)
+data/artists/*/token.txt
+data/artists/*/config.draft.json
+data/artists/*/subscribers.json
+data/artists/*/ai-daily-count.json
+data/artists/*/ai-log.jsonl
 
 # Dependencies and build outputs
 node_modules/
