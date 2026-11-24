@@ -2,6 +2,91 @@ import { z } from 'zod'
 import { FONT_FAMILY_NAMES } from '@/lib/tokens/font-catalog'
 
 const SAFE_UPLOAD_PATH_RE = /^\/uploads\/[a-z0-9-]+\/[a-zA-Z0-9._-]+$/
+const SUPABASE_HOST_RE = /^(?:[a-z0-9-]+\.)+supabase\.co$/i
+const SUPABASE_PUBLIC_STORAGE_PREFIX = '/storage/v1/object/public/'
+const DANGEROUS_SCHEME_RE = /^(?:javascript|data|vbscript):/i
+const UNSAFE_MEDIA_CHARS_RE = /[\u0000-\u001f\u007f<>"`{}\\]/
+const LOCAL_HTTP_HOSTS = new Set(['localhost', '127.0.0.1'])
+
+function normalizeMediaHost(raw: string | undefined): string | null {
+  const trimmed = raw?.trim().toLowerCase()
+  if (!trimmed) return null
+  if (trimmed.includes('://')) {
+    try {
+      return new URL(trimmed).hostname.toLowerCase()
+    } catch {
+      return null
+    }
+  }
+  return trimmed.replace(/\/.*$/, '')
+}
+
+function hasTraversalOrUnsafeChars(input: string): boolean {
+  if (input.includes('..') || UNSAFE_MEDIA_CHARS_RE.test(input)) return true
+  try {
+    const decoded = decodeURIComponent(input)
+    if (decoded.includes('..') || UNSAFE_MEDIA_CHARS_RE.test(decoded)) return true
+  } catch {
+    return true
+  }
+  return false
+}
+
+/**
+ * Validates whether a string is a safe local `/uploads/<slug>/<file>` path
+ * or an allowed media URL (HTTPS, local HTTP dev, Supabase public storage,
+ * or configured media hosts).
+ */
+export function isAllowedMediaUrl(value: string): boolean {
+  if (typeof value !== 'string') return false
+  if (!value || value !== value.trim() || /\s/.test(value)) return false
+  if (DANGEROUS_SCHEME_RE.test(value)) return false
+  if (hasTraversalOrUnsafeChars(value)) return false
+
+  if (value.startsWith('/')) {
+    return SAFE_UPLOAD_PATH_RE.test(value) && !value.includes('..')
+  }
+
+  let parsed: URL
+  try {
+    parsed = new URL(value)
+  } catch {
+    return false
+  }
+
+  if (parsed.username || parsed.password || !parsed.hostname) return false
+
+  const protocol = parsed.protocol.toLowerCase()
+  const hostname = parsed.hostname.toLowerCase()
+
+  if (protocol !== 'https:' && !(protocol === 'http:' && LOCAL_HTTP_HOSTS.has(hostname))) {
+    return false
+  }
+
+  if (hasTraversalOrUnsafeChars(parsed.pathname) || hasTraversalOrUnsafeChars(parsed.search)) {
+    return false
+  }
+
+  const configuredHosts = [
+    normalizeMediaHost(process.env.NEXT_PUBLIC_SUPABASE_MEDIA_HOST),
+    normalizeMediaHost(process.env.NEXT_PUBLIC_MEDIA_HOST),
+  ].filter((h): h is string => Boolean(h))
+
+  if (configuredHosts.includes(hostname)) {
+    return true
+  }
+
+  if (hostname === 'supabase.co' || SUPABASE_HOST_RE.test(hostname)) {
+    return (
+      protocol === 'https:' &&
+      SUPABASE_HOST_RE.test(hostname) &&
+      parsed.pathname.startsWith(SUPABASE_PUBLIC_STORAGE_PREFIX) &&
+      parsed.pathname.length > SUPABASE_PUBLIC_STORAGE_PREFIX.length
+    )
+  }
+
+  return true
+}
 
 const SAFE_HEX_COLOR_RE = /^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/
 const SAFE_RGB_COLOR_RE =
@@ -29,16 +114,9 @@ export const cssColorSchema = z
 
 export const optionalCssColorSchema = z.union([cssColorSchema, z.literal('')]).optional()
 
-export const mediaUrlSchema = z.union([
-  z
-    .string()
-    .url()
-    .refine((v) => /^https?:\/\//i.test(v), 'La URL debe usar http o https'),
-  z
-    .string()
-    .regex(SAFE_UPLOAD_PATH_RE, 'Ruta de imagen subida inválida')
-    .refine((v) => !v.includes('..'), 'Ruta de imagen inválida'),
-])
+export const mediaUrlSchema = z
+  .string()
+  .refine(isAllowedMediaUrl, 'URL o ruta de imagen inválida')
 
 export const SECTION_TYPES = [
   'cover',
