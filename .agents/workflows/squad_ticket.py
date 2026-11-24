@@ -117,7 +117,7 @@ def compuerta(tarea, ruta, verificacion):
     fuera = [a for a in tocados if not coincide(a, tarea["archivos"])]
     if fuera:
         fallas.append("Archivos fuera de la lista permitida: " + ", ".join(fuera))
-    prot = [a for a in tocados if coincide(a, PROTEGIDOS) and a != ".env.example"]
+    prot = [a for a in tocados if coincide(a, PROTEGIDOS)]
     if prot:
         fallas.append("Archivos protegidos tocados: " + ", ".join(prot))
     for cmd in verificacion:

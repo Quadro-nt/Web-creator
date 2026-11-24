@@ -13,7 +13,7 @@
     "npm run lint pasa sin errores",
     "npx tsc --noEmit pasa sin errores",
     "npm run build compila sin errores",
-    ".gitignore excluye .env* (salvo !.env.example), data/artists/*/token.txt, config.draft.json, subscribers.json, ai-daily-count.json y ai-log.jsonl; .env.example existe sin valores reales",
+    ".gitignore excluye .env* (salvo !.env.example), data/artists/*/token.txt, config.draft.json, subscribers.json, ai-daily-count.json y ai-log.jsonl",
     "STORAGE_BACKEND=file (default en local/tests) mantiene intacto el comportamiento en disco y los tests existentes",
     "NO_VERIFICABLE (paso manual Lionel post-deploy): aplicar supabase/schema.sql, crear bucket público en Supabase, ejecutar seed-cloud.ts real, probar AnthropicProvider contra API real, validar wildcard DNS *.quadro-nt.com y rotación de tokens en Vercel"
   ],
@@ -21,10 +21,9 @@
   "tareas": [
     {
       "id": "T1",
-      "objetivo": "Higiene de secretos (.gitignore, .env.example), cliente Supabase, schema SQL y token-validator SHA-256 cloud",
+      "objetivo": "Higiene de secretos (.gitignore), cliente Supabase, schema SQL y token-validator SHA-256 cloud",
       "archivos": [
         ".gitignore",
-        ".env.example",
         "package.json",
         "package-lock.json",
         "supabase/schema.sql",
@@ -34,7 +33,6 @@
       ],
       "criterios": [
         ".gitignore incluye .env*, !.env.example, data/artists/*/token.txt, data/artists/*/config.draft.json, data/artists/*/subscribers.json, data/artists/*/ai-daily-count.json y data/artists/*/ai-log.jsonl",
-        ".env.example lista solo nombres de variables (STORAGE_BACKEND, SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, SUPABASE_STORAGE_BUCKET, ARTIST_TOKEN_HASHES, AI_PROVIDER, AI_API_KEY, AI_MODEL, AI_DAILY_LIMIT_PER_ARTIST, NEXT_PUBLIC_BASE_URL, NEXT_PUBLIC_WHATSAPP_NUMBER) sin valores reales",
         "package.json incluye @supabase/supabase-js en dependencies (usa la versión ya instalada en node_modules/@supabase/supabase-js/package.json)",
         "supabase/schema.sql define de forma idempotente (CREATE TABLE IF NOT EXISTS) las tablas artists, works, newsletter_subscribers, ai_daily_usage y ai_logs",
         "lib/cloud/supabase-client.ts exporta getStorageBackend(), getSupabaseAdminClient(), getSupabaseStorageBucket() y resetSupabaseClientForTests() con inicialización lazy y error claro si faltan SUPABASE_URL o SUPABASE_SERVICE_ROLE_KEY",
