@@ -397,4 +397,129 @@ describe('cloud mode with mocked Supabase client', () => {
       { onConflict: 'artist_slug' }
     )
   })
+
+  it('writes code-verifier into PKCE storage using the real createSupabaseAuthClient', async () => {
+    const prevUrl = process.env.SUPABASE_URL
+    const prevAnonKey = process.env.SUPABASE_ANON_KEY
+    const prevPublicAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+    process.env.SUPABASE_URL = 'https://test-project.supabase.co'
+    process.env.SUPABASE_ANON_KEY = 'dummy-anon-key-for-pkce-test'
+    delete process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+    try {
+      const actualCloudClient = jest.requireActual<typeof import('../../cloud/supabase-client')>(
+        '../../cloud/supabase-client'
+      )
+      mockCreateSupabaseAuthClient.mockImplementation((opts?: unknown) =>
+        actualCloudClient.createSupabaseAuthClient(
+          opts as Parameters<typeof actualCloudClient.createSupabaseAuthClient>[0]
+        )
+      )
+
+      const redirectRes = await sessionMod.createGoogleOAuthRedirect({
+        redirectTo: 'http://localhost:3000/api/auth/callback',
+      })
+      expect(redirectRes.ok).toBe(true)
+      if (!redirectRes.ok) return
+
+      expect(redirectRes.url).toContain('https://test-project.supabase.co/auth/v1/authorize')
+      expect(redirectRes.url).toContain('code_challenge=')
+      expect(
+        redirectRes.pkceCookies.some(
+          (cookie) => cookie.name.includes('code-verifier') && cookie.value.length > 0
+        )
+      ).toBe(true)
+    } finally {
+      if (prevUrl === undefined) delete process.env.SUPABASE_URL
+      else process.env.SUPABASE_URL = prevUrl
+      if (prevAnonKey === undefined) delete process.env.SUPABASE_ANON_KEY
+      else process.env.SUPABASE_ANON_KEY = prevAnonKey
+      if (prevPublicAnonKey !== undefined) {
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = prevPublicAnonKey
+      }
+    }
+  })
+
+  it('does not invoke refreshSession in getSessionUserFromCookies (allowRefresh: false)', async () => {
+    const getUserMock = jest.fn(async () => ({
+      data: { user: null },
+      error: { message: 'JWT expired' },
+    }))
+    const refreshSessionMock = jest.fn(async () => ({
+      data: {
+        user: { id: 'user-1', email: 'sol@ejemplo.com' },
+        session: { access_token: 'new-access', refresh_token: 'new-refresh' },
+      },
+      error: null,
+    }))
+
+    mockCreateSupabaseAuthClient.mockReturnValue({
+      auth: {
+        getUser: getUserMock,
+        refreshSession: refreshSessionMock,
+      },
+    })
+
+    const cookieStore = {
+      get: (name: string) => {
+        if (name === sessionMod.ACCESS_COOKIE) return { value: 'expired-access-token' }
+        if (name === sessionMod.REFRESH_COOKIE) return { value: 'valid-refresh-token' }
+        return undefined
+      },
+    }
+
+    const user = await sessionMod.getSessionUserFromCookies(cookieStore)
+    expect(user).toBeNull()
+    expect(getUserMock).toHaveBeenCalledTimes(1)
+    expect(refreshSessionMock).not.toHaveBeenCalled()
+    expect(sessionMod.hasRefreshCookie(cookieStore)).toBe(true)
+    expect(sessionMod.hasRefreshCookie({ get: () => undefined })).toBe(false)
+  })
+
+  it('returns prefixed pkceCookies from signUpWithEmail when email confirmation is required', async () => {
+    mockCreateSupabaseAuthClient.mockImplementation((opts?: unknown) => {
+      const storage = (
+        opts as {
+          storage?: {
+            setItem: (k: string, v: string) => void
+          }
+        }
+      )?.storage
+
+      return {
+        auth: {
+          signUp: jest.fn(async () => {
+            storage?.setItem('sb-test-project-auth-token-code-verifier', 'signup-verifier-abc')
+            return {
+              data: {
+                user: { id: 'new-user-1', email: 'nueva@ejemplo.com' },
+                session: null,
+              },
+              error: null,
+            }
+          }),
+        },
+      }
+    })
+
+    const res = await sessionMod.signUpWithEmail({
+      email: 'nueva@ejemplo.com',
+      password: 'password123',
+      emailRedirectTo: 'http://localhost:3000/api/auth/callback',
+    })
+
+    expect(res).toEqual({
+      ok: true,
+      user: { id: 'new-user-1', email: 'nueva@ejemplo.com' },
+      tokens: null,
+      needsEmailConfirmation: true,
+      pkceCookies: [
+        {
+          name: `${sessionMod.PKCE_COOKIE_PREFIX}sb-test-project-auth-token-code-verifier`,
+          value: 'signup-verifier-abc',
+        },
+      ],
+    })
+  })
 })

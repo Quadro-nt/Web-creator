@@ -7,6 +7,8 @@ export const SESSION_SENTINEL_TOKEN = '__session__'
 export const ACCESS_COOKIE = 'qs_access_token'
 export const REFRESH_COOKIE = 'qs_refresh_token'
 export const PKCE_COOKIE_PREFIX = 'qs_pkce_'
+export const ACCESS_COOKIE_MAX_AGE_SECONDS = 60 * 60 * 24 * 7
+export const REFRESH_COOKIE_MAX_AGE_SECONDS = 60 * 60 * 24 * 30
 
 export type SessionUser = {
   id: string
@@ -168,12 +170,35 @@ function isCloudAuth(baseDir?: string): boolean {
   return !baseDir && getStorageBackend() === 'cloud'
 }
 
+/** Creates an in-memory PKCE storage adapter backed by a Map. */
+function createInMemoryPkceStorage(initialEntries?: Iterable<[string, string]>) {
+  const store = new Map<string, string>(initialEntries)
+  return {
+    store,
+    storage: {
+      getItem: (k: string) => store.get(k) ?? null,
+      setItem: (k: string, v: string) => {
+        store.set(k, v)
+      },
+      removeItem: (k: string) => {
+        store.delete(k)
+      },
+    },
+  }
+}
+
 /** Registers an artist account with email and password. */
 export async function signUpWithEmail(
   params: { email: string; password: string; emailRedirectTo?: string },
   baseDir?: string
 ): Promise<
-  | { ok: true; user: SessionUser; tokens: SessionTokens | null; needsEmailConfirmation: boolean }
+  | {
+      ok: true
+      user: SessionUser
+      tokens: SessionTokens | null
+      needsEmailConfirmation: boolean
+      pkceCookies?: Array<{ name: string; value: string }>
+    }
   | { ok: false; error: string }
 > {
   const email = params.email.trim().toLowerCase()
@@ -185,7 +210,8 @@ export async function signUpWithEmail(
   }
 
   if (isCloudAuth(baseDir)) {
-    const supabase = createSupabaseAuthClient()
+    const { store, storage } = createInMemoryPkceStorage()
+    const supabase = createSupabaseAuthClient({ storage })
     const { data, error } = await supabase.auth.signUp({
       email,
       password: params.password,
@@ -201,11 +227,16 @@ export async function signUpWithEmail(
           refreshToken: data.session.refresh_token,
         }
       : null
+    const pkceCookies = Array.from(store.entries()).map(([name, value]) => ({
+      name: name.startsWith(PKCE_COOKIE_PREFIX) ? name : `${PKCE_COOKIE_PREFIX}${name}`,
+      value,
+    }))
     return {
       ok: true,
       user,
       tokens,
       needsEmailConfirmation: !data.session,
+      pkceCookies,
     }
   }
 
@@ -288,18 +319,8 @@ export async function createGoogleOAuthRedirect(params: {
     }
   }
 
-  const store = new Map<string, string>()
-  const supabase = createSupabaseAuthClient({
-    storage: {
-      getItem: (k) => store.get(k) ?? null,
-      setItem: (k, v) => {
-        store.set(k, v)
-      },
-      removeItem: (k) => {
-        store.delete(k)
-      },
-    },
-  })
+  const { store, storage } = createInMemoryPkceStorage()
+  const supabase = createSupabaseAuthClient({ storage })
 
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
@@ -329,7 +350,7 @@ export async function exchangeOAuthCode(params: {
     }
   }
 
-  const store = new Map<string, string>()
+  const { store, storage } = createInMemoryPkceStorage()
   for (const cookie of params.pkceCookies) {
     store.set(cookie.name, cookie.value)
     if (cookie.name.startsWith(PKCE_COOKIE_PREFIX)) {
@@ -337,17 +358,7 @@ export async function exchangeOAuthCode(params: {
     }
   }
 
-  const supabase = createSupabaseAuthClient({
-    storage: {
-      getItem: (k) => store.get(k) ?? null,
-      setItem: (k, v) => {
-        store.set(k, v)
-      },
-      removeItem: (k) => {
-        store.delete(k)
-      },
-    },
-  })
+  const supabase = createSupabaseAuthClient({ storage })
 
   const { data, error } = await supabase.auth.exchangeCodeForSession(params.code)
   if (error || !data.user || !data.session?.access_token) {
@@ -364,11 +375,15 @@ export async function exchangeOAuthCode(params: {
   }
 }
 
-/** Resolves a session user from access/refresh tokens, refreshing if needed in cloud mode. */
+/** Resolves a session user from access/refresh tokens, refreshing if allowed in cloud mode. */
 export async function getSessionUserFromTokens(
   tokens: { accessToken?: string; refreshToken?: string },
-  baseDir?: string
+  optionsOrBaseDir?: { allowRefresh?: boolean; baseDir?: string } | string
 ): Promise<{ user: SessionUser; refreshedTokens?: SessionTokens } | null> {
+  const baseDir = typeof optionsOrBaseDir === 'string' ? optionsOrBaseDir : optionsOrBaseDir?.baseDir
+  const allowRefresh =
+    typeof optionsOrBaseDir === 'string' ? true : (optionsOrBaseDir?.allowRefresh ?? true)
+
   if (!tokens.accessToken && !tokens.refreshToken) {
     return null
   }
@@ -384,7 +399,7 @@ export async function getSessionUserFromTokens(
       }
     }
 
-    if (tokens.refreshToken) {
+    if (allowRefresh && tokens.refreshToken) {
       const { data, error } = await supabase.auth.refreshSession({
         refresh_token: tokens.refreshToken,
       })
@@ -412,18 +427,40 @@ export async function getSessionUserFromRequest(
   request: Request,
   baseDir?: string
 ): Promise<SessionUser | null> {
-  const cookies = parseCookieHeader(request.headers.get('cookie'))
+  const parsedCookies = parseCookieHeader(request.headers.get('cookie'))
   const result = await getSessionUserFromTokens(
     {
-      accessToken: cookies[ACCESS_COOKIE],
-      refreshToken: cookies[REFRESH_COOKIE],
+      accessToken: parsedCookies[ACCESS_COOKIE],
+      refreshToken: parsedCookies[REFRESH_COOKIE],
     },
-    baseDir
+    { allowRefresh: true, baseDir }
   )
+
+  if (result?.refreshedTokens) {
+    try {
+      const { cookies } = await import('next/headers')
+      const store = cookies()
+      store.set(
+        ACCESS_COOKIE,
+        result.refreshedTokens.accessToken,
+        buildSessionCookieOptions(ACCESS_COOKIE_MAX_AGE_SECONDS)
+      )
+      if (result.refreshedTokens.refreshToken) {
+        store.set(
+          REFRESH_COOKIE,
+          result.refreshedTokens.refreshToken,
+          buildSessionCookieOptions(REFRESH_COOKIE_MAX_AGE_SECONDS)
+        )
+      }
+    } catch {
+      /* fuera de contexto request de Next.js en tests unitarios */
+    }
+  }
+
   return result?.user ?? null
 }
 
-/** Reads and validates the authenticated user from a Next.js `cookies()` store. */
+/** Reads and validates the authenticated user from a Next.js `cookies()` store without rotating refresh tokens. */
 export async function getSessionUserFromCookies(
   cookieStore: { get(name: string): { value: string } | undefined },
   baseDir?: string
@@ -433,7 +470,14 @@ export async function getSessionUserFromCookies(
       accessToken: cookieStore.get(ACCESS_COOKIE)?.value,
       refreshToken: cookieStore.get(REFRESH_COOKIE)?.value,
     },
-    baseDir
+    { allowRefresh: false, baseDir }
   )
   return result?.user ?? null
+}
+
+/** Returns true when a non-empty refresh token cookie is present in the cookie store. */
+export function hasRefreshCookie(cookieStore: {
+  get(name: string): { value: string } | undefined
+}): boolean {
+  return Boolean(cookieStore.get(REFRESH_COOKIE)?.value)
 }

@@ -40,7 +40,7 @@ export function createSupabaseAuthClient(options?: {
 
   return createClient(url, key, {
     auth: {
-      persistSession: false,
+      persistSession: Boolean(options?.storage),
       autoRefreshToken: false,
       detectSessionInUrl: false,
       flowType: 'pkce',
