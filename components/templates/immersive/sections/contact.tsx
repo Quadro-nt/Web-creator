@@ -30,7 +30,7 @@ export default function ImmersiveContact({ section, config }: Props) {
       <span style={{ fontSize: '0.65rem', letterSpacing: '0.4em', textTransform: 'uppercase', color: 'var(--color-accent)', display: 'block', marginBottom: '1.25rem' }}>
         Contacto
       </span>
-      <h2 style={{ fontSize: 'var(--text-3xl)', fontWeight: 300, letterSpacing: '0.05em', margin: '0 0 1.5rem', lineHeight: 0.95 }}>
+      <h2 style={{ fontFamily: 'var(--qs-font-heading)', fontSize: 'var(--text-3xl)', fontWeight: 300, letterSpacing: '0.05em', margin: '0 0 1.5rem', lineHeight: 0.95 }}>
         {heading}
       </h2>
       <p style={{ opacity: 0.6, fontSize: 'var(--text-sm)', lineHeight: 1.7, margin: '0 0 2rem' }}>{intro}</p>
@@ -73,7 +73,7 @@ export default function ImmersiveContact({ section, config }: Props) {
                         width: '100%',
                         padding: '0.75rem 0',
                         border: 'none',
-                        borderBottom: '1px solid rgba(128,128,128,0.3)',
+                        borderBottom: '1px solid var(--qs-border)',
                         background: 'transparent',
                         color: 'var(--color-text)',
                         fontSize: 'var(--text-base)',
@@ -93,7 +93,7 @@ export default function ImmersiveContact({ section, config }: Props) {
                         width: '100%',
                         padding: '0.75rem 0',
                         border: 'none',
-                        borderBottom: '1px solid rgba(128,128,128,0.3)',
+                        borderBottom: '1px solid var(--qs-border)',
                         background: 'transparent',
                         color: 'var(--color-text)',
                         fontSize: 'var(--text-base)',
@@ -136,7 +136,7 @@ export default function ImmersiveContact({ section, config }: Props) {
               <span style={{ fontSize: '0.65rem', letterSpacing: '0.4em', textTransform: 'uppercase', color: 'var(--color-accent)', display: 'block', marginBottom: '1rem' }}>
                 Contacto
               </span>
-              <h2 style={{ fontSize: 'var(--text-4xl)', fontWeight: 300, margin: '0 0 1rem' }}>{heading}</h2>
+              <h2 style={{ fontFamily: 'var(--qs-font-heading)', fontSize: 'var(--text-4xl)', fontWeight: 300, margin: '0 0 1rem' }}>{heading}</h2>
               <p style={{ margin: 0, opacity: 0.65 }}>{intro}</p>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
@@ -162,7 +162,7 @@ export default function ImmersiveContact({ section, config }: Props) {
         <span style={{ fontSize: '0.65rem', letterSpacing: '0.4em', textTransform: 'uppercase', color: 'var(--color-accent)', display: 'block', marginBottom: '1.5rem' }}>
           Contacto
         </span>
-        <h2 style={{ fontSize: 'var(--text-4xl)', fontWeight: 300, letterSpacing: '0.05em', margin: '0 0 2.5rem', lineHeight: 0.95 }}>
+        <h2 style={{ fontFamily: 'var(--qs-font-heading)', fontSize: 'var(--text-4xl)', fontWeight: 300, letterSpacing: '0.05em', margin: '0 0 2.5rem', lineHeight: 0.95 }}>
           {heading}
         </h2>
         <div style={{ display: 'flex', gap: '2.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
@@ -174,7 +174,7 @@ export default function ImmersiveContact({ section, config }: Props) {
                 opacity: 0.75,
                 textDecoration: 'none',
                 fontSize: 'var(--text-base)',
-                borderBottom: '1px solid rgba(128,128,128,0.3)',
+                borderBottom: '1px solid var(--qs-border)',
                 paddingBottom: '0.25rem',
               }}
             >
@@ -191,7 +191,7 @@ export default function ImmersiveContact({ section, config }: Props) {
                 opacity: 0.75,
                 textDecoration: 'none',
                 fontSize: 'var(--text-base)',
-                borderBottom: '1px solid rgba(128,128,128,0.3)',
+                borderBottom: '1px solid var(--qs-border)',
                 paddingBottom: '0.25rem',
               }}
             >

@@ -27,7 +27,7 @@ export default function Contact({ section, config }: Props) {
 
   const infoBlock = (
     <div>
-      <h2 style={{ fontSize: 'var(--text-3xl)', fontWeight: 800, letterSpacing: '-0.03em', margin: '0 0 1.25rem', lineHeight: 0.95 }}>
+      <h2 style={{ fontFamily: 'var(--qs-font-heading)', fontSize: 'var(--text-3xl)', fontWeight: 800, letterSpacing: '-0.03em', margin: '0 0 1.25rem', lineHeight: 0.95 }}>
         {heading}
       </h2>
       <p style={{ opacity: 0.65, fontSize: 'var(--text-sm)', lineHeight: 1.6, margin: '0 0 1.75rem' }}>{intro}</p>
@@ -57,7 +57,7 @@ export default function Contact({ section, config }: Props) {
           padding: '6rem 5rem',
           backgroundColor: 'var(--color-text)',
           color: 'var(--color-bg)',
-          borderTop: '1px solid rgba(128,128,128,0.18)',
+          borderTop: '1px solid var(--qs-border)',
         }}
       >
         <ContentWrapper width={width}>
@@ -78,7 +78,7 @@ export default function Contact({ section, config }: Props) {
                         width: '100%',
                         padding: '0.75rem 0',
                         border: 'none',
-                        borderBottom: '1px solid rgba(245,240,232,0.35)',
+                        borderBottom: '1px solid var(--qs-border)',
                         background: 'transparent',
                         color: 'var(--color-bg)',
                         fontSize: 'var(--text-base)',
@@ -98,7 +98,7 @@ export default function Contact({ section, config }: Props) {
                         width: '100%',
                         padding: '0.75rem 0',
                         border: 'none',
-                        borderBottom: '1px solid rgba(245,240,232,0.35)',
+                        borderBottom: '1px solid var(--qs-border)',
                         background: 'transparent',
                         color: 'var(--color-bg)',
                         fontSize: 'var(--text-base)',
@@ -112,7 +112,7 @@ export default function Contact({ section, config }: Props) {
                     style={{
                       padding: '0.9rem 3rem',
                       backgroundColor: 'var(--color-accent)',
-                      color: '#ffffff',
+                      color: 'var(--qs-bg)',
                       border: 'none',
                       cursor: 'pointer',
                       fontSize: '0.8rem',
@@ -140,13 +140,13 @@ export default function Contact({ section, config }: Props) {
           padding: '6rem 5rem',
           backgroundColor: 'var(--color-text)',
           color: 'var(--color-bg)',
-          borderTop: '1px solid rgba(128,128,128,0.18)',
+          borderTop: '1px solid var(--qs-border)',
         }}
       >
         <ContentWrapper width={width}>
           <div className="qs-split-responsive" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4rem', alignItems: 'center' }}>
             <div>
-              <h2 style={{ fontSize: 'var(--text-4xl)', fontWeight: 800, letterSpacing: '-0.03em', margin: '0 0 1rem', lineHeight: 0.9 }}>
+              <h2 style={{ fontFamily: 'var(--qs-font-heading)', fontSize: 'var(--text-4xl)', fontWeight: 800, letterSpacing: '-0.03em', margin: '0 0 1rem', lineHeight: 0.9 }}>
                 {heading}
               </h2>
               <p style={{ margin: 0, opacity: 0.7 }}>{intro}</p>
@@ -183,11 +183,11 @@ export default function Contact({ section, config }: Props) {
         padding: '6rem 5rem',
         backgroundColor: 'var(--color-text)',
         color: 'var(--color-bg)',
-        borderTop: '1px solid rgba(128,128,128,0.18)',
+        borderTop: '1px solid var(--qs-border)',
       }}
     >
       <ContentWrapper width={width}>
-        <h2 style={{ fontSize: 'var(--text-4xl)', fontWeight: 800, letterSpacing: '-0.03em', margin: '0 0 2rem', lineHeight: 0.9 }}>
+        <h2 style={{ fontFamily: 'var(--qs-font-heading)', fontSize: 'var(--text-4xl)', fontWeight: 800, letterSpacing: '-0.03em', margin: '0 0 2rem', lineHeight: 0.9 }}>
           {heading}
         </h2>
         <div style={{ display: 'flex', gap: '2.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
@@ -198,7 +198,7 @@ export default function Contact({ section, config }: Props) {
                 color: 'var(--color-bg)',
                 textDecoration: 'none',
                 fontSize: 'var(--text-base)',
-                borderBottom: '1px solid rgba(245,240,232,0.35)',
+                borderBottom: '1px solid var(--qs-border)',
                 paddingBottom: '0.2rem',
               }}
             >
@@ -214,7 +214,7 @@ export default function Contact({ section, config }: Props) {
                 color: 'var(--color-bg)',
                 textDecoration: 'none',
                 fontSize: 'var(--text-base)',
-                borderBottom: '1px solid rgba(245,240,232,0.35)',
+                borderBottom: '1px solid var(--qs-border)',
                 paddingBottom: '0.2rem',
               }}
             >

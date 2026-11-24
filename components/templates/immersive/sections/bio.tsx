@@ -57,7 +57,7 @@ export default function ImmersiveBio({ section, config }: Props) {
       <div className="qs-section-pad" style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text)', padding: '5rem 2rem', textAlign: 'center' }}>
         <ContentWrapper width={width}>
           <div style={{ maxWidth: '720px', margin: '0 auto' }}>
-            <h2 style={{ fontSize: 'var(--text-3xl)', fontWeight: 300, margin: '0 0 1.5rem' }}>{heading}</h2>
+            <h2 style={{ fontFamily: 'var(--qs-font-heading)', fontSize: 'var(--text-3xl)', fontWeight: 300, margin: '0 0 1.5rem' }}>{heading}</h2>
             <p style={{ fontSize: 'var(--text-lg)', lineHeight: 1.95, whiteSpace: 'pre-line', margin: 0, opacity: 0.85, fontWeight: 300 }}>
               {text}
             </p>
@@ -71,7 +71,7 @@ export default function ImmersiveBio({ section, config }: Props) {
     return (
       <div className="qs-section-pad" style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text)', padding: '5rem' }}>
         <ContentWrapper width={width}>
-          <h2 style={{ fontSize: 'var(--text-3xl)', fontWeight: 300, margin: '0 0 1.5rem' }}>{heading}</h2>
+          <h2 style={{ fontFamily: 'var(--qs-font-heading)', fontSize: 'var(--text-3xl)', fontWeight: 300, margin: '0 0 1.5rem' }}>{heading}</h2>
           {photoUrl && (
             <div style={{ position: 'relative', width: '100%', aspectRatio: '16/9', overflow: 'hidden', marginBottom: '2rem' }}>
               <Image src={photoUrl} alt="Artista" fill unoptimized style={{ objectFit: 'cover' }} />
@@ -90,7 +90,7 @@ export default function ImmersiveBio({ section, config }: Props) {
       <ContentWrapper width={width}>
         <div className="qs-split-responsive" style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '4rem', alignItems: 'start', width: '100%' }}>
           <div>
-            <h2 style={{ fontSize: 'var(--text-3xl)', fontWeight: 300, letterSpacing: '0.05em', margin: 0, lineHeight: 1.1 }}>
+            <h2 style={{ fontFamily: 'var(--qs-font-heading)', fontSize: 'var(--text-3xl)', fontWeight: 300, letterSpacing: '0.05em', margin: 0, lineHeight: 1.1 }}>
               {heading}
             </h2>
             <div style={{ width: '40px', height: '1px', backgroundColor: 'var(--color-accent)', marginTop: '1.5rem' }} />

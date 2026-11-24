@@ -32,10 +32,10 @@ export default function Exhibitions({ section, config }: Props) {
         }}
       >
         <ContentWrapper width={width}>
-          {heading && <h2 style={{ margin: '0 0 2rem', fontSize: 'var(--text-2xl)', fontWeight: 400 }}>{heading}</h2>}
+          {heading && <h2 style={{ fontFamily: 'var(--qs-font-heading)', margin: '0 0 2rem', fontSize: 'var(--text-2xl)', fontWeight: 400 }}>{heading}</h2>}
           <div className="qs-grid-responsive" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.25rem' }}>
             {exhibitions.map((exhibition, i) => (
-              <div key={i} style={{ border: '1px solid currentColor', padding: '1.25rem' }}>
+              <div key={i} style={{ border: '1px solid var(--qs-border)', padding: '1.25rem' }}>
                 <span style={{ fontSize: 'var(--text-xs)', opacity: 0.6, letterSpacing: '0.1em' }}>
                   {exhibition.year}
                 </span>
@@ -63,7 +63,7 @@ export default function Exhibitions({ section, config }: Props) {
       >
         <ContentWrapper width={width}>
           <div style={{ maxWidth: '700px', margin: '0 auto' }}>
-            {heading && <h2 style={{ margin: '0 0 2rem', fontSize: 'var(--text-2xl)', fontWeight: 400 }}>{heading}</h2>}
+            {heading && <h2 style={{ fontFamily: 'var(--qs-font-heading)', margin: '0 0 2rem', fontSize: 'var(--text-2xl)', fontWeight: 400 }}>{heading}</h2>}
             <div style={{ position: 'relative', paddingLeft: '2rem' }}>
               <div
                 style={{
@@ -116,7 +116,7 @@ export default function Exhibitions({ section, config }: Props) {
     >
       <ContentWrapper width={width}>
         <div style={{ maxWidth: '700px', margin: '0 auto' }}>
-          {heading && <h2 style={{ margin: '0 0 1.5rem', fontSize: 'var(--text-2xl)', fontWeight: 400 }}>{heading}</h2>}
+          {heading && <h2 style={{ fontFamily: 'var(--qs-font-heading)', margin: '0 0 1.5rem', fontSize: 'var(--text-2xl)', fontWeight: 400 }}>{heading}</h2>}
           <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
             {exhibitions.map((exhibition, i) => (
               <li
@@ -126,7 +126,7 @@ export default function Exhibitions({ section, config }: Props) {
                   gap: '1.5rem',
                   alignItems: 'baseline',
                   padding: '1rem 0',
-                  borderBottom: '1px solid currentColor',
+                  borderBottom: '1px solid var(--qs-border)',
                   opacity: 0.85,
                 }}
               >

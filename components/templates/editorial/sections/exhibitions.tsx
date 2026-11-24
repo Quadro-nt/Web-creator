@@ -29,11 +29,11 @@ export default function Exhibitions({ section, config }: Props) {
           padding: '6rem 5rem',
           backgroundColor: 'var(--color-bg)',
           color: 'var(--color-text)',
-          borderTop: '1px solid rgba(128,128,128,0.18)',
+          borderTop: '1px solid var(--qs-border)',
         }}
       >
         <ContentWrapper width={width}>
-          <h2 style={{ fontSize: 'var(--text-3xl)', fontWeight: 700, letterSpacing: '-0.02em', margin: '0 0 2.5rem' }}>
+          <h2 style={{ fontFamily: 'var(--qs-font-heading)', fontSize: 'var(--text-3xl)', fontWeight: 700, letterSpacing: '-0.02em', margin: '0 0 2.5rem' }}>
             {heading}
           </h2>
           <div className="qs-grid-responsive" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.5rem' }}>
@@ -58,13 +58,13 @@ export default function Exhibitions({ section, config }: Props) {
           padding: '6rem 5rem',
           backgroundColor: 'var(--color-bg)',
           color: 'var(--color-text)',
-          borderTop: '1px solid rgba(128,128,128,0.18)',
+          borderTop: '1px solid var(--qs-border)',
         }}
       >
         <ContentWrapper width={width}>
           <div className="qs-split-responsive" style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '4rem' }}>
             <div>
-              <h2 style={{ fontSize: 'var(--text-3xl)', fontWeight: 700, letterSpacing: '-0.02em', margin: 0, lineHeight: 1.05 }}>
+              <h2 style={{ fontFamily: 'var(--qs-font-heading)', fontSize: 'var(--text-3xl)', fontWeight: 700, letterSpacing: '-0.02em', margin: 0, lineHeight: 1.05 }}>
                 {heading}
               </h2>
             </div>
@@ -113,12 +113,13 @@ export default function Exhibitions({ section, config }: Props) {
         padding: '6rem 5rem',
         backgroundColor: 'var(--color-bg)',
         color: 'var(--color-text)',
-        borderTop: '1px solid rgba(128,128,128,0.18)',
+        borderTop: '1px solid var(--qs-border)',
       }}
     >
       <ContentWrapper width={width}>
         <h2
           style={{
+            fontFamily: 'var(--qs-font-heading)',
             fontSize: 'var(--text-3xl)',
             fontWeight: 700,
             letterSpacing: '-0.02em',
@@ -139,7 +140,7 @@ export default function Exhibitions({ section, config }: Props) {
                 gap: '2rem',
                 alignItems: 'baseline',
                 padding: '1.25rem 0',
-                borderBottom: '1px solid rgba(128,128,128,0.18)',
+                borderBottom: '1px solid var(--qs-border)',
               }}
             >
               <span style={{ fontSize: 'var(--text-xs)', letterSpacing: '0.1em', opacity: 0.5, fontWeight: 600 }}>

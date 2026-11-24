@@ -31,7 +31,7 @@ export default function Contact({ section, config }: Props) {
         <p style={{ margin: 0, fontSize: 'var(--text-base)' }}>
           <a
             href={`mailto:${email}`}
-            style={{ color: 'var(--color-text)', textDecoration: 'none', borderBottom: '1px solid currentColor' }}
+            style={{ color: 'var(--color-text)', textDecoration: 'none', borderBottom: '1px solid var(--qs-border)' }}
           >
             {email}
           </a>
@@ -72,7 +72,7 @@ export default function Contact({ section, config }: Props) {
         <ContentWrapper width={width}>
           <div className="qs-split-responsive" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '3rem', alignItems: 'start' }}>
             <div>
-              {heading && <h2 style={{ margin: '0 0 0.75rem', fontSize: 'var(--text-2xl)', fontWeight: 400 }}>{heading}</h2>}
+              {heading && <h2 style={{ fontFamily: 'var(--qs-font-heading)', margin: '0 0 0.75rem', fontSize: 'var(--text-2xl)', fontWeight: 400 }}>{heading}</h2>}
               {intro && <p style={{ margin: 0, opacity: 0.75, lineHeight: 1.7 }}>{intro}</p>}
             </div>
             <div>{channels}</div>
@@ -113,7 +113,7 @@ export default function Contact({ section, config }: Props) {
                       width: '100%',
                       padding: '0.6rem 0',
                       border: 'none',
-                      borderBottom: '1px solid currentColor',
+                      borderBottom: '1px solid var(--qs-border)',
                       background: 'transparent',
                       color: 'inherit',
                       fontSize: 'var(--text-base)',
@@ -136,7 +136,7 @@ export default function Contact({ section, config }: Props) {
                       width: '100%',
                       padding: '0.6rem 0',
                       border: 'none',
-                      borderBottom: '1px solid currentColor',
+                      borderBottom: '1px solid var(--qs-border)',
                       background: 'transparent',
                       color: 'inherit',
                       fontSize: 'var(--text-base)',
