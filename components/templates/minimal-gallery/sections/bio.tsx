@@ -37,7 +37,7 @@ export default function Bio({ section, config }: Props) {
               </div>
             )}
             <div>
-              {heading && <h2 style={{ margin: '0 0 1rem', fontSize: 'var(--text-2xl)', fontWeight: 400 }}>{heading}</h2>}
+              {heading && <h2 style={{ fontFamily: 'var(--qs-font-heading)', margin: '0 0 1rem', fontSize: 'var(--text-2xl)', fontWeight: 400 }}>{heading}</h2>}
               <p
                 style={{
                   fontSize: 'var(--text-base)',
@@ -95,7 +95,7 @@ export default function Bio({ section, config }: Props) {
         }}
       >
         <ContentWrapper width={width}>
-          {heading && <h2 style={{ margin: '0 0 1.25rem', fontSize: 'var(--text-2xl)', fontWeight: 400 }}>{heading}</h2>}
+          {heading && <h2 style={{ fontFamily: 'var(--qs-font-heading)', margin: '0 0 1.25rem', fontSize: 'var(--text-2xl)', fontWeight: 400 }}>{heading}</h2>}
           {photoUrl && (
             <div style={{ position: 'relative', width: '100%', aspectRatio: '16/9', overflow: 'hidden', marginBottom: '1.75rem' }}>
               <Image src={photoUrl} alt="Artista" fill unoptimized style={{ objectFit: 'cover' }} />

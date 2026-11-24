@@ -37,7 +37,7 @@ export default function Cover({ section, config }: Props) {
           color: 'var(--color-text)',
         }}
       >
-        <h1 style={{ fontSize: 'var(--text-4xl)', fontWeight: 300, letterSpacing: '0.08em', margin: 0 }}>
+        <h1 style={{ fontFamily: 'var(--qs-font-heading)', fontSize: 'var(--text-4xl)', fontWeight: 300, letterSpacing: '0.08em', margin: 0 }}>
           {headline}
         </h1>
         {subtitle && (
@@ -71,7 +71,7 @@ export default function Cover({ section, config }: Props) {
             padding: '4rem',
           }}
         >
-          <h1 style={{ fontSize: 'var(--text-4xl)', fontWeight: 300, letterSpacing: '0.06em', margin: 0 }}>
+          <h1 style={{ fontFamily: 'var(--qs-font-heading)', fontSize: 'var(--text-4xl)', fontWeight: 300, letterSpacing: '0.06em', margin: 0 }}>
             {headline}
           </h1>
           {subtitle && (
@@ -98,7 +98,7 @@ export default function Cover({ section, config }: Props) {
 
   if (section.variant === 'full-screen' || section.variant === 'fullscreen') {
     return (
-      <div style={{ position: 'relative', minHeight: '85vh', display: 'flex', alignItems: 'flex-end', backgroundColor: '#111' }}>
+      <div style={{ position: 'relative', minHeight: '85vh', display: 'flex', alignItems: 'flex-end', backgroundColor: 'var(--qs-text)' }}>
         {coverImageUrl && (
           <>
             <Image
@@ -124,10 +124,10 @@ export default function Cover({ section, config }: Props) {
             position: 'relative',
             zIndex: 1,
             padding: '4rem',
-            color: '#ffffff',
+            color: 'var(--qs-bg)',
           }}
         >
-          <h1 style={{ fontSize: 'var(--text-4xl)', fontWeight: 300, letterSpacing: '0.08em', margin: 0 }}>
+          <h1 style={{ fontFamily: 'var(--qs-font-heading)', fontSize: 'var(--text-4xl)', fontWeight: 300, letterSpacing: '0.08em', margin: 0 }}>
             {headline}
           </h1>
           {subtitle && (
@@ -150,7 +150,7 @@ export default function Cover({ section, config }: Props) {
         alignItems: 'center',
         justifyContent: 'center',
         textAlign: 'center',
-        backgroundColor: '#111',
+        backgroundColor: 'var(--qs-text)',
       }}
     >
       {coverImageUrl && (
@@ -172,8 +172,8 @@ export default function Cover({ section, config }: Props) {
           />
         </>
       )}
-      <div style={{ position: 'relative', zIndex: 2, color: '#ffffff', padding: '2rem' }}>
-        <h1 style={{ fontSize: 'var(--text-4xl)', fontWeight: 300, letterSpacing: '0.08em', margin: 0 }}>
+      <div style={{ position: 'relative', zIndex: 2, color: 'var(--qs-bg)', padding: '2rem' }}>
+        <h1 style={{ fontFamily: 'var(--qs-font-heading)', fontSize: 'var(--text-4xl)', fontWeight: 300, letterSpacing: '0.08em', margin: 0 }}>
           {headline}
         </h1>
         {subtitle && (

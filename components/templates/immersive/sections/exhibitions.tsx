@@ -28,10 +28,10 @@ export default function ImmersiveExhibitions({ section, config }: Props) {
           <span style={{ fontSize: '0.65rem', letterSpacing: '0.4em', textTransform: 'uppercase', color: 'var(--color-accent)', display: 'block', marginBottom: '1rem' }}>
             Trayectoria
           </span>
-          <h2 style={{ fontSize: 'var(--text-3xl)', fontWeight: 300, margin: '0 0 2.5rem' }}>{heading}</h2>
+          <h2 style={{ fontFamily: 'var(--qs-font-heading)', fontSize: 'var(--text-3xl)', fontWeight: 300, margin: '0 0 2.5rem' }}>{heading}</h2>
           <div className="qs-grid-responsive" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.5rem' }}>
             {exhibitions.map((exhibition, i) => (
-              <div key={i} style={{ border: '1px solid rgba(128,128,128,0.28)', padding: '1.5rem' }}>
+              <div key={i} style={{ border: '1px solid var(--qs-border)', padding: '1.5rem' }}>
                 <span style={{ fontSize: 'var(--text-xs)', color: 'var(--color-accent)', letterSpacing: '0.2em' }}>{exhibition.year}</span>
                 <h3 style={{ margin: '0.5rem 0 0.25rem', fontWeight: 400, fontSize: 'var(--text-lg)' }}>{exhibition.title}</h3>
                 <p style={{ margin: 0, opacity: 0.6, fontSize: 'var(--text-sm)' }}>{exhibition.place}</p>
@@ -52,7 +52,7 @@ export default function ImmersiveExhibitions({ section, config }: Props) {
               <span style={{ fontSize: '0.65rem', letterSpacing: '0.4em', textTransform: 'uppercase', color: 'var(--color-accent)', display: 'block', marginBottom: '1rem' }}>
                 Trayectoria
               </span>
-              <h2 style={{ fontSize: 'var(--text-3xl)', fontWeight: 300, letterSpacing: '0.05em', margin: 0, lineHeight: 1.1 }}>
+              <h2 style={{ fontFamily: 'var(--qs-font-heading)', fontSize: 'var(--text-3xl)', fontWeight: 300, letterSpacing: '0.05em', margin: 0, lineHeight: 1.1 }}>
                 {heading}
               </h2>
             </div>
@@ -81,7 +81,7 @@ export default function ImmersiveExhibitions({ section, config }: Props) {
         <span style={{ fontSize: '0.65rem', letterSpacing: '0.4em', textTransform: 'uppercase', color: 'var(--color-accent)', display: 'block', marginBottom: '1rem' }}>
           Trayectoria
         </span>
-        <h2 style={{ fontSize: 'var(--text-3xl)', fontWeight: 300, letterSpacing: '0.05em', margin: '0 0 2.5rem' }}>
+        <h2 style={{ fontFamily: 'var(--qs-font-heading)', fontSize: 'var(--text-3xl)', fontWeight: 300, letterSpacing: '0.05em', margin: '0 0 2.5rem' }}>
           {heading}
         </h2>
         <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
@@ -94,7 +94,7 @@ export default function ImmersiveExhibitions({ section, config }: Props) {
                 gap: '2.5rem',
                 alignItems: 'baseline',
                 padding: '1.5rem 0',
-                borderBottom: '1px solid rgba(128,128,128,0.16)',
+                borderBottom: '1px solid var(--qs-border)',
               }}
             >
               <span style={{ fontSize: '0.75rem', letterSpacing: '0.15em', color: 'var(--color-accent)', fontWeight: 400 }}>
