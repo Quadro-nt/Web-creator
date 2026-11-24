@@ -78,9 +78,14 @@ NEXT_PUBLIC_BASE_URL     # URL base (ej: https://quadro-nt.com)
 - Con `@jest/globals` y `next/jest`, los `import` estáticos se evalúan antes de mocks dinámicos; usar `await import(...)` tras `jest.mock(...)` cuando se mockeen módulos en tests de rutas API.
 - `jsdom` imprime `Error: Could not parse CSS stylesheet` al encontrar `@container qs-canvas` en `<style>` inyectados, pero las 24 suites pasan sin fallo.
 - En Windows con sandbox de Antigravity: `.git/` solo tiene permiso de lectura/ejecución en sandbox (los comandos git que escriben requieren `BypassSandbox: true`), y `run_workflow` evalúa las regex `Deny` de Terminal Commands contra el texto fuente completo de `.agents/workflows/squad_ticket.py`.
+- `STORAGE_BACKEND=cloud` activa los adaptadores Supabase (Postgres + Storage) vía factories (`getStorageAdapter`, `getWorksRepository`, `getMediaAdapter`) y validación SHA-256 en `token-validator.ts`; el default `file` mantiene intactos dev, Jest y Playwright.
+- `scripts/seed-cloud.ts` resuelve el alias `@/` en runtime para `ts-node`; en PowerShell se invoca con `--compiler-options '{\"module\":\"commonjs\"}'`.
+- Con `@jest/globals` y `next/jest` (SWC), `jest.spyOn` sobre exports nombrados falla (`Cannot redefine property`); usar `jest.mock(..., () => ({ ...jest.requireActual(...), ... }))` junto con `await import(...)`.
+- Al agregar dependencias a `package.json`, la regla de seguridad bloquea `npm install` a los agentes: Lionel debe ejecutar `npm install --package-lock-only` para mantener `package-lock.json` sincronizado para `npm ci`.
 
 ## Historial de tiempos
 
 | Fecha | Ticket | Tamaño | N° tareas | ETA inicial | Fin real | Desvío |
 |-------|--------|--------|-----------|-------------|----------|--------|
 | 2026-11-24 | pilot-hardening-and-fixes | M | 3 | 09:45 | 09:36 | -9 min (0 rondas compuerta / 0 rondas verificación) |
+| 2026-11-24 | prod-adapters-and-ai | L | 7 | 10:35 | 10:49 | +14 min (0 rondas compuerta / 1 ronda verificación; incl. 2 pausas manuales npm) |
