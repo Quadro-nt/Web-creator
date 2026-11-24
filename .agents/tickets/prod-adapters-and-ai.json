@@ -1,0 +1,176 @@
+{
+  "ticket": "prod-adapters-and-ai",
+  "tamano": "L",
+  "objetivo": "Preparar Quadro Sites para producción en Vercel con stack Supabase (Postgres + Storage), higiene de secretos y tokens SHA-256, AnthropicProvider real, seed idempotente y guía operativa.",
+  "verificacion": [
+    "npm test -- --passWithNoTests",
+    "npm run lint",
+    "npx tsc --noEmit",
+    "npm run build"
+  ],
+  "criterios": [
+    "npm test -- --passWithNoTests pasa en verde incluyendo tests nuevos de token-validator cloud, AnthropicProvider con fixture, media URLs, adaptadores Supabase, revalidatePath y seed --dry-run",
+    "npm run lint pasa sin errores",
+    "npx tsc --noEmit pasa sin errores",
+    "npm run build compila sin errores",
+    ".gitignore excluye .env* (salvo !.env.example), data/artists/*/token.txt, config.draft.json, subscribers.json, ai-daily-count.json y ai-log.jsonl; .env.example existe sin valores reales",
+    "STORAGE_BACKEND=file (default en local/tests) mantiene intacto el comportamiento en disco y los tests existentes",
+    "NO_VERIFICABLE (paso manual Lionel post-deploy): aplicar supabase/schema.sql, crear bucket público en Supabase, ejecutar seed-cloud.ts real, probar AnthropicProvider contra API real, validar wildcard DNS *.quadro-nt.com y rotación de tokens en Vercel"
+  ],
+  "reglas_extra": "Rama dedicada squad/prod-adapters-and-ai/integracion; nunca push a GitHub ni merge a main. Nunca leer, imprimir ni commitear .env* ni data/artists/*/token.txt. Cero llamadas reales a APIs pagas, Supabase, Anthropic, WhatsApp o Vercel en tests automatizados.",
+  "tareas": [
+    {
+      "id": "T1",
+      "objetivo": "Higiene de secretos (.gitignore, .env.example), cliente Supabase, schema SQL y token-validator SHA-256 cloud",
+      "archivos": [
+        ".gitignore",
+        ".env.example",
+        "package.json",
+        "package-lock.json",
+        "supabase/schema.sql",
+        "lib/cloud/supabase-client.ts",
+        "lib/auth/token-validator.ts",
+        "lib/auth/__tests__/token-validator.test.ts"
+      ],
+      "criterios": [
+        ".gitignore incluye .env*, !.env.example, data/artists/*/token.txt, data/artists/*/config.draft.json, data/artists/*/subscribers.json, data/artists/*/ai-daily-count.json y data/artists/*/ai-log.jsonl",
+        ".env.example lista solo nombres de variables (STORAGE_BACKEND, SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, SUPABASE_STORAGE_BUCKET, ARTIST_TOKEN_HASHES, AI_PROVIDER, AI_API_KEY, AI_MODEL, AI_DAILY_LIMIT_PER_ARTIST, NEXT_PUBLIC_BASE_URL, NEXT_PUBLIC_WHATSAPP_NUMBER) sin valores reales",
+        "package.json incluye @supabase/supabase-js en dependencies (usa la versión ya instalada en node_modules/@supabase/supabase-js/package.json)",
+        "supabase/schema.sql define de forma idempotente (CREATE TABLE IF NOT EXISTS) las tablas artists, works, newsletter_subscribers, ai_daily_usage y ai_logs",
+        "lib/cloud/supabase-client.ts exporta getStorageBackend(), getSupabaseAdminClient(), getSupabaseStorageBucket() y resetSupabaseClientForTests() con inicialización lazy y error claro si faltan SUPABASE_URL o SUPABASE_SERVICE_ROLE_KEY",
+        "lib/auth/token-validator.ts soporta STORAGE_BACKEND=cloud validando SHA-256 en tiempo constante (timingSafeEqual) contra tabla artists.token_hash y soporte opcional por env ARTIST_TOKEN_HASHES (JSON slug->sha256hex), manteniendo compatibilidad 100% con token.txt en local/tests",
+        "npx jest lib/auth/__tests__/token-validator.test.ts pasa cubriendo modo file, modo cloud (DB mockeada y ARTIST_TOKEN_HASHES), tiempo constante y tokens inválidos"
+      ],
+      "contrato": "Exporta desde lib/cloud/supabase-client.ts: getStorageBackend(): 'file' | 'cloud', getSupabaseAdminClient(): SupabaseClient, getSupabaseStorageBucket(): string. Exporta desde lib/auth/token-validator.ts: hashTokenSha256(token: string): string, constantTimeTokenEqual(a: string, b: string): boolean, validateEditorToken(token: string, baseDir?: string): Promise<string | null>.",
+      "depende_de": []
+    },
+    {
+      "id": "T2",
+      "objetivo": "Implementar AnthropicProvider real contra Messages API con parsing seguro, manejo de errores y tests con fixture",
+      "archivos": [
+        "lib/ai/anthropic-provider.ts",
+        "lib/ai/__tests__/fixtures/anthropic-messages-response.json",
+        "lib/ai/__tests__/anthropic-provider.test.ts"
+      ],
+      "criterios": [
+        "AnthropicProvider llama a https://api.anthropic.com/v1/messages con headers x-api-key y anthropic-version: 2023-06-01, AbortSignal.timeout (default 25000 ms, configurable vía constructor) y modelo configurable vía AI_MODEL con default claude-haiku-4-5",
+        "Parsea JSON puro y JSON dentro de bloques markdown ```json ... ``` y valida newConfig contra SiteConfigSchema",
+        "Maneja explícitamente errores 401, 429, 5xx y timeout/abort con mensajes claros en español sin filtrar la API key",
+        "npx jest lib/ai/__tests__/anthropic-provider.test.ts pasa usando lib/ai/__tests__/fixtures/anthropic-messages-response.json sin llamadas reales de red"
+      ],
+      "contrato": "Mantiene la firma export class AnthropicProvider implements AIProvider con suggestConfig({ currentConfig, prompt, schema }): Promise<AIResponse>.",
+      "depende_de": []
+    },
+    {
+      "id": "T3",
+      "objetivo": "Configurar images.remotePatterns en next.config.mjs y validación de URLs cloud en site-config.schema.ts",
+      "archivos": [
+        "next.config.mjs",
+        "lib/schemas/site-config.schema.ts",
+        "lib/schemas/__tests__/media-url.test.ts"
+      ],
+      "criterios": [
+        "next.config.mjs configura images.remotePatterns para https://*.supabase.co/storage/v1/object/public/** (y opcionalmente NEXT_PUBLIC_MEDIA_HOST si está definida)",
+        "lib/schemas/site-config.schema.ts exporta isAllowedMediaUrl(value: string): boolean y valida mediaUrlSchema aceptando /uploads/<slug>/<file>, URLs HTTPS de Supabase Storage (*.supabase.co/storage/v1/object/public/...) y URLs HTTPS seguras, rechazando javascript:, data:, http inseguros malformados o path traversal",
+        "npx jest lib/schemas/__tests__/media-url.test.ts pasa verificando casos válidos e inválidos"
+      ],
+      "contrato": "Mantiene SiteConfigSchema y mediaUrlSchema compatibles con los tests y fixtures existentes, agregando export isAllowedMediaUrl.",
+      "depende_de": []
+    },
+    {
+      "id": "T4",
+      "objetivo": "Implementar adaptadores Supabase y factories por entorno para StorageAdapter y WorksRepository",
+      "archivos": [
+        "lib/storage/supabase-adapter.ts",
+        "lib/storage/index.ts",
+        "lib/storage/__tests__/supabase-adapter.test.ts",
+        "lib/works/supabase-adapter.ts",
+        "lib/works/repository.ts",
+        "lib/works/__tests__/supabase-adapter.test.ts"
+      ],
+      "criterios": [
+        "lib/storage/supabase-adapter.ts implementa StorageAdapter (getPublished, getDraft, saveDraft, discardDraft, publish) sobre la tabla artists de Supabase validando isSafeArtistSlug",
+        "lib/storage/index.ts exporta getStorageAdapter(): StorageAdapter que selecciona Supabase cuando getStorageBackend() === 'cloud' y createFileAdapter() en caso contrario (manteniendo createFileAdapter exportado)",
+        "lib/works/supabase-adapter.ts implementa WorksRepository (getWorks, getWork, saveWorks) sobre la tabla works validando WorksFileSchema e isSafeArtistSlug",
+        "lib/works/repository.ts exporta getWorksRepository(): WorksRepository que selecciona Supabase cuando getStorageBackend() === 'cloud' y createFileWorksAdapter() en caso contrario",
+        "npx jest lib/storage/__tests__/supabase-adapter.test.ts lib/works/__tests__/supabase-adapter.test.ts pasan con cliente Supabase mockeado"
+      ],
+      "contrato": "lib/storage/index.ts exporta getStorageAdapter(), createFileAdapter, createSupabaseStorageAdapter. lib/works/repository.ts exporta getWorksRepository(), createSupabaseWorksAdapter y WorksRepository.",
+      "depende_de": [
+        "T1"
+      ]
+    },
+    {
+      "id": "T5",
+      "objetivo": "Implementar adaptadores Supabase y factories para MediaAdapter, NewsletterStore, rate-limiter y logger de IA",
+      "archivos": [
+        "lib/media/supabase-media-adapter.ts",
+        "lib/media/media-adapter.ts",
+        "lib/media/__tests__/supabase-media-adapter.test.ts",
+        "lib/newsletter/newsletter-store.ts",
+        "lib/ai/rate-limiter.ts",
+        "lib/ai/logger.ts",
+        "lib/cloud/__tests__/cloud-stores.test.ts"
+      ],
+      "criterios": [
+        "lib/media/supabase-media-adapter.ts implementa MediaAdapter sobre Supabase Storage (bucket de getSupabaseStorageBucket(), prefijo <artistSlug>/, validando tamaño 5 MB, magic bytes y sanitizeMediaFilename) y lib/media/media-adapter.ts exporta getMediaAdapter()",
+        "lib/newsletter/newsletter-store.ts usa tabla newsletter_subscribers en Supabase cuando STORAGE_BACKEND=cloud y no se pasa baseDir, respetando MAX_SUBSCRIBERS_PER_ARTIST y deduplicación case-insensitive",
+        "lib/ai/rate-limiter.ts usa tabla ai_daily_usage y lib/ai/logger.ts usa tabla ai_logs cuando STORAGE_BACKEND=cloud y no se pasa baseDir",
+        "Modo file sigue intacto para todos los tests existentes",
+        "npx jest lib/media/__tests__/supabase-media-adapter.test.ts lib/cloud/__tests__/cloud-stores.test.ts pasan con cliente Supabase mockeado"
+      ],
+      "contrato": "lib/media/media-adapter.ts exporta getMediaAdapter(), createLocalMediaAdapter y createSupabaseMediaAdapter. newsletter-store, rate-limiter y logger conservan sus firmas públicas exactas.",
+      "depende_de": [
+        "T1"
+      ]
+    },
+    {
+      "id": "T6",
+      "objetivo": "Cablear factories por entorno en API routes y páginas, y agregar revalidatePath en publish y works",
+      "archivos": [
+        "app/api/draft/route.ts",
+        "app/api/publish/route.ts",
+        "app/api/works/route.ts",
+        "app/api/upload/route.ts",
+        "app/api/newsletter/route.ts",
+        "app/editor/[token]/page.tsx",
+        "app/sites/[artist]/page.tsx",
+        "app/sites/[artist]/obras/[slug]/page.tsx",
+        "app/_sites/[artist]/page.tsx",
+        "app/_sites/[artist]/obras/[slug]/page.tsx",
+        "app/api/__tests__/newsletter-route.test.ts",
+        "app/api/__tests__/revalidate-routes.test.ts"
+      ],
+      "criterios": [
+        "Las rutas API y páginas server usan getStorageAdapter(), getWorksRepository() y getMediaAdapter() en lugar de instanciar directamente los adaptadores locales",
+        "app/api/publish/route.ts y app/api/works/route.ts invocan revalidatePath('/sites/' + auth.artistSlug, 'layout') tras guardar exitosamente",
+        "npx jest app/api/__tests__/newsletter-route.test.ts app/api/__tests__/revalidate-routes.test.ts pasan verificando el llamado a revalidatePath"
+      ],
+      "contrato": "Consume getStorageAdapter (lib/storage), getWorksRepository (lib/works/repository) y getMediaAdapter (lib/media/media-adapter).",
+      "depende_de": [
+        "T4",
+        "T5"
+      ]
+    },
+    {
+      "id": "T7",
+      "objetivo": "Crear script idempotente scripts/seed-cloud.ts (--dry-run) y guía operativa README-prod.md",
+      "archivos": [
+        "scripts/seed-cloud.ts",
+        "scripts/__tests__/seed-cloud.test.ts",
+        "README-prod.md"
+      ],
+      "criterios": [
+        "scripts/seed-cloud.ts soporta --dry-run para los 3 artistas piloto (luna-vega, marco-torres, sofia-rios), nunca lee ni imprime data/artists/*/token.txt, genera hashes SHA-256 sin commitear tokens y hace upserts idempotentes en Supabase fuera de --dry-run",
+        "npx jest scripts/__tests__/seed-cloud.test.ts pasa verificando --dry-run, carga de los 3 artistas piloto y generación de hashes SHA-256 sin llamadas de red",
+        "README-prod.md documenta variables en Vercel, setup de Supabase (schema.sql + bucket), wildcard DNS *.quadro-nt.com, comandos git rm --cached y rotación de tokens para Lionel, seed, backups y checklist manual post-deploy"
+      ],
+      "contrato": "Usa hashTokenSha256 (lib/auth/token-validator) y getSupabaseAdminClient (lib/cloud/supabase-client) solo cuando no es --dry-run.",
+      "depende_de": [
+        "T1",
+        "T4",
+        "T5"
+      ]
+    }
+  ]
+}
