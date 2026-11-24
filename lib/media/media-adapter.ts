@@ -1,6 +1,8 @@
 import { mkdir, readdir, stat, writeFile } from 'fs/promises'
 import path from 'path'
 import { isSafeArtistSlug } from '@/lib/auth/verify-api-request'
+import { getStorageBackend } from '@/lib/cloud/supabase-client'
+import { createSupabaseMediaAdapter } from './supabase-media-adapter'
 
 export type MediaItem = {
   url: string
@@ -22,7 +24,7 @@ export const ALLOWED_MIME_EXTENSIONS: Record<string, string> = {
   'image/gif': '.gif',
 }
 
-const IMAGE_EXT_RE = /\.(jpe?g|png|webp|gif)$/i
+export const IMAGE_EXT_RE = /\.(jpe?g|png|webp|gif)$/i
 
 export function hasValidImageMagicBytes(mimeType: string, buffer: Buffer): boolean {
   const normalized = mimeType.toLowerCase()
@@ -147,4 +149,13 @@ export function createLocalMediaAdapter(uploadsRoot?: string): MediaAdapter {
       }
     },
   }
+}
+
+export { createSupabaseMediaAdapter }
+
+/** Returns the active MediaAdapter according to STORAGE_BACKEND. */
+export function getMediaAdapter(): MediaAdapter {
+  return getStorageBackend() === 'cloud'
+    ? createSupabaseMediaAdapter()
+    : createLocalMediaAdapter()
 }

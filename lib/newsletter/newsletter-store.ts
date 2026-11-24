@@ -2,6 +2,7 @@ import { mkdir, readFile, writeFile } from 'fs/promises'
 import path from 'path'
 import { z } from 'zod'
 import { isSafeArtistSlug } from '@/lib/auth/verify-api-request'
+import { getStorageBackend, getSupabaseAdminClient } from '@/lib/cloud/supabase-client'
 
 export const MAX_SUBSCRIBERS_PER_ARTIST = 5000
 export const NEWSLETTER_RATE_LIMIT_MAX = 10
@@ -62,6 +63,28 @@ export async function listSubscribers(
   artistSlug: string,
   baseDir?: string
 ): Promise<NewsletterSubscriber[]> {
+  if (!isSafeArtistSlug(artistSlug)) {
+    throw new Error('Slug de artista inválido')
+  }
+
+  if (!baseDir && getStorageBackend() === 'cloud') {
+    const supabase = getSupabaseAdminClient()
+    const { data, error } = await supabase
+      .from('newsletter_subscribers')
+      .select('email, created_at')
+      .eq('artist_slug', artistSlug)
+      .order('created_at', { ascending: true })
+
+    if (error) {
+      throw new Error(error.message)
+    }
+
+    return (data ?? []).map((row) => ({
+      email: String(row.email),
+      createdAt: String(row.created_at),
+    }))
+  }
+
   const filePath = subscribersPath(artistSlug, baseDir)
   try {
     const raw = await readFile(filePath, 'utf-8')
@@ -97,6 +120,33 @@ export async function addSubscriber(
     throw new Error('Correo electrónico inválido')
   }
   const normalized = parsedEmail.data.toLowerCase()
+
+  if (!baseDir && getStorageBackend() === 'cloud') {
+    const existing = await listSubscribers(artistSlug)
+
+    if (existing.some((s) => s.email.toLowerCase() === normalized)) {
+      return { alreadySubscribed: true, total: existing.length }
+    }
+
+    if (existing.length >= MAX_SUBSCRIBERS_PER_ARTIST) {
+      throw new Error('Se alcanzó el límite máximo de suscriptores para este artista')
+    }
+
+    const supabase = getSupabaseAdminClient()
+    const { error } = await supabase
+      .from('newsletter_subscribers')
+      .insert({ artist_slug: artistSlug, email: normalized })
+
+    if (error) {
+      if ('code' in error && error.code === '23505') {
+        return { alreadySubscribed: true, total: existing.length }
+      }
+      throw new Error(error.message)
+    }
+
+    return { alreadySubscribed: false, total: existing.length + 1 }
+  }
+
   const filePath = subscribersPath(artistSlug, baseDir)
   const existing = await listSubscribers(artistSlug, baseDir)
 
