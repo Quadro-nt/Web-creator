@@ -1,0 +1,99 @@
+{
+  "ticket": "pilot-hardening-and-fixes",
+  "tamano": "M",
+  "objetivo": "Endurecer la validación de colores CSS, URLs, uploads y newsletter, y conectar la ficha de obra y el enrutamiento local a la configuración del artista eliminando rutas obsoletas.",
+  "verificacion": [
+    "npm test -- --passWithNoTests",
+    "npm run lint",
+    "npx tsc --noEmit",
+    "npm run build"
+  ],
+  "criterios": [
+    "Ejecutar `npx jest lib/schemas/__tests__/site-config-extended.test.ts lib/tokens/__tests__/token-engine.test.ts` -> PASS; payloads con `</style>` o `; }` en colores fallan en SiteConfigSchema y no aparecen sin escapar en generateTokenStyles.",
+    "Ejecutar `npx jest lib/media/__tests__/media-adapter.test.ts` -> PASS; `save()` rechaza buffers cuyos magic bytes no coinciden con JPEG/PNG/GIF/WebP aunque el mimeType declarado sea válido.",
+    "Ejecutar `npx jest lib/newsletter lib/auth app/api/__tests__/newsletter-route.test.ts` -> PASS; `POST /api/newsletter` con un artistSlug sin `config.published.json` devuelve HTTP 404 y no crea carpeta en `data/artists/`.",
+    "Ejecutar `npx jest components/__tests__/BuyButton.test.tsx components/__tests__/ArtworkDetail.test.tsx middleware.__tests__/subdominio.test.ts` -> PASS; `ArtworkDetail` inyecta variables CSS del artista, muestra enlace de retorno y consulta en obras sin precio, `BuyButton` arma subdominio `<artist>.<host>/obras/<slug>`, y no existen archivos bajo `app/_sites/`.",
+    "Ejecutar `npm test -- --passWithNoTests && npm run lint && npx tsc --noEmit` -> 0 errores y todas las suites en PASS."
+  ],
+  "reglas_extra": "PROHIBIDO leer o modificar `.env*`, `data/artists/*/token.txt`, `.squad/*`, `.claude/*`, `hooks/*` o `PROYECTO.md`. No cambiar el fallback de `headline` a `siteTitle` en `cover.tsx` (E2E depende de `identity.siteTitle` cuando `headline` no está definido). Mantener compatibilidad hacia atrás en `BuyButton` cuando `config` no se pasa como prop.",
+  "tareas": [
+    {
+      "id": "T1",
+      "objetivo": "Bloquear inyección CSS/XSS en tokens de color, sanitizar URLs/handles en secciones base y validar magic bytes y tamaño previo en subida de imágenes.",
+      "archivos": [
+        "lib/schemas/site-config.schema.ts",
+        "lib/tokens/token-engine.ts",
+        "components/templates/shared/template-helpers.ts",
+        "components/templates/minimal-gallery/sections/cover.tsx",
+        "components/templates/editorial/sections/cover.tsx",
+        "components/templates/immersive/sections/cover.tsx",
+        "components/templates/minimal-gallery/sections/bio.tsx",
+        "components/templates/editorial/sections/bio.tsx",
+        "components/templates/immersive/sections/bio.tsx",
+        "components/templates/minimal-gallery/sections/contact.tsx",
+        "components/templates/editorial/sections/contact.tsx",
+        "components/templates/immersive/sections/contact.tsx",
+        "lib/media/media-adapter.ts",
+        "app/api/upload/route.ts",
+        "lib/schemas/__tests__/site-config-extended.test.ts",
+        "lib/tokens/__tests__/token-engine.test.ts",
+        "lib/media/__tests__/media-adapter.test.ts"
+      ],
+      "criterios": [
+        "`npx jest lib/schemas/__tests__/site-config-extended.test.ts lib/tokens/__tests__/token-engine.test.ts lib/media/__tests__/media-adapter.test.ts` pasa sin errores.",
+        "`SiteConfigSchema` acepta hex (`#fff`, `#ffffff`), `rgb()/rgba()`, `hsl()/hsla()`, nombres CSS alfabéticos y `''` en colores opcionales, pero rechaza strings con `<`, `>`, `;`, `{`, `}`, `\\`, comillas o `url(`.",
+        "`sanitizeHref('//evil.com')` retorna `null`; `cover.tsx` y `bio.tsx` pasan `imageUrl`/`photoUrl` por `sanitizeExternalUrl` (sin cambiar la lógica de `headline`); `contact.tsx` limpia handles de Instagram con `sanitizeSocialHandle`.",
+        "`app/api/upload/route.ts` valida `file.size > MAX_MEDIA_SIZE_BYTES` antes de `file.arrayBuffer()` y `media-adapter.ts` verifica magic bytes reales de JPEG, PNG, GIF y WebP."
+      ],
+      "contrato": "Mantiene intactas las firmas públicas de `generateTokenStyles(config, scopeSelector?)`, `sanitizeHref(raw)`, `sanitizeExternalUrl(raw)` y `buildWhatsappUrl(rawNumber, message)`; exporta adicionalmente `sanitizeSocialHandle(raw: unknown): string | null` en `template-helpers.ts`.",
+      "depende_de": []
+    },
+    {
+      "id": "T2",
+      "objetivo": "Impedir creación de carpetas de artistas inexistentes y abuso en POST /api/newsletter, y comparar tokens de editor en tiempo constante.",
+      "archivos": [
+        "app/api/newsletter/route.ts",
+        "lib/newsletter/newsletter-store.ts",
+        "app/api/__tests__/newsletter-route.test.ts",
+        "lib/newsletter/__tests__/newsletter-store.test.ts",
+        "lib/auth/token-validator.ts",
+        "lib/auth/__tests__/verify-api-request.test.ts"
+      ],
+      "criterios": [
+        "`npx jest lib/newsletter/__tests__/newsletter-store.test.ts app/api/__tests__/newsletter-route.test.ts lib/auth/__tests__/verify-api-request.test.ts` pasa sin errores.",
+        "`POST /api/newsletter` verifica con `createFileAdapter().getPublished(artistSlug)` que el artista exista antes de llamar `addSubscriber`; si no existe devuelve 404 y no crea directorios en `data/artists/`. Incluye rate-limit en memoria por IP+artista (429 al exceder).",
+        "`newsletter-store.ts` mantiene compatibilidad con `baseDir` en tests existentes e impone tope máximo `MAX_SUBSCRIBERS_PER_ARTIST = 5000`.",
+        "`validateEditorToken` filtra carpetas con `isSafeArtistSlug` y compara tokens mediante `crypto.timingSafeEqual` sobre digests SHA-256 (sin leer nunca archivos fuera de su función interna y sin mostrar valores de tokens en tests)."
+      ],
+      "contrato": "Mantiene intactas las firmas `addSubscriber(artistSlug, rawEmail, baseDir?)`, `listSubscribers(artistSlug, baseDir?)` y `validateEditorToken(token): Promise<string | null>`.",
+      "depende_de": []
+    },
+    {
+      "id": "T3",
+      "objetivo": "Conectar ArtworkPage y BuyButton a los tokens y configuración del artista, responder 404 real en sitios inexistentes, resolver /obras en ruta local y eliminar app/_sites/ actualizando README y helpers E2E.",
+      "archivos": [
+        "app/sites/[artist]/page.tsx",
+        "app/sites/[artist]/not-found.tsx",
+        "app/sites/[artist]/obras/[slug]/page.tsx",
+        "components/ArtworkDetail.tsx",
+        "components/BuyButton.tsx",
+        "components/__tests__/BuyButton.test.tsx",
+        "components/__tests__/ArtworkDetail.test.tsx",
+        "middleware.ts",
+        "middleware.__tests__/subdominio.test.ts",
+        "app/_sites/[artist]/page.tsx",
+        "app/_sites/[artist]/obras/[slug]/page.tsx",
+        "README.md",
+        "e2e/helpers.ts"
+      ],
+      "criterios": [
+        "`npx jest components/__tests__/BuyButton.test.tsx components/__tests__/ArtworkDetail.test.tsx middleware.__tests__/subdominio.test.ts` pasa sin errores.",
+        "`ArtworkPage` carga `config = await storage.getPublished(params.artist)` y lo pasa a `ArtworkDetail` y `BuyButton`; `ArtworkDetail` aplica `generateTokenStyles(config, '.qs-site-root')`, incluye enlace `← Volver al portafolio`, usa clase responsive `.qs-split-responsive` y renderiza `BuyButton` cuando `!artwork.sold` incluso si `price === undefined`.",
+        "`BuyButton` sin `config` conserva exacto su comportamiento actual (texto `'Comprar via WhatsApp'`, `shape='pill'`, `style='filled'`, requiere `NEXT_PUBLIC_WHATSAPP_NUMBER`); con `config` usa `config.button` (`'Consultar precio'` si `price === undefined`), busca WhatsApp en `config` (`header.whatsappNumber`, `footer.whatsapp`, o sección `contact`) con fallback a `NEXT_PUBLIC_WHATSAPP_NUMBER`, y arma la URL de la obra con subdominio `<artistSlug>.<host>/obras/<slug>`.",
+        "`app/sites/[artist]/page.tsx` invoca `notFound()` cuando `!config` y `app/sites/[artist]/not-found.tsx` muestra `'Sitio no encontrado'`; `middleware.ts` evita doble `/sites/` y reescribe `/obras/<slug>` en localhost cuando `Referer` proviene de `/sites/<artist>`; `app/_sites/` queda eliminado; `README.md` y `e2e/helpers.ts` quedan actualizados."
+      ],
+      "contrato": "`ArtworkDetail` y `BuyButton` aceptan prop opcional `config?: SiteConfig | null` sin romper llamadas existentes de 2 props.",
+      "depende_de": []
+    }
+  ]
+}
