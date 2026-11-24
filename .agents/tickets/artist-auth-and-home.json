@@ -1,0 +1,128 @@
+{
+  "ticket": "artist-auth-and-home",
+  "tamano": "L",
+  "objetivo": "Agregar landing principal (/), autenticación de artistas (Email + contraseña + Google OAuth con Supabase Auth y modo local para dev/tests), onboarding de creación de sitio (/onboarding) y estudio autenticado (/studio).",
+  "verificacion": [
+    "npm test -- --passWithNoTests",
+    "npm run lint",
+    "npx tsc --noEmit",
+    "npm run build"
+  ],
+  "criterios": [
+    "npm test -- --passWithNoTests pasa en verde incluyendo tests nuevos de sesión/onboarding, rutas API de auth/onboarding, landing (/), formularios de login/signup/onboarding y StudioTopBar",
+    "npm run lint pasa sin errores",
+    "npx tsc --noEmit pasa sin errores",
+    "npm run build compila sin errores",
+    "La raíz / muestra la landing de Quadro Sites con enlaces a /login, /signup y las 3 plantillas curadas",
+    "middleware.ts no reescribe www.quadro-nt.com ni app.quadro-nt.com a /sites/... y los slugs del sistema quedan bloqueados en el alta de artistas",
+    "El editor por token existente (/editor/[token]) y los sitios públicos (/sites/[artist]) mantienen 100% su comportamiento actual",
+    "NO_VERIFICABLE (paso manual Lionel post-deploy): ejecutar ALTER TABLE artists ADD COLUMN IF NOT EXISTS en Supabase, agregar NEXT_PUBLIC_SUPABASE_ANON_KEY en Vercel y configurar credenciales Google OAuth + Redirect URL en Supabase Auth"
+  ],
+  "reglas_extra": "Rama dedicada squad/artist-auth-and-home/integracion; nunca push a GitHub ni merge a main. Cero paquetes nuevos de npm (usar @supabase/supabase-js ya instalado). Nunca leer ni imprimir .env* ni data/artists/*/token.txt. Cero llamadas reales de red en tests.",
+  "tareas": [
+    {
+      "id": "T1",
+      "objetivo": "Schema SQL de owner en artists, slugs reservados, sesión Supabase Auth PKCE + modo file, servicio de onboarding y verifyEditorRequest híbrido",
+      "archivos": [
+        "supabase/schema.sql",
+        ".gitignore",
+        "lib/cloud/supabase-client.ts",
+        "lib/auth/reserved-slugs.ts",
+        "middleware.ts",
+        "middleware.__tests__/subdominio.test.ts",
+        "lib/auth/session.ts",
+        "lib/onboarding/artist-onboarding.ts",
+        "lib/auth/verify-api-request.ts",
+        "lib/auth/__tests__/session-and-onboarding.test.ts"
+      ],
+      "criterios": [
+        "supabase/schema.sql agrega de forma idempotente owner_user_id uuid UNIQUE, owner_email text y display_name text a la tabla artists, y .gitignore excluye data/auth-users.local.json",
+        "lib/auth/reserved-slugs.ts bloquea slugs de sistema (www, app, api, admin, login, signup, register, onboarding, studio, dashboard, editor, sites, auth, logout, settings, quadro, static, assets, cdn, mail) y normaliza slugs",
+        "middleware.ts no reescribe subdominios www ni app a /sites/... y mantiene intacta la reescritura de subdominios de artistas",
+        "lib/auth/session.ts implementa autenticación por cookies HttpOnly (qs_access_token, qs_refresh_token y storage PKCE para Google OAuth) usando Supabase Auth en modo cloud y data/auth-users.local.json (scrypt + HMAC) en modo file",
+        "lib/onboarding/artist-onboarding.ts crea la configuración inicial válida para minimal-gallery, editorial o immersive y registra el artista asociado a owner_user_id",
+        "lib/auth/verify-api-request.ts acepta x-editor-token === '__session__' (o sesión por cookie) validando que el usuario autenticado sea dueño de expectedSlug, manteniendo intacto validateEditorToken para tokens tradicionales",
+        "npx jest lib/auth/__tests__/session-and-onboarding.test.ts middleware.__tests__/subdominio.test.ts pasan en verde"
+      ],
+      "contrato": "Exporta SESSION_SENTINEL_TOKEN='__session__', funciones de sesión en lib/auth/session.ts, servicio de onboarding en lib/onboarding/artist-onboarding.ts y slugs reservados en lib/auth/reserved-slugs.ts.",
+      "depende_de": []
+    },
+    {
+      "id": "T2",
+      "objetivo": "Implementar landing principal de Quadro Sites en app/page.tsx con tests",
+      "archivos": [
+        "app/page.tsx",
+        "app/__tests__/home-page.test.tsx"
+      ],
+      "criterios": [
+        "app/page.tsx renderiza la landing editorial de Quadro Sites con navbar, hero, cómo funciona en 3 pasos, catálogo de las 3 plantillas (Minimal Gallery, Editorial, Immersive) con links a demos (/sites/luna-vega, /sites/marco-torres, /sites/sofia-rios) y CTAs hacia /signup, /signup?template=... y /login",
+        "npx jest app/__tests__/home-page.test.tsx pasa verificando CTAs, plantillas y navegación"
+      ],
+      "contrato": "Enlaza a /login, /signup y /signup?template=minimal-gallery|editorial|immersive.",
+      "depende_de": []
+    },
+    {
+      "id": "T3",
+      "objetivo": "Implementar rutas API de autenticación (signup, login, logout, Google OAuth PKCE, callback) y onboarding",
+      "archivos": [
+        "app/api/auth/signup/route.ts",
+        "app/api/auth/login/route.ts",
+        "app/api/auth/logout/route.ts",
+        "app/api/auth/oauth/google/route.ts",
+        "app/api/auth/callback/route.ts",
+        "app/api/onboarding/route.ts",
+        "app/api/__tests__/auth-and-onboarding-routes.test.ts"
+      ],
+      "criterios": [
+        "POST /api/auth/signup, POST /api/auth/login y POST /api/auth/logout gestionan sesión con cookies HttpOnly y devuelven errores claros en español",
+        "GET /api/auth/oauth/google inicia el flujo PKCE de Google en Supabase Auth y GET /api/auth/callback intercambia el code y redirige a /studio (si ya tiene sitio) o /onboarding (si es nuevo)",
+        "GET /api/onboarding?slug=... informa disponibilidad del slug y POST /api/onboarding crea el sitio del usuario autenticado e invoca revalidatePath('/sites/' + slug, 'layout')",
+        "npx jest app/api/__tests__/auth-and-onboarding-routes.test.ts pasa cubriendo signup, login, logout, check-slug y creación de sitio"
+      ],
+      "contrato": "Consume lib/auth/session.ts y lib/onboarding/artist-onboarding.ts.",
+      "depende_de": [
+        "T1"
+      ]
+    },
+    {
+      "id": "T4",
+      "objetivo": "Implementar pantallas /login, /signup y /onboarding con verificación de subdominio en vivo y selector de plantilla",
+      "archivos": [
+        "components/auth/AuthFormCard.tsx",
+        "app/login/page.tsx",
+        "app/signup/page.tsx",
+        "app/onboarding/page.tsx",
+        "app/onboarding/OnboardingForm.tsx",
+        "components/auth/__tests__/auth-and-onboarding-ui.test.tsx"
+      ],
+      "criterios": [
+        "/login y /signup ofrecen botón Continuar con Google + formulario email/contraseña, estados de carga/error y soporte de confirmación por correo si Supabase la exige",
+        "/onboarding requiere sesión activa, sugiere slug a partir del nombre artístico, verifica disponibilidad contra GET /api/onboarding?slug=..., permite elegir entre las 3 plantillas y envía POST /api/onboarding redirigiendo a /studio",
+        "npx jest components/auth/__tests__/auth-and-onboarding-ui.test.tsx pasa en verde"
+      ],
+      "contrato": "Consume los endpoints /api/auth/* y /api/onboarding y redirige a /studio al completar.",
+      "depende_de": [
+        "T1"
+      ]
+    },
+    {
+      "id": "T5",
+      "objetivo": "Implementar estudio autenticado /studio con barra superior de cuenta y documentar setup de Supabase Auth + Google en README-prod.md",
+      "archivos": [
+        "app/studio/page.tsx",
+        "app/studio/StudioTopBar.tsx",
+        "app/studio/__tests__/studio-top-bar.test.tsx",
+        "README-prod.md"
+      ],
+      "criterios": [
+        "app/studio/page.tsx verifica sesión activa (redirige a /login si no hay sesión o a /onboarding si aún no creó su sitio), muestra StudioTopBar (subdominio/link a /sites/<slug>, correo y botón Cerrar sesión) y monta EditorClient con editorToken='__session__' sin modificar EditorClient.tsx",
+        "README-prod.md documenta migración ALTER TABLE artists, variable NEXT_PUBLIC_SUPABASE_ANON_KEY y configuración paso a paso de Google OAuth + Redirect URL en Supabase",
+        "npx jest app/studio/__tests__/studio-top-bar.test.tsx pasa en verde"
+      ],
+      "contrato": "Reutiliza app/editor/[token]/EditorClient con editorToken='__session__' y llama POST /api/auth/logout al cerrar sesión.",
+      "depende_de": [
+        "T1"
+      ]
+    }
+  ]
+}
