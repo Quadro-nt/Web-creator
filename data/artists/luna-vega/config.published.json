@@ -1,12 +1,13 @@
 {
   "template": "minimal-gallery",
   "styleTokens": {
-    "background": "#ffffff",
+    "background": "#faf7f2",
     "text": "#1a1a1a",
-    "accent": "#7c5cbf",
-    "fontPair": "cormorant-jost",
+    "accent": "#c47a3a",
+    "fontPair": "fraunces-nunito",
     "spacing": "spacious",
-    "artworkTreatment": "margin"
+    "artworkTreatment": "margin",
+    "secondaryBg": "#efe9e0"
   },
   "button": {
     "shape": "pill",

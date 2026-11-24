@@ -1,12 +1,13 @@
 {
   "template": "immersive",
   "styleTokens": {
-    "background": "#0d0d0d",
-    "text": "#f0f0f0",
-    "accent": "#e8c547",
-    "fontPair": "dm-serif-inter",
-    "spacing": "compact",
-    "artworkTreatment": "bleed"
+    "background": "#faf7f2",
+    "text": "#1a1a1a",
+    "accent": "#8b4513",
+    "fontPair": "fraunces-nunito",
+    "spacing": "normal",
+    "artworkTreatment": "bleed",
+    "secondaryBg": "#efe9e0"
   },
   "button": {
     "shape": "rounded",
