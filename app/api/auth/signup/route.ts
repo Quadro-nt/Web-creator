@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import {
   ACCESS_COOKIE,
+  PKCE_COOKIE_PREFIX,
   REFRESH_COOKIE,
   buildSessionCookieOptions,
   signUpWithEmail,
@@ -9,6 +10,7 @@ import {
 
 const ACCESS_MAX_AGE_SECONDS = 60 * 60 * 24 * 7
 const REFRESH_MAX_AGE_SECONDS = 60 * 60 * 24 * 30
+const PKCE_COOKIE_MAX_AGE_SECONDS = 3600
 
 const SignupBodySchema = z.object({
   email: z.string().trim().email('Ingresa un correo electrónico válido.'),
@@ -46,11 +48,21 @@ export async function POST(request: Request) {
   }
 
   if (result.needsEmailConfirmation || !result.tokens) {
-    return NextResponse.json({
+    const response = NextResponse.json({
       ok: true,
       needsEmailConfirmation: true,
       message: 'Revisa tu correo para confirmar tu cuenta y continuar.',
     })
+    if (result.needsEmailConfirmation && result.pkceCookies?.length) {
+      const pkceOptions = buildSessionCookieOptions(PKCE_COOKIE_MAX_AGE_SECONDS)
+      for (const cookie of result.pkceCookies) {
+        const cookieName = cookie.name.startsWith(PKCE_COOKIE_PREFIX)
+          ? cookie.name
+          : `${PKCE_COOKIE_PREFIX}${cookie.name}`
+        response.cookies.set(cookieName, cookie.value, pkceOptions)
+      }
+    }
+    return response
   }
 
   const redirectTo = template ? `/onboarding?template=${template}` : '/onboarding'

@@ -1,7 +1,11 @@
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 import EditorClient from '@/app/editor/[token]/EditorClient'
-import { SESSION_SENTINEL_TOKEN, getSessionUserFromCookies } from '@/lib/auth/session'
+import {
+  SESSION_SENTINEL_TOKEN,
+  getSessionUserFromCookies,
+  hasRefreshCookie,
+} from '@/lib/auth/session'
 import { getArtistByUserId } from '@/lib/onboarding/artist-onboarding'
 import { defaultSiteConfig } from '@/lib/schemas/site-config.schema'
 import { getStorageAdapter } from '@/lib/storage'
@@ -16,6 +20,9 @@ export default async function StudioPage() {
   const user = await getSessionUserFromCookies(cookieStore)
 
   if (!user) {
+    if (hasRefreshCookie(cookieStore)) {
+      redirect('/api/auth/refresh?next=/studio')
+    }
     redirect('/login')
   }
 

@@ -6,6 +6,8 @@ import { getArtistByUserId } from '@/lib/onboarding/artist-onboarding'
 
 export const dynamic = 'force-dynamic'
 
+const VALID_TEMPLATES = ['minimal-gallery', 'editorial', 'immersive'] as const
+
 function pickQueryParam(value: string | string[] | undefined): string | undefined {
   if (typeof value === 'string') return value
   if (Array.isArray(value)) return value[0]
@@ -24,7 +26,11 @@ export default async function SignupPage({
     redirect(artist ? '/studio' : '/onboarding')
   }
 
-  const initialTemplate = pickQueryParam(searchParams?.template)
+  const rawTemplate = pickQueryParam(searchParams?.template)
+  const initialTemplate =
+    rawTemplate && (VALID_TEMPLATES as readonly string[]).includes(rawTemplate)
+      ? rawTemplate
+      : undefined
   const initialError = pickQueryParam(searchParams?.error)
 
   return (
