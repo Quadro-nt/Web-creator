@@ -1,0 +1,50 @@
+[
+  {
+    "email": "fan@ejemplo.com",
+    "createdAt": "2026-11-24T14:23:07.980Z"
+  },
+  {
+    "email": "fan0@ejemplo.com",
+    "createdAt": "2026-11-24T14:23:07.990Z"
+  },
+  {
+    "email": "fan1@ejemplo.com",
+    "createdAt": "2026-11-24T14:23:07.995Z"
+  },
+  {
+    "email": "fan2@ejemplo.com",
+    "createdAt": "2026-11-24T14:23:07.998Z"
+  },
+  {
+    "email": "fan3@ejemplo.com",
+    "createdAt": "2026-11-24T14:23:08.001Z"
+  },
+  {
+    "email": "fan4@ejemplo.com",
+    "createdAt": "2026-11-24T14:23:08.004Z"
+  },
+  {
+    "email": "fan5@ejemplo.com",
+    "createdAt": "2026-11-24T14:23:08.007Z"
+  },
+  {
+    "email": "fan6@ejemplo.com",
+    "createdAt": "2026-11-24T14:23:08.010Z"
+  },
+  {
+    "email": "fan7@ejemplo.com",
+    "createdAt": "2026-11-24T14:23:08.013Z"
+  },
+  {
+    "email": "fan8@ejemplo.com",
+    "createdAt": "2026-11-24T14:23:08.016Z"
+  },
+  {
+    "email": "fan9@ejemplo.com",
+    "createdAt": "2026-11-24T14:23:08.018Z"
+  },
+  {
+    "email": "otro@ejemplo.com",
+    "createdAt": "2026-11-24T14:23:08.021Z"
+  }
+]
