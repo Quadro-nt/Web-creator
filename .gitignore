@@ -23,3 +23,6 @@ next-env.d.ts
 
 # Uploaded local media
 public/uploads/
+
+# Superpowers brainstorming companion
+.superpowers/
