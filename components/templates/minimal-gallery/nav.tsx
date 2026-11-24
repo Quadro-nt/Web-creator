@@ -196,23 +196,25 @@ export default function Nav({ config, inPreview = false }: Props) {
           left: 0,
           right: 0,
           backgroundColor: 'var(--color-bg)',
-          borderBottom: '1px solid rgba(128,128,128,0.16)',
+          borderBottom: '1px solid rgba(128,128,128,0.1)',
           zIndex: 100,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
           gap: '1rem',
           flexWrap: 'wrap',
-          padding: '1rem 2rem',
+          padding: '0.55rem clamp(1.25rem, 4vw, 2.5rem)',
+          minHeight: '2.75rem',
         }}
       >
         <span
           style={{
-            fontSize: '0.85rem',
-            letterSpacing: '0.1em',
+            fontSize: '0.72rem',
+            letterSpacing: '0.18em',
             textTransform: 'uppercase',
             color: 'var(--color-text)',
-            opacity: 0.9,
+            opacity: 0.85,
+            fontWeight: 500,
           }}
         >
           {brandNode}
@@ -224,7 +226,7 @@ export default function Nav({ config, inPreview = false }: Props) {
             margin: 0,
             padding: 0,
             display: 'flex',
-            gap: '2rem',
+            gap: '2.25rem',
           }}
         >
           {visibleSections.map((item) => (
@@ -234,9 +236,10 @@ export default function Nav({ config, inPreview = false }: Props) {
                 style={{
                   textDecoration: 'none',
                   color: 'var(--color-text)',
-                  fontSize: '0.85rem',
-                  letterSpacing: '0.05em',
-                  opacity: 0.75,
+                  fontSize: '0.72rem',
+                  letterSpacing: '0.14em',
+                  textTransform: 'uppercase',
+                  opacity: 0.7,
                 }}
               >
                 {item.label}

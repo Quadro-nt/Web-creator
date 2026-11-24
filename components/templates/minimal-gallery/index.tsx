@@ -137,13 +137,26 @@ export default function MinimalGallery({
           </ChromeRegion>
         )}
 
-        {visibleSections.map((section, index) => {
-          const node = renderSectionContent(section)
-          if (renderSectionWrapper) {
-            return renderSectionWrapper(section, node, index)
-          }
-          return <div key={section.id}>{node}</div>
-        })}
+        <main
+          className="qs-minimal-main"
+          style={{
+            maxWidth: 'min(1200px, 92vw)',
+            marginInline: 'auto',
+            paddingInline: 'clamp(1rem, 4vw, 2.5rem)',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 'clamp(3rem, 7vw, 6rem)',
+            paddingBlock: 'clamp(2rem, 5vw, 4rem)',
+          }}
+        >
+          {visibleSections.map((section, index) => {
+            const node = renderSectionContent(section)
+            if (renderSectionWrapper) {
+              return renderSectionWrapper(section, node, index)
+            }
+            return <div key={section.id}>{node}</div>
+          })}
+        </main>
 
         <SiteFooter
           config={config}

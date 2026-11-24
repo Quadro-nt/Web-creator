@@ -37,6 +37,16 @@ export default function EditorialTemplate({
   const tokenCss = generateTokenStyles(config, '.qs-site-root')
   const visibleSections = config.sections.filter((s) => s.visible)
 
+  const editorialCss = `
+    .qs-editorial-dialect h1 { font-size: clamp(2.5rem, 7vw, 5.25rem); line-height: 1.02; letter-spacing: -0.02em; }
+    .qs-editorial-dialect h2 { font-size: clamp(1.75rem, 4.2vw, 3.5rem); line-height: 1.08; letter-spacing: -0.015em; }
+    .qs-editorial-dialect h3 { font-size: clamp(1.25rem, 2.4vw, 1.75rem); line-height: 1.2; }
+    .qs-editorial-dialect .qs-editorial-main > div + div { border-top: 1px solid rgba(128,128,128,0.22); padding-top: clamp(2.5rem, 5vw, 4.5rem); }
+    @container qs-canvas (min-width: 900px) {
+      .qs-editorial-dialect .qs-editorial-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: clamp(1.5rem, 3vw, 2.5rem); }
+    }
+  `
+
   function renderSectionContent(section: SectionConfig): ReactNode {
     let inner: ReactNode = null
 
@@ -108,8 +118,9 @@ export default function EditorialTemplate({
   return (
     <AnimationProvider config={config}>
       <style dangerouslySetInnerHTML={{ __html: tokenCss }} />
+      <style dangerouslySetInnerHTML={{ __html: editorialCss }} />
       <div
-        className="qs-site-root"
+        className="qs-site-root qs-editorial-dialect"
         style={{
           backgroundColor: 'var(--color-bg)',
           color: 'var(--color-text)',
@@ -137,13 +148,23 @@ export default function EditorialTemplate({
           </ChromeRegion>
         )}
 
-        {visibleSections.map((section, index) => {
-          const node = renderSectionContent(section)
-          if (renderSectionWrapper) {
-            return renderSectionWrapper(section, node, index)
-          }
-          return <div key={section.id}>{node}</div>
-        })}
+        <main
+          className="qs-editorial-main"
+          style={{
+            maxWidth: 'min(1180px, 94vw)',
+            marginInline: 'auto',
+            paddingInline: 'clamp(1rem, 4vw, 3rem)',
+            paddingBlock: 'clamp(2rem, 5vw, 4rem)',
+          }}
+        >
+          {visibleSections.map((section, index) => {
+            const node = renderSectionContent(section)
+            if (renderSectionWrapper) {
+              return renderSectionWrapper(section, node, index)
+            }
+            return <div key={section.id}>{node}</div>
+          })}
+        </main>
 
         <SiteFooter
           config={config}

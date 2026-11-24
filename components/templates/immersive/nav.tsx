@@ -35,43 +35,92 @@ export default function ImmersiveNav({ config, sections, inPreview = false }: Pr
     return () => observer.disconnect()
   }, [sections, inPreview])
 
-  if (navItems.length === 0) return null
+  const siteTitle = config.identity.siteTitle
 
-  return (
-    <nav
-      aria-label="Navegación de secciones"
+  const brandNode = siteTitle ? (
+    <div
       style={{
         position: inPreview ? 'absolute' : 'fixed',
-        right: '1.5rem',
-        top: inPreview ? '1.5rem' : '50%',
-        transform: inPreview ? undefined : 'translateY(-50%)',
+        top: 'clamp(1rem, 2.5vw, 1.75rem)',
+        left: 'clamp(1rem, 3vw, 2rem)',
         zIndex: 200,
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '0.75rem',
-        alignItems: 'center',
+        color: '#f5f5f5',
+        textShadow: '0 1px 12px rgba(0,0,0,0.5)',
+        pointerEvents: 'auto',
+        fontFamily: 'var(--font-heading)',
+        fontSize: '0.95rem',
+        letterSpacing: '0.16em',
+        textTransform: 'uppercase',
+        fontWeight: 600,
       }}
     >
-      {navItems.map((item) => {
-        const isActive = activeId === item.id
-        return (
-          <a
-            key={item.id}
-            href={`#${item.id}`}
-            aria-label={item.label}
-            title={item.label}
-            style={{
-              display: 'block',
-              width: isActive ? '24px' : '8px',
-              height: '2px',
-              backgroundColor: isActive ? 'var(--color-accent)' : 'currentColor',
-              opacity: isActive ? 1 : 0.4,
-              transition: 'all 0.3s ease',
-              textDecoration: 'none',
-            }}
-          />
-        )
-      })}
-    </nav>
+      {siteTitle}
+    </div>
+  ) : null
+
+  return (
+    <>
+      {brandNode}
+      {navItems.length > 0 && (
+        <nav
+          aria-label="Navegación de secciones"
+          style={{
+            position: inPreview ? 'absolute' : 'fixed',
+            right: 'clamp(1rem, 3vw, 2rem)',
+            top: inPreview ? '50%' : '50%',
+            transform: 'translateY(-50%)',
+            zIndex: 200,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '0.85rem',
+            alignItems: 'flex-end',
+          }}
+        >
+          {navItems.map((item) => {
+            const isActive = activeId === item.id
+            return (
+              <a
+                key={item.id}
+                href={`#${item.id}`}
+                aria-label={item.label}
+                title={item.label}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.6rem',
+                  textDecoration: 'none',
+                  color: '#f5f5f5',
+                }}
+              >
+                <span
+                  style={{
+                    fontSize: '0.65rem',
+                    letterSpacing: '0.2em',
+                    textTransform: 'uppercase',
+                    opacity: isActive ? 0.9 : 0,
+                    transform: isActive ? 'translateX(0)' : 'translateX(0.5rem)',
+                    transition: 'all 0.35s ease',
+                    textShadow: '0 1px 8px rgba(0,0,0,0.6)',
+                  }}
+                >
+                  {item.label}
+                </span>
+                <span
+                  style={{
+                    display: 'block',
+                    width: isActive ? '28px' : '10px',
+                    height: '2px',
+                    backgroundColor: isActive ? 'var(--color-accent)' : '#f5f5f5',
+                    opacity: isActive ? 1 : 0.5,
+                    transition: 'all 0.35s ease',
+                    boxShadow: isActive ? '0 0 10px rgba(255,255,255,0.3)' : undefined,
+                  }}
+                />
+              </a>
+            )
+          })}
+        </nav>
+      )}
+    </>
   )
 }

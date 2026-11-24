@@ -37,6 +37,25 @@ export default function ImmersiveTemplate({
   const tokenCss = generateTokenStyles(config, '.qs-site-root')
   const visibleSections = config.sections.filter((s) => s.visible)
 
+  const immersiveCss = `
+    .qs-immersive-dialect {
+      --color-bg: #0a0a0a;
+      --color-text: #f5f5f5;
+      --color-surface: rgba(255,255,255,0.06);
+      color-scheme: dark;
+    }
+    .qs-immersive-dialect .qs-immersive-chrome {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 150;
+      background: linear-gradient(to bottom, rgba(0,0,0,0.55), rgba(0,0,0,0));
+      pointer-events: none;
+    }
+    .qs-immersive-dialect .qs-immersive-chrome > * { pointer-events: auto; }
+  `
+
   function renderSectionContent(section: SectionConfig): ReactNode {
     let inner: ReactNode = null
 
@@ -151,8 +170,9 @@ export default function ImmersiveTemplate({
   return (
     <AnimationProvider config={config}>
       <style dangerouslySetInnerHTML={{ __html: tokenCss }} />
+      <style dangerouslySetInnerHTML={{ __html: immersiveCss }} />
       <div
-        className="qs-site-root"
+        className="qs-site-root qs-immersive-dialect"
         style={{
           backgroundColor: 'var(--color-bg)',
           color: 'var(--color-text)',
@@ -166,15 +186,18 @@ export default function ImmersiveTemplate({
           position: 'relative',
         }}
       >
-        <AnnouncementBar config={config} inPreview={inPreview} onSelectChrome={onSelectChrome} />
-        {config.header ? (
-          <SiteHeader
-            config={config}
-            artistSlug={artistSlug}
-            inPreview={inPreview}
-            onSelectChrome={onSelectChrome}
-          />
-        ) : (
+        <div className="qs-immersive-chrome">
+          <AnnouncementBar config={config} inPreview={inPreview} onSelectChrome={onSelectChrome} />
+          {config.header && (
+            <SiteHeader
+              config={config}
+              artistSlug={artistSlug}
+              inPreview={inPreview}
+              onSelectChrome={onSelectChrome}
+            />
+          )}
+        </div>
+        {!config.header && (
           <ChromeRegion
             target="header"
             onSelectChrome={onSelectChrome}
