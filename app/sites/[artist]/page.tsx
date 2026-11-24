@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
-import { createFileAdapter } from '@/lib/storage'
-import { createFileWorksAdapter } from '@/lib/works/file-adapter'
+import { getStorageAdapter } from '@/lib/storage'
+import { getWorksRepository } from '@/lib/works/repository'
 import MinimalGallery from '@/components/templates/minimal-gallery'
 import EditorialTemplate from '@/components/templates/editorial'
 import ImmersiveTemplate from '@/components/templates/immersive'
@@ -11,7 +11,7 @@ type Props = {
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const storage = createFileAdapter()
+  const storage = getStorageAdapter()
   const config = await storage.getPublished(params.artist)
   return {
     title: config?.identity.siteTitle ?? params.artist,
@@ -19,7 +19,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function ArtistSitePage({ params }: Props) {
-  const storage = createFileAdapter()
+  const storage = getStorageAdapter()
   const config = await storage.getPublished(params.artist)
 
   if (!config) {
@@ -27,19 +27,19 @@ export default async function ArtistSitePage({ params }: Props) {
   }
 
   if (config.template === 'minimal-gallery') {
-    const worksRepo = createFileWorksAdapter()
+    const worksRepo = getWorksRepository()
     const works = await worksRepo.getWorks(params.artist)
     return <MinimalGallery config={config} works={works} artistSlug={params.artist} />
   }
 
   if (config.template === 'editorial') {
-    const worksRepo = createFileWorksAdapter()
+    const worksRepo = getWorksRepository()
     const works = await worksRepo.getWorks(params.artist)
     return <EditorialTemplate config={config} works={works} artistSlug={params.artist} />
   }
 
   if (config.template === 'immersive') {
-    const worksRepo = createFileWorksAdapter()
+    const worksRepo = getWorksRepository()
     const works = await worksRepo.getWorks(params.artist)
     return <ImmersiveTemplate config={config} works={works} artistSlug={params.artist} />
   }

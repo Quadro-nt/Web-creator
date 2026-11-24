@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server'
+import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
 import { WorksFileSchema } from '@/lib/schemas/works.schema'
-import { createFileWorksAdapter } from '@/lib/works/file-adapter'
+import { getWorksRepository } from '@/lib/works/repository'
 import { verifyEditorRequest } from '@/lib/auth/verify-api-request'
 
 const PostBodySchema = z.object({
@@ -18,7 +19,7 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: auth.error }, { status: auth.status })
   }
 
-  const repo = createFileWorksAdapter()
+  const repo = getWorksRepository()
   const works = await repo.getWorks(auth.artistSlug)
   return NextResponse.json({ works })
 }
@@ -52,7 +53,8 @@ export async function POST(request: Request) {
     )
   }
 
-  const repo = createFileWorksAdapter()
+  const repo = getWorksRepository()
   await repo.saveWorks(auth.artistSlug, validated.data.works)
+  revalidatePath('/sites/' + auth.artistSlug, 'layout')
   return NextResponse.json({ ok: true, works: validated.data.works })
 }

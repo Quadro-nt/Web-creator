@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { createLocalMediaAdapter, MAX_MEDIA_SIZE_BYTES } from '@/lib/media/media-adapter'
+import { getMediaAdapter, MAX_MEDIA_SIZE_BYTES } from '@/lib/media/media-adapter'
 import { verifyEditorRequest } from '@/lib/auth/verify-api-request'
 
 export async function GET(request: Request) {
@@ -11,7 +11,7 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: auth.error }, { status: auth.status })
   }
 
-  const media = createLocalMediaAdapter()
+  const media = getMediaAdapter()
   const items = await media.list(auth.artistSlug)
   return NextResponse.json({ items })
 }
@@ -44,7 +44,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'La imagen supera el máximo de 5 MB' }, { status: 400 })
   }
 
-  const media = createLocalMediaAdapter()
+  const media = getMediaAdapter()
   try {
     const buffer = Buffer.from(await file.arrayBuffer())
     const item = await media.save(auth.artistSlug, file.name, file.type, buffer)

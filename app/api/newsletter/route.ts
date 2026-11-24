@@ -6,7 +6,7 @@ import {
   listSubscribers,
 } from '@/lib/newsletter/newsletter-store'
 import { isSafeArtistSlug, verifyEditorRequest } from '@/lib/auth/verify-api-request'
-import { createFileAdapter } from '@/lib/storage'
+import { getStorageAdapter } from '@/lib/storage'
 
 const PostBodySchema = z.object({
   artistSlug: z.string().min(1),
@@ -62,7 +62,7 @@ export async function POST(request: Request) {
     )
   }
 
-  const published = await createFileAdapter().getPublished(parsed.data.artistSlug)
+  const published = await getStorageAdapter().getPublished(parsed.data.artistSlug)
   if (published === null) {
     return NextResponse.json({ error: 'Artista no encontrado' }, { status: 404 })
   }
