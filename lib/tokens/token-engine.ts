@@ -1,7 +1,19 @@
-import type { SiteConfig } from '../schemas/site-config.schema'
+import { isSafeCssColor, type SiteConfig } from '../schemas/site-config.schema'
 import { adjustForContrast } from './contrast'
 import { buildGoogleFontsUrl, getFontFallback } from './font-catalog'
 import { TYPOGRAPHY_PAIRS } from './typography-pairs'
+
+const DEFAULT_BG_FALLBACK = '#ffffff'
+const DEFAULT_TEXT_FALLBACK = '#1a1a1a'
+const DEFAULT_ACCENT_FALLBACK = '#c47a3a'
+const DEFAULT_SURFACE_FALLBACK = 'rgba(128,128,128,0.06)'
+
+function sanitizeCssColor(value: unknown, fallback: string): string {
+  if (typeof value !== 'string') return fallback
+  const trimmed = value.trim()
+  if (!trimmed || !isSafeCssColor(trimmed)) return fallback
+  return trimmed
+}
 
 const SPACING_SCALES = {
   compact: { xs: '0.25rem', sm: '0.375rem', md: '0.5rem', lg: '0.75rem', xl: '1rem' },
@@ -100,8 +112,18 @@ export function generateTokenStyles(config: SiteConfig, scopeSelector = ':root')
   } = styleTokens
   const { typeScale } = sizes
 
-  const adjustedText = adjustForContrast(text, background)
-  const adjustedAccent = adjustForContrast(accent, background)
+  const safeBackground = sanitizeCssColor(background, DEFAULT_BG_FALLBACK)
+  const safeText = sanitizeCssColor(text, DEFAULT_TEXT_FALLBACK)
+  const safeAccent = sanitizeCssColor(accent, DEFAULT_ACCENT_FALLBACK)
+
+  const adjustedText = sanitizeCssColor(
+    adjustForContrast(safeText, safeBackground),
+    DEFAULT_TEXT_FALLBACK
+  )
+  const adjustedAccent = sanitizeCssColor(
+    adjustForContrast(safeAccent, safeBackground),
+    safeAccent
+  )
 
   const pair = TYPOGRAPHY_PAIRS[fontPair] ?? TYPOGRAPHY_PAIRS['playfair-raleway']
   const resolvedHeading = headingFont ?? pair.heading
@@ -118,7 +140,7 @@ export function generateTokenStyles(config: SiteConfig, scopeSelector = ':root')
   const cardBorderVal = cardBorder ? '1px solid currentColor' : 'none'
   const headingTransformVal = uppercaseHeadings ? 'uppercase' : 'none'
   const headingTrackingVal = TRACKING_VALUES[headingTracking ?? 'normal']
-  const surfaceBgVal = secondaryBg || 'rgba(128,128,128,0.06)'
+  const surfaceBgVal = sanitizeCssColor(secondaryBg, DEFAULT_SURFACE_FALLBACK)
 
   const lines: string[] = []
   if (fontsUrl) {
@@ -126,7 +148,7 @@ export function generateTokenStyles(config: SiteConfig, scopeSelector = ':root')
     lines.push('')
   }
   lines.push(`${scopeSelector} {`)
-  lines.push(`  --color-bg: ${background};`)
+  lines.push(`  --color-bg: ${safeBackground};`)
   lines.push(`  --color-text: ${adjustedText};`)
   lines.push(`  --color-accent: ${adjustedAccent};`)
   lines.push(`  --color-surface: ${surfaceBgVal};`)

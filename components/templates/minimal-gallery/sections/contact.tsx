@@ -1,7 +1,7 @@
 import type { SiteConfig } from '@/lib/schemas/site-config.schema'
 import { Button } from '@/components/Button'
 import { ContentWrapper } from '@/components/ContentWrapper'
-import { buildWhatsappUrl } from '@/components/templates/shared/template-helpers'
+import { buildWhatsappUrl, sanitizeSocialHandle } from '@/components/templates/shared/template-helpers'
 
 type SectionConfig = SiteConfig['sections'][number]
 
@@ -14,7 +14,12 @@ export default function Contact({ section, config }: Props) {
   const heading = (section.content.heading as string) ?? ''
   const intro = (section.content.intro as string) ?? ''
   const email = (section.content.email as string) ?? ''
-  const instagram = (section.content.instagram as string) ?? ''
+  const instagramHandle = sanitizeSocialHandle(section.content.instagram)
+  const instagramDisplay = instagramHandle
+    ? typeof section.content.instagram === 'string' && section.content.instagram.trim().startsWith('@')
+      ? `@${instagramHandle}`
+      : instagramHandle
+    : ''
   const whatsappUrl = buildWhatsappUrl(section.content.whatsapp, 'Hola, te escribo desde tu sitio web.')
   const width = config?.sizes.contentWidth ?? 'mid'
   const btnShape = config?.button.shape ?? 'rounded'
@@ -32,15 +37,15 @@ export default function Contact({ section, config }: Props) {
           </a>
         </p>
       )}
-      {instagram && (
+      {instagramHandle && (
         <p style={{ margin: 0, opacity: 0.7, fontSize: 'var(--text-sm)' }}>
           <a
-            href={`https://instagram.com/${instagram.replace('@', '')}`}
+            href={`https://instagram.com/${instagramHandle}`}
             target="_blank"
             rel="noopener noreferrer"
             style={{ color: 'var(--color-text)', textDecoration: 'none' }}
           >
-            {instagram}
+            {instagramDisplay}
           </a>
         </p>
       )}

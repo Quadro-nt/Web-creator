@@ -24,6 +24,50 @@ export const ALLOWED_MIME_EXTENSIONS: Record<string, string> = {
 
 const IMAGE_EXT_RE = /\.(jpe?g|png|webp|gif)$/i
 
+export function hasValidImageMagicBytes(mimeType: string, buffer: Buffer): boolean {
+  const normalized = mimeType.toLowerCase()
+
+  if (normalized === 'image/jpeg') {
+    return buffer.byteLength >= 3 && buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[2] === 0xff
+  }
+
+  if (normalized === 'image/png') {
+    return (
+      buffer.byteLength >= 8 &&
+      buffer[0] === 0x89 &&
+      buffer[1] === 0x50 &&
+      buffer[2] === 0x4e &&
+      buffer[3] === 0x47 &&
+      buffer[4] === 0x0d &&
+      buffer[5] === 0x0a &&
+      buffer[6] === 0x1a &&
+      buffer[7] === 0x0a
+    )
+  }
+
+  if (normalized === 'image/gif') {
+    return (
+      buffer.byteLength >= 6 &&
+      buffer[0] === 0x47 &&
+      buffer[1] === 0x49 &&
+      buffer[2] === 0x46 &&
+      buffer[3] === 0x38 &&
+      (buffer[4] === 0x37 || buffer[4] === 0x39) &&
+      buffer[5] === 0x61
+    )
+  }
+
+  if (normalized === 'image/webp') {
+    return (
+      buffer.byteLength >= 12 &&
+      buffer.subarray(0, 4).toString('ascii') === 'RIFF' &&
+      buffer.subarray(8, 12).toString('ascii') === 'WEBP'
+    )
+  }
+
+  return false
+}
+
 export function sanitizeMediaFilename(originalName: string, mimeType: string): string {
   const ext = ALLOWED_MIME_EXTENSIONS[mimeType.toLowerCase()]
   if (!ext) {
@@ -90,6 +134,9 @@ export function createLocalMediaAdapter(uploadsRoot?: string): MediaAdapter {
       }
 
       const filename = sanitizeMediaFilename(originalName, mimeType)
+      if (!hasValidImageMagicBytes(mimeType, buffer)) {
+        throw new Error('El contenido del archivo no corresponde a una imagen válida del tipo declarado.')
+      }
       await mkdir(dir, { recursive: true })
       await writeFile(path.join(dir, filename), buffer)
 

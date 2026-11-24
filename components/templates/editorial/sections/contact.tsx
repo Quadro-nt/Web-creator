@@ -1,7 +1,7 @@
 import type { SiteConfig } from '@/lib/schemas/site-config.schema'
 import { Button } from '@/components/Button'
 import { ContentWrapper } from '@/components/ContentWrapper'
-import { buildWhatsappUrl } from '@/components/templates/shared/template-helpers'
+import { buildWhatsappUrl, sanitizeSocialHandle } from '@/components/templates/shared/template-helpers'
 
 type SectionConfig = SiteConfig['sections'][number]
 
@@ -14,7 +14,12 @@ export default function Contact({ section, config }: Props) {
   const heading = (section.content.heading as string) || 'Hablemos'
   const intro = (section.content.intro as string) || 'Consultas sobre obras, precios y encargos.'
   const email = (section.content.email as string) ?? ''
-  const instagram = (section.content.instagram as string) ?? ''
+  const instagramHandle = sanitizeSocialHandle(section.content.instagram)
+  const instagramDisplay = instagramHandle
+    ? typeof section.content.instagram === 'string' && section.content.instagram.trim().startsWith('@')
+      ? `@${instagramHandle}`
+      : instagramHandle
+    : ''
   const whatsappUrl = buildWhatsappUrl(section.content.whatsapp, 'Hola, te escribo desde tu sitio editorial.')
   const width = config?.sizes.contentWidth ?? 'full'
   const btnShape = config?.button.shape ?? 'square'
@@ -31,9 +36,9 @@ export default function Contact({ section, config }: Props) {
           {email}
         </a>
       )}
-      {instagram && (
-        <a href={`https://instagram.com/${instagram.replace('@', '')}`} target="_blank" rel="noopener noreferrer" style={{ display: 'block', color: 'var(--color-bg)', textDecoration: 'none', fontSize: 'var(--text-sm)', opacity: 0.8, marginBottom: '1rem' }}>
-          {instagram}
+      {instagramHandle && (
+        <a href={`https://instagram.com/${instagramHandle}`} target="_blank" rel="noopener noreferrer" style={{ display: 'block', color: 'var(--color-bg)', textDecoration: 'none', fontSize: 'var(--text-sm)', opacity: 0.8, marginBottom: '1rem' }}>
+          {instagramDisplay}
         </a>
       )}
       {whatsappUrl && (
@@ -152,9 +157,9 @@ export default function Contact({ section, config }: Props) {
                   {email}
                 </a>
               )}
-              {instagram && (
-                <a href={`https://instagram.com/${instagram.replace('@', '')}`} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--color-bg)', textDecoration: 'none', fontSize: 'var(--text-base)', opacity: 0.8 }}>
-                  {instagram}
+              {instagramHandle && (
+                <a href={`https://instagram.com/${instagramHandle}`} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--color-bg)', textDecoration: 'none', fontSize: 'var(--text-base)', opacity: 0.8 }}>
+                  {instagramDisplay}
                 </a>
               )}
               {whatsappUrl && (
@@ -200,9 +205,9 @@ export default function Contact({ section, config }: Props) {
               {email}
             </a>
           )}
-          {instagram && (
+          {instagramHandle && (
             <a
-              href={`https://instagram.com/${instagram.replace('@', '')}`}
+              href={`https://instagram.com/${instagramHandle}`}
               target="_blank"
               rel="noopener noreferrer"
               style={{
@@ -213,7 +218,7 @@ export default function Contact({ section, config }: Props) {
                 paddingBottom: '0.2rem',
               }}
             >
-              {instagram}
+              {instagramDisplay}
             </a>
           )}
           {whatsappUrl && (

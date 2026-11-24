@@ -1,12 +1,28 @@
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
-import { addSubscriber, listSubscribers } from '@/lib/newsletter/newsletter-store'
+import {
+  addSubscriber,
+  consumeNewsletterRateLimit,
+  listSubscribers,
+} from '@/lib/newsletter/newsletter-store'
 import { isSafeArtistSlug, verifyEditorRequest } from '@/lib/auth/verify-api-request'
+import { createFileAdapter } from '@/lib/storage'
 
 const PostBodySchema = z.object({
   artistSlug: z.string().min(1),
   email: z.string().trim().email().max(180),
 })
+
+function getClientIp(request: Request): string {
+  const forwarded = request.headers.get('x-forwarded-for')
+  if (forwarded) {
+    const first = forwarded.split(',')[0]?.trim()
+    if (first) return first
+  }
+  const realIp = request.headers.get('x-real-ip')?.trim()
+  if (realIp) return realIp
+  return 'unknown'
+}
 
 export async function GET(request: Request) {
   const url = new URL(request.url)
@@ -36,6 +52,19 @@ export async function POST(request: Request) {
 
   if (!isSafeArtistSlug(parsed.data.artistSlug)) {
     return NextResponse.json({ error: 'Artista inválido' }, { status: 400 })
+  }
+
+  const rateKey = `${getClientIp(request)}:${parsed.data.artistSlug}`
+  if (!consumeNewsletterRateLimit(rateKey)) {
+    return NextResponse.json(
+      { error: 'Demasiadas solicitudes. Intenta de nuevo más tarde.' },
+      { status: 429 }
+    )
+  }
+
+  const published = await createFileAdapter().getPublished(parsed.data.artistSlug)
+  if (published === null) {
+    return NextResponse.json({ error: 'Artista no encontrado' }, { status: 404 })
   }
 
   try {

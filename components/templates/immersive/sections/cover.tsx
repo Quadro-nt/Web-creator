@@ -1,7 +1,7 @@
 import Image from 'next/image'
 import type { SiteConfig } from '@/lib/schemas/site-config.schema'
 import { Button } from '@/components/Button'
-import { sanitizeHref } from '@/components/templates/shared/template-helpers'
+import { sanitizeExternalUrl, sanitizeHref } from '@/components/templates/shared/template-helpers'
 
 type SectionConfig = SiteConfig['sections'][number]
 
@@ -16,7 +16,7 @@ export default function ImmersiveCover({ section, config }: Props) {
   const ctaText = (section.content.ctaText as string)?.trim() || ''
   const ctaHref = sanitizeHref(section.content.ctaHref) ?? '#artworks'
   const coverImageUrl =
-    (section.content.imageUrl as string)?.trim() || config.identity.coverImageUrl
+    sanitizeExternalUrl(section.content.imageUrl) ?? config.identity.coverImageUrl
 
   const ctaButton = ctaText ? (
     <div style={{ marginTop: '1.75rem' }}>
