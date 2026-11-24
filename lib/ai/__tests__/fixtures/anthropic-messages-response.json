@@ -1,0 +1,18 @@
+{
+  "id": "msg_01ExampleFixture000000000001",
+  "type": "message",
+  "role": "assistant",
+  "model": "claude-haiku-4-5",
+  "content": [
+    {
+      "type": "text",
+      "text": "{\"newConfig\":{\"template\":\"editorial\",\"styleTokens\":{\"background\":\"#faf8f5\",\"text\":\"#1c1917\",\"accent\":\"#9a3412\",\"fontPair\":\"cormorant-jost\",\"spacing\":\"spacious\",\"artworkTreatment\":\"frame\"},\"button\":{\"shape\":\"square\",\"style\":\"outlined\",\"buyText\":\"Consultar obra\"},\"sizes\":{\"typeScale\":\"large\",\"artworkSize\":\"medium\",\"columns\":\"2\",\"contentWidth\":\"mid\"},\"animations\":{\"scrollReveal\":\"soft\",\"hoverEffect\":\"zoom\",\"pageTransition\":\"fade\"},\"navigation\":{\"type\":\"top\",\"sticky\":true},\"sections\":[{\"id\":\"cover\",\"type\":\"cover\",\"variant\":\"fullscreen\",\"visible\":true,\"content\":{}},{\"id\":\"artworks\",\"type\":\"artworks\",\"variant\":\"grid\",\"visible\":true,\"content\":{}},{\"id\":\"bio\",\"type\":\"bio\",\"variant\":\"split\",\"visible\":true,\"content\":{}},{\"id\":\"exhibitions\",\"type\":\"exhibitions\",\"variant\":\"list\",\"visible\":false,\"content\":{}},{\"id\":\"contact\",\"type\":\"contact\",\"variant\":\"simple\",\"visible\":true,\"content\":{}}],\"identity\":{\"siteTitle\":\"Taller Ejemplo\"}},\"explanation\":\"Se aplicó una estética editorial cálida con tipografía Cormorant y Jost, espaciado amplio y botones cuadrados con contorno.\",\"unsatisfied\":[]}"
+    }
+  ],
+  "stop_reason": "end_turn",
+  "stop_sequence": null,
+  "usage": {
+    "input_tokens": 412,
+    "output_tokens": 286
+  }
+}
