@@ -1,6 +1,7 @@
 import Image from 'next/image'
 import type { SiteConfig } from '@/lib/schemas/site-config.schema'
 import { ContentWrapper } from '@/components/ContentWrapper'
+import { sanitizeExternalUrl } from '@/components/templates/shared/template-helpers'
 
 type SectionConfig = SiteConfig['sections'][number]
 
@@ -12,7 +13,7 @@ type Props = {
 export default function Bio({ section, config }: Props) {
   const heading = (section.content.heading as string) || 'Sobre el artista'
   const text = (section.content.text as string) ?? ''
-  const photoUrl = (section.content.photoUrl as string) ?? ''
+  const photoUrl = sanitizeExternalUrl(section.content.photoUrl) ?? ''
   const width = config?.sizes.contentWidth ?? 'full'
 
   if (section.variant === 'with-photo' || section.variant === 'split') {

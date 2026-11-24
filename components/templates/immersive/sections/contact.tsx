@@ -1,7 +1,7 @@
 import type { SiteConfig } from '@/lib/schemas/site-config.schema'
 import { Button } from '@/components/Button'
 import { ContentWrapper } from '@/components/ContentWrapper'
-import { buildWhatsappUrl } from '@/components/templates/shared/template-helpers'
+import { buildWhatsappUrl, sanitizeSocialHandle } from '@/components/templates/shared/template-helpers'
 
 type SectionConfig = SiteConfig['sections'][number]
 
@@ -14,7 +14,12 @@ export default function ImmersiveContact({ section, config }: Props) {
   const heading = (section.content.heading as string) || 'Hablemos'
   const intro = (section.content.intro as string) || 'Consultas sobre obras, precios y encargos.'
   const email = (section.content.email as string) ?? ''
-  const instagram = (section.content.instagram as string) ?? ''
+  const instagramHandle = sanitizeSocialHandle(section.content.instagram)
+  const instagramDisplay = instagramHandle
+    ? typeof section.content.instagram === 'string' && section.content.instagram.trim().startsWith('@')
+      ? `@${instagramHandle}`
+      : instagramHandle
+    : ''
   const whatsappUrl = buildWhatsappUrl(section.content.whatsapp, 'Hola, te escribo desde tu portfolio.')
   const width = config?.sizes.contentWidth ?? 'full'
   const btnShape = config?.button.shape ?? 'square'
@@ -34,9 +39,9 @@ export default function ImmersiveContact({ section, config }: Props) {
           {email}
         </a>
       )}
-      {instagram && (
-        <a href={`https://instagram.com/${instagram.replace('@', '')}`} target="_blank" rel="noopener noreferrer" style={{ display: 'block', color: 'var(--color-text)', opacity: 0.75, textDecoration: 'none', fontSize: 'var(--text-sm)', marginBottom: '1rem' }}>
-          {instagram}
+      {instagramHandle && (
+        <a href={`https://instagram.com/${instagramHandle}`} target="_blank" rel="noopener noreferrer" style={{ display: 'block', color: 'var(--color-text)', opacity: 0.75, textDecoration: 'none', fontSize: 'var(--text-sm)', marginBottom: '1rem' }}>
+          {instagramDisplay}
         </a>
       )}
       {whatsappUrl && (
@@ -136,7 +141,7 @@ export default function ImmersiveContact({ section, config }: Props) {
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               {email && <a href={`mailto:${email}`} style={{ color: 'var(--color-text)', textDecoration: 'none', fontSize: 'var(--text-lg)' }}>{email}</a>}
-              {instagram && <a href={`https://instagram.com/${instagram.replace('@', '')}`} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--color-text)', textDecoration: 'none', fontSize: 'var(--text-base)', opacity: 0.7 }}>{instagram}</a>}
+              {instagramHandle && <a href={`https://instagram.com/${instagramHandle}`} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--color-text)', textDecoration: 'none', fontSize: 'var(--text-base)', opacity: 0.7 }}>{instagramDisplay}</a>}
               {whatsappUrl && (
                 <div>
                   <Button shape={btnShape} style={btnStyle} href={whatsappUrl}>
@@ -176,9 +181,9 @@ export default function ImmersiveContact({ section, config }: Props) {
               {email}
             </a>
           )}
-          {instagram && (
+          {instagramHandle && (
             <a
-              href={`https://instagram.com/${instagram.replace('@', '')}`}
+              href={`https://instagram.com/${instagramHandle}`}
               target="_blank"
               rel="noopener noreferrer"
               style={{
@@ -190,7 +195,7 @@ export default function ImmersiveContact({ section, config }: Props) {
                 paddingBottom: '0.25rem',
               }}
             >
-              {instagram}
+              {instagramDisplay}
             </a>
           )}
           {whatsappUrl && (

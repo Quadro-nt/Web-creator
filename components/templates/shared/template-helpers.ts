@@ -41,10 +41,23 @@ export function sanitizeHref(raw: unknown): string | null {
   if (typeof raw !== 'string') return null
   const trimmed = raw.trim()
   if (!trimmed) return null
-  if (trimmed.startsWith('#') || trimmed.startsWith('/') || /^https?:\/\//i.test(trimmed) || /^mailto:/i.test(trimmed)) {
+  if (
+    trimmed.startsWith('#') ||
+    (trimmed.startsWith('/') && !trimmed.startsWith('//') && !trimmed.startsWith('/\\')) ||
+    /^https?:\/\//i.test(trimmed) ||
+    /^mailto:/i.test(trimmed)
+  ) {
     return trimmed
   }
   return null
+}
+
+export function sanitizeSocialHandle(raw: unknown): string | null {
+  if (typeof raw !== 'string') return null
+  const handle = raw.trim().replace(/^@+/, '').trim()
+  if (!/^[a-zA-Z0-9._-]{1,60}$/.test(handle)) return null
+  if (handle === '.' || handle === '..') return null
+  return handle
 }
 
 export function buildWhatsappUrl(rawNumber: unknown, message: string): string | null {

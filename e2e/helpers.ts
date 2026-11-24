@@ -15,16 +15,29 @@ export function getArtworkUrl(slug: string, workSlug: string): string {
   return `http://${slug}.localhost:3000/obras/${workSlug}`
 }
 
+const CONFIG_FILES = ['config.published.json', 'config.draft.json'] as const
+
 export function backupArtistConfig(slug: string): void {
-  const srcPath = path.join(DATA_DIR, slug, 'config.published.json')
-  const bakPath = path.join(DATA_DIR, slug, 'config.published.json.bak')
-  fs.copyFileSync(srcPath, bakPath)
+  const artistDir = path.join(DATA_DIR, slug)
+  for (const file of CONFIG_FILES) {
+    const srcPath = path.join(artistDir, file)
+    const bakPath = path.join(artistDir, `${file}.bak`)
+    if (fs.existsSync(srcPath)) {
+      fs.copyFileSync(srcPath, bakPath)
+    } else if (fs.existsSync(bakPath)) {
+      fs.unlinkSync(bakPath)
+    }
+  }
 }
 
 export function resetArtistConfig(slug: string): void {
-  const bakPath = path.join(DATA_DIR, slug, 'config.published.json.bak')
-  const dstPath = path.join(DATA_DIR, slug, 'config.published.json')
-  if (fs.existsSync(bakPath)) {
-    fs.copyFileSync(bakPath, dstPath)
+  const artistDir = path.join(DATA_DIR, slug)
+  for (const file of CONFIG_FILES) {
+    const bakPath = path.join(artistDir, `${file}.bak`)
+    const dstPath = path.join(artistDir, file)
+    if (fs.existsSync(bakPath)) {
+      fs.copyFileSync(bakPath, dstPath)
+      fs.unlinkSync(bakPath)
+    }
   }
 }

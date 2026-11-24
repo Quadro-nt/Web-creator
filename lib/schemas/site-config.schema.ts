@@ -3,6 +3,32 @@ import { FONT_FAMILY_NAMES } from '@/lib/tokens/font-catalog'
 
 const SAFE_UPLOAD_PATH_RE = /^\/uploads\/[a-z0-9-]+\/[a-zA-Z0-9._-]+$/
 
+const SAFE_HEX_COLOR_RE = /^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/
+const SAFE_RGB_COLOR_RE =
+  /^rgba?\(\s*[\d.+-]+%?(?:\s*,\s*[\d.+-]+%?){2}(?:\s*,\s*[\d.+-]+%?)?\s*\)$|^rgba?\(\s*[\d.+-]+%?(?:\s+[\d.+-]+%?){2}(?:\s*\/\s*[\d.+-]+%?)?\s*\)$/i
+const SAFE_HSL_COLOR_RE =
+  /^hsla?\(\s*[\d.+-]+(?:deg|rad|grad|turn)?(?:\s*,\s*[\d.+-]+%\s*,\s*[\d.+-]+%(?:\s*,\s*[\d.+-]+%?)?|\s+[\d.+-]+%\s+[\d.+-]+%(?:\s*\/\s*[\d.+-]+%?)?)\s*\)$/i
+const SAFE_NAMED_COLOR_RE = /^[a-zA-Z]{3,30}$/
+const UNSAFE_CSS_VALUE_RE = /[<>;"'`{}\\]|url\s*\(|<\/style/i
+
+export function isSafeCssColor(value: string): boolean {
+  const trimmed = value.trim()
+  if (!trimmed || UNSAFE_CSS_VALUE_RE.test(trimmed)) return false
+  return (
+    SAFE_HEX_COLOR_RE.test(trimmed) ||
+    SAFE_RGB_COLOR_RE.test(trimmed) ||
+    SAFE_HSL_COLOR_RE.test(trimmed) ||
+    SAFE_NAMED_COLOR_RE.test(trimmed)
+  )
+}
+
+export const cssColorSchema = z
+  .string()
+  .trim()
+  .refine(isSafeCssColor, 'Color CSS inválido')
+
+export const optionalCssColorSchema = z.union([cssColorSchema, z.literal('')]).optional()
+
 export const mediaUrlSchema = z.union([
   z
     .string()
@@ -58,8 +84,8 @@ export type SectionConfig = z.infer<typeof SectionConfigSchema>
 
 export const AnnouncementBarSchema = z.object({
   enabled: z.boolean(),
-  backgroundColor: z.string(),
-  textColor: z.string(),
+  backgroundColor: cssColorSchema,
+  textColor: cssColorSchema,
   messages: z.array(z.string()),
   autoRotate: z.boolean().optional(),
   linkUrl: z.string().optional(),
@@ -74,8 +100,8 @@ export const NavLinkItemSchema = z.object({
 
 export const HeaderConfigSchema = z.object({
   layout: z.enum(['left', 'centered', 'minimal']),
-  backgroundColor: z.string().optional(),
-  textColor: z.string().optional(),
+  backgroundColor: optionalCssColorSchema,
+  textColor: optionalCssColorSchema,
   transparentOverCover: z.boolean().optional(),
   logoHeight: z.enum(['sm', 'md', 'lg']).optional(),
   uppercaseLinks: z.boolean().optional(),
@@ -90,8 +116,8 @@ export type HeaderConfig = z.infer<typeof HeaderConfigSchema>
 
 export const FooterConfigSchema = z.object({
   enabled: z.boolean(),
-  backgroundColor: z.string().optional(),
-  textColor: z.string().optional(),
+  backgroundColor: optionalCssColorSchema,
+  textColor: optionalCssColorSchema,
   bio: z.string().optional(),
   instagram: z.string().optional(),
   tiktok: z.string().optional(),
@@ -108,9 +134,9 @@ export const SiteConfigSchema = z.object({
   template: z.enum(['minimal-gallery', 'editorial', 'immersive']),
 
   styleTokens: z.object({
-    background: z.string(),
-    text: z.string(),
-    accent: z.string(),
+    background: cssColorSchema,
+    text: cssColorSchema,
+    accent: cssColorSchema,
     fontPair: z.enum([
       'playfair-raleway',
       'libre-baskerville-source-sans',
@@ -133,7 +159,7 @@ export const SiteConfigSchema = z.object({
     headingTracking: z.enum(['tight', 'normal', 'wide']).optional(),
     borderRadius: z.enum(['none', 'sm', 'md', 'lg']).optional(),
     cardBorder: z.boolean().optional(),
-    secondaryBg: z.string().optional(),
+    secondaryBg: optionalCssColorSchema,
   }),
 
   button: z.object({

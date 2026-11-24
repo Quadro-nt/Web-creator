@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { notFound } from 'next/navigation'
 import { createFileAdapter } from '@/lib/storage'
 import { createFileWorksAdapter } from '@/lib/works/file-adapter'
 import MinimalGallery from '@/components/templates/minimal-gallery'
@@ -22,11 +23,7 @@ export default async function ArtistSitePage({ params }: Props) {
   const config = await storage.getPublished(params.artist)
 
   if (!config) {
-    return (
-      <main style={{ padding: '4rem 2rem', textAlign: 'center' }}>
-        <h1>Sitio no encontrado</h1>
-      </main>
-    )
+    notFound()
   }
 
   if (config.template === 'minimal-gallery') {

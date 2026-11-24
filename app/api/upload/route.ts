@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { createLocalMediaAdapter } from '@/lib/media/media-adapter'
+import { createLocalMediaAdapter, MAX_MEDIA_SIZE_BYTES } from '@/lib/media/media-adapter'
 import { verifyEditorRequest } from '@/lib/auth/verify-api-request'
 
 export async function GET(request: Request) {
@@ -35,6 +35,13 @@ export async function POST(request: Request) {
   const file = formData.get('file')
   if (!(file instanceof File)) {
     return NextResponse.json({ error: 'Archivo requerido en el campo "file"' }, { status: 400 })
+  }
+
+  if (file.size === 0) {
+    return NextResponse.json({ error: 'El archivo está vacío' }, { status: 400 })
+  }
+  if (file.size > MAX_MEDIA_SIZE_BYTES) {
+    return NextResponse.json({ error: 'La imagen supera el máximo de 5 MB' }, { status: 400 })
   }
 
   const media = createLocalMediaAdapter()

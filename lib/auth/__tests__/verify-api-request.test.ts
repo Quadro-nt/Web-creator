@@ -1,8 +1,11 @@
 /**
  * @jest-environment node
  */
-import { describe, it, expect, jest, beforeEach } from '@jest/globals'
+import { describe, it, expect, jest, beforeEach, afterAll } from '@jest/globals'
+import { mkdir, rm, writeFile } from 'fs/promises'
+import path from 'path'
 import { verifyEditorRequest } from '../verify-api-request'
+import { constantTimeTokenEqual, validateEditorToken } from '../token-validator'
 
 describe('verifyEditorRequest', () => {
   const validateMock = jest.fn<(token: string) => Promise<string | null>>()
@@ -70,5 +73,46 @@ describe('verifyEditorRequest', () => {
     })
     const res = await verifyEditorRequest(req, undefined, validateMock)
     expect(res).toEqual({ ok: true, artistSlug: 'sofia-rios' })
+  })
+})
+
+describe('validateEditorToken y comparación en tiempo constante', () => {
+  const TEMP_ARTISTS_ROOT = path.join(process.cwd(), '.tmp-test-tokens')
+
+  afterAll(async () => {
+    await rm(TEMP_ARTISTS_ROOT, { recursive: true, force: true })
+  })
+
+  it('compara tokens de distinta longitud sin error ni coincidencia falsa', () => {
+    expect(constantTimeTokenEqual('abc-123', 'abc-123')).toBe(true)
+    expect(constantTimeTokenEqual('abc-123', 'abc-124')).toBe(false)
+    expect(constantTimeTokenEqual('corto', 'token-mucho-mas-largo')).toBe(false)
+  })
+
+  it('valida token sintético e ignora carpetas con slugs inseguros', async () => {
+    await mkdir(path.join(TEMP_ARTISTS_ROOT, 'artista-valido'), { recursive: true })
+    await writeFile(
+      path.join(TEMP_ARTISTS_ROOT, 'artista-valido', 'token.txt'),
+      '  synthetic-token-alpha  \n',
+      'utf-8'
+    )
+
+    await mkdir(path.join(TEMP_ARTISTS_ROOT, 'Carpeta_Insegura'), { recursive: true })
+    await writeFile(
+      path.join(TEMP_ARTISTS_ROOT, 'Carpeta_Insegura', 'token.txt'),
+      'synthetic-token-unsafe',
+      'utf-8'
+    )
+
+    await expect(
+      validateEditorToken('synthetic-token-alpha', TEMP_ARTISTS_ROOT)
+    ).resolves.toBe('artista-valido')
+    await expect(
+      validateEditorToken('synthetic-token-unsafe', TEMP_ARTISTS_ROOT)
+    ).resolves.toBeNull()
+    await expect(
+      validateEditorToken('token-inexistente', TEMP_ARTISTS_ROOT)
+    ).resolves.toBeNull()
+    await expect(validateEditorToken('   ', TEMP_ARTISTS_ROOT)).resolves.toBeNull()
   })
 })

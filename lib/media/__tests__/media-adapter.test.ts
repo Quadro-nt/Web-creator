@@ -53,4 +53,49 @@ describe('createLocalMediaAdapter', () => {
     expect(items).toHaveLength(1)
     expect(items[0].url).toBe(saved.url)
   })
+
+  it('acepta magic bytes válidos de PNG, GIF y WebP', async () => {
+    const pngBuffer = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x00])
+    const gif87Buffer = Buffer.from('GIF87a\x01\x00', 'binary')
+    const gif89Buffer = Buffer.from('GIF89a\x01\x00', 'binary')
+    const webpBuffer = Buffer.concat([
+      Buffer.from('RIFF', 'ascii'),
+      Buffer.from([0x00, 0x00, 0x00, 0x00]),
+      Buffer.from('WEBP', 'ascii'),
+    ])
+
+    const png = await adapter.save('otros-formatos', 'a.png', 'image/png', pngBuffer)
+    const gif87 = await adapter.save('otros-formatos', 'b.gif', 'image/gif', gif87Buffer)
+    const gif89 = await adapter.save('otros-formatos', 'c.gif', 'image/gif', gif89Buffer)
+    const webp = await adapter.save('otros-formatos', 'd.webp', 'image/webp', webpBuffer)
+
+    expect(png.url).toMatch(/\.png$/)
+    expect(gif87.url).toMatch(/\.gif$/)
+    expect(gif89.url).toMatch(/\.gif$/)
+    expect(webp.url).toMatch(/\.webp$/)
+  })
+
+  it('rechaza archivos con magic bytes inválidos o que no coinciden con el MIME', async () => {
+    await expect(
+      adapter.save('luna-vega', 'fake.jpg', 'image/jpeg', Buffer.from('not-a-jpeg', 'utf8'))
+    ).rejects.toThrow(/contenido del archivo/i)
+
+    const pngBytes = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a])
+    await expect(
+      adapter.save('luna-vega', 'spoof.jpg', 'image/jpeg', pngBytes)
+    ).rejects.toThrow(/contenido del archivo/i)
+
+    const fakeWebp = Buffer.concat([
+      Buffer.from('RIFF', 'ascii'),
+      Buffer.from([0x00, 0x00, 0x00, 0x00]),
+      Buffer.from('WAVE', 'ascii'),
+    ])
+    await expect(
+      adapter.save('luna-vega', 'fake.webp', 'image/webp', fakeWebp)
+    ).rejects.toThrow(/contenido del archivo/i)
+
+    await expect(
+      adapter.save('luna-vega', 'short.png', 'image/png', Buffer.from([0x89, 0x50]))
+    ).rejects.toThrow(/contenido del archivo/i)
+  })
 })

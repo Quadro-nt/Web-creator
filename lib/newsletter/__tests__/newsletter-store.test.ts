@@ -2,9 +2,13 @@
  * @jest-environment node
  */
 import { describe, it, expect, afterAll } from '@jest/globals'
-import { rm } from 'fs/promises'
+import { mkdir, rm, writeFile } from 'fs/promises'
 import path from 'path'
-import { addSubscriber, listSubscribers } from '../newsletter-store'
+import {
+  addSubscriber,
+  listSubscribers,
+  MAX_SUBSCRIBERS_PER_ARTIST,
+} from '../newsletter-store'
 
 const TEMP_ROOT = path.join(process.cwd(), '.tmp-test-newsletter')
 
@@ -31,5 +35,23 @@ describe('newsletter-store', () => {
   it('rechaza correos inválidos o slugs inseguros', async () => {
     await expect(addSubscriber('luna-vega', 'no-es-correo', TEMP_ROOT)).rejects.toThrow()
     await expect(addSubscriber('../secret', 'ok@ejemplo.com', TEMP_ROOT)).rejects.toThrow()
+  })
+
+  it('impide agregar nuevos correos al alcanzar MAX_SUBSCRIBERS_PER_ARTIST', async () => {
+    expect(MAX_SUBSCRIBERS_PER_ARTIST).toBe(5000)
+    const slug = 'artista-lleno'
+    const artistDir = path.join(TEMP_ROOT, slug)
+    await mkdir(artistDir, { recursive: true })
+    const fullList = Array.from({ length: MAX_SUBSCRIBERS_PER_ARTIST }, (_, i) => ({
+      email: `user${i}@ejemplo.com`,
+      createdAt: '2026-01-01T00:00:00.000Z',
+    }))
+    await writeFile(path.join(artistDir, 'subscribers.json'), JSON.stringify(fullList), 'utf-8')
+
+    await expect(addSubscriber(slug, 'nuevo@ejemplo.com', TEMP_ROOT)).rejects.toThrow(
+      /límite máximo/i
+    )
+    const existing = await addSubscriber(slug, 'user0@ejemplo.com', TEMP_ROOT)
+    expect(existing).toEqual({ alreadySubscribed: true, total: MAX_SUBSCRIBERS_PER_ARTIST })
   })
 })

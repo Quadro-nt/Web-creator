@@ -3,9 +3,49 @@ import path from 'path'
 import { z } from 'zod'
 import { isSafeArtistSlug } from '@/lib/auth/verify-api-request'
 
+export const MAX_SUBSCRIBERS_PER_ARTIST = 5000
+export const NEWSLETTER_RATE_LIMIT_MAX = 10
+export const NEWSLETTER_RATE_LIMIT_WINDOW_MS = 60_000
+
 export type NewsletterSubscriber = {
   email: string
   createdAt: string
+}
+
+type RateLimitEntry = {
+  count: number
+  resetAt: number
+}
+
+const newsletterRateLimit = new Map<string, RateLimitEntry>()
+
+/** Resetea el estado del rate limiter en memoria para pruebas deterministas. */
+export function resetNewsletterRateLimitForTests(): void {
+  newsletterRateLimit.clear()
+}
+
+/** Verifica y consume una solicitud del cupo por clave `ip:artistSlug`. */
+export function consumeNewsletterRateLimit(key: string, now = Date.now()): boolean {
+  if (newsletterRateLimit.size > 1000) {
+    for (const [k, entry] of newsletterRateLimit.entries()) {
+      if (now >= entry.resetAt) {
+        newsletterRateLimit.delete(k)
+      }
+    }
+  }
+
+  const entry = newsletterRateLimit.get(key)
+  if (!entry || now >= entry.resetAt) {
+    newsletterRateLimit.set(key, { count: 1, resetAt: now + NEWSLETTER_RATE_LIMIT_WINDOW_MS })
+    return true
+  }
+
+  if (entry.count >= NEWSLETTER_RATE_LIMIT_MAX) {
+    return false
+  }
+
+  entry.count += 1
+  return true
 }
 
 const EmailSchema = z.string().trim().email().max(180)
@@ -62,6 +102,10 @@ export async function addSubscriber(
 
   if (existing.some((s) => s.email.toLowerCase() === normalized)) {
     return { alreadySubscribed: true, total: existing.length }
+  }
+
+  if (existing.length >= MAX_SUBSCRIBERS_PER_ARTIST) {
+    throw new Error('Se alcanzó el límite máximo de suscriptores para este artista')
   }
 
   const next = [...existing, { email: normalized, createdAt: new Date().toISOString() }]

@@ -12,11 +12,11 @@ Plataforma multi-sitio sobre Next.js donde cada artista del marketplace Quadro d
 ```bash
 npm install
 npm run dev
-# Sitios de prueba: http://localhost:3000/_sites/luna-vega
+# Sitios de prueba: http://luna-vega.localhost:3000 (o http://localhost:3000/sites/luna-vega)
 # Editor: http://localhost:3000/editor/token-luna-vega-dev
 ```
 
-En local los sitios se sirven por ruta (`/_sites/<slug>`). En producción, el `middleware.ts` resuelve el subdominio (`<slug>.quadro-nt.com`) y reescribe la petición hacia la misma ruta interna.
+En local los sitios se acceden por subdominio (`http://<slug>.localhost:3000`) o por ruta (`/sites/<slug>`). En producción, el `middleware.ts` resuelve el subdominio (`<slug>.quadro-nt.com`) y reescribe la petición hacia `/sites/<slug>`.
 
 ## Cómo dar de alta un artista
 
@@ -108,13 +108,13 @@ Pasos generales. El detalle completo (adaptador de almacenamiento en producción
 1. **Conectar el repo a Vercel** desde el dashboard: importar el proyecto desde GitHub y dejar la configuración por defecto de Next.js.
 2. **Configurar variables de entorno** en el dashboard de Vercel (ver [Variables de entorno](#variables-de-entorno)). Asignar cada variable al entorno correspondiente (Production, Preview, Development).
 3. **Resolución de subdominios**: configurar un wildcard DNS `*.quadro-nt.com` apuntando a Vercel (CNAME a `cname.vercel-dns.com`) y agregar el dominio wildcard `*.quadro-nt.com` en la sección Domains del proyecto de Vercel.
-4. **Middleware**: `middleware.ts` ya está preparado para detectar el subdominio en producción y reescribir la petición a `/_sites/<slug>`. No requiere configuración adicional.
+4. **Middleware**: `middleware.ts` ya está preparado para detectar el subdominio en producción y reescribir la petición a `/sites/<slug>`. No requiere configuración adicional.
 
 ## Estructura del proyecto (breve)
 
 | Carpeta                        | Propósito |
 |--------------------------------|-----------|
-| `app/_sites/[artist]/`         | Sitios públicos de artistas (render de templates). |
+| `app/sites/[artist]/`          | Sitios públicos de artistas (render de templates). |
 | `app/editor/[token]/`          | Editor visual (entrada por token). |
 | `app/api/`                     | Endpoints: guardar borrador (`draft`), publicar (`publish`), sugerencias de IA (`ai-suggest`). |
 | `components/templates/`        | Los 3 templates: `minimal-gallery`, `editorial`, `immersive`. |

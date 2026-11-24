@@ -35,5 +35,7 @@ export default async function ArtworkPage({ params }: Props) {
     notFound()
   }
 
-  return <ArtworkDetail artwork={work} artistSlug={params.artist} />
+  const config = await createFileAdapter().getPublished(params.artist)
+
+  return <ArtworkDetail artwork={work} artistSlug={params.artist} config={config} />
 }

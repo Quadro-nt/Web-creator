@@ -72,4 +72,47 @@ describe('generateTokenStyles', () => {
     expect(css).toContain('--card-border: 1px solid currentColor;')
     expect(css).toContain('@keyframes qs-marquee-left')
   })
+
+  it('sanitiza valores de color maliciosos (defensa en profundidad) y preserva contraste WCAG', () => {
+    const css = generateTokenStyles({
+      ...defaultSiteConfig,
+      styleTokens: {
+        ...defaultSiteConfig.styleTokens,
+        background: '#ffffff; } body { display: none',
+        text: 'red</style><script>alert(1)</script>',
+        accent: 'url(https://evil.com/x)',
+        secondaryBg: 'rgba(0,0,0,1); } * { color: red',
+      },
+    })
+
+    expect(css).not.toContain('display: none')
+    expect(css).not.toContain('</style>')
+    expect(css).not.toContain('<script>')
+    expect(css).not.toContain('url(https://evil.com/x)')
+    expect(css).toContain('--color-bg: #ffffff;')
+    expect(css).toContain('--color-surface: rgba(128,128,128,0.06);')
+
+    const bgMatch = css.match(/--color-bg:\s*(#[0-9a-fA-F]{6})/)
+    const textMatch = css.match(/--color-text:\s*(#[0-9a-fA-F]{6})/)
+    expect(bgMatch).not.toBeNull()
+    expect(textMatch).not.toBeNull()
+    if (bgMatch && textMatch) {
+      expect(getContrastRatio(textMatch[1], bgMatch[1])).toBeGreaterThanOrEqual(4.5)
+    }
+  })
+
+  it('permite colores CSS seguros en formato rgb, hsl y nombre', () => {
+    const css = generateTokenStyles({
+      ...defaultSiteConfig,
+      styleTokens: {
+        ...defaultSiteConfig.styleTokens,
+        background: 'white',
+        text: 'rgb(20, 20, 20)',
+        accent: 'hsl(25, 60%, 45%)',
+        secondaryBg: 'rgba(10, 10, 10, 0.05)',
+      },
+    })
+    expect(css).toContain('--color-bg: white;')
+    expect(css).toContain('--color-surface: rgba(10, 10, 10, 0.05);')
+  })
 })
