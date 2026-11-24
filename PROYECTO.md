@@ -82,6 +82,8 @@ NEXT_PUBLIC_BASE_URL     # URL base (ej: https://quadro-nt.com)
 - `scripts/seed-cloud.ts` resuelve el alias `@/` en runtime para `ts-node`; en PowerShell se invoca con `--compiler-options '{\"module\":\"commonjs\"}'`.
 - Con `@jest/globals` y `next/jest` (SWC), `jest.spyOn` sobre exports nombrados falla (`Cannot redefine property`); usar `jest.mock(..., () => ({ ...jest.requireActual(...), ... }))` junto con `await import(...)`.
 - Al agregar dependencias a `package.json`, la regla de seguridad bloquea `npm install` a los agentes: Lionel debe ejecutar `npm install --package-lock-only` para mantener `package-lock.json` sincronizado para `npm ci`.
+- En `@supabase/auth-js` (`GoTrueClient`), `persistSession: false` ignora `options.storage`; para PKCE server-side con cookies usar `persistSession: Boolean(options?.storage)`.
+- Con Refresh Token Rotation de Supabase Auth, los Server Components validan sesión con `allowRefresh: false` y delegan la renovación de tokens expirados a `GET /api/auth/refresh` para poder emitir `Set-Cookie`.
 
 ## Historial de tiempos
 
@@ -89,3 +91,4 @@ NEXT_PUBLIC_BASE_URL     # URL base (ej: https://quadro-nt.com)
 |-------|--------|--------|-----------|-------------|----------|--------|
 | 2026-11-24 | pilot-hardening-and-fixes | M | 3 | 09:45 | 09:36 | -9 min (0 rondas compuerta / 0 rondas verificación) |
 | 2026-11-24 | prod-adapters-and-ai | L | 7 | 10:35 | 10:49 | +14 min (0 rondas compuerta / 1 ronda verificación; incl. 2 pausas manuales npm) |
+| 2026-11-24 | artist-auth-and-home | L | 5 | 12:15 | 12:14 | -1 min (0 rondas compuerta / 1 ronda verificación) |
