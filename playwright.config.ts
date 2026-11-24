@@ -1,12 +1,22 @@
 import { defineConfig } from '@playwright/test'
 
 export default defineConfig({
-  testDir: './e2e',
   timeout: 60000,
   use: {
     baseURL: 'http://localhost:3000',
     navigationTimeout: 60000,
   },
+  projects: [
+    {
+      name: 'e2e',
+      testDir: './e2e',
+    },
+    {
+      name: 'visual',
+      testDir: './tests/e2e/visual',
+      snapshotPathTemplate: '{testDir}/__snapshots__/{arg}{ext}',
+    },
+  ],
   webServer: {
     command: 'npm run dev',
     port: 3000,
