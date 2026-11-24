@@ -43,6 +43,7 @@ Configúralas en **Vercel Dashboard → Project → Settings → Environment Var
 | `STORAGE_BACKEND` | Activa adaptadores cloud (`cloud`). Si no es `cloud`, usa sistema de archivos local (`file`). | Obligatorio (`cloud`) | Production (y Preview si apunta a Supabase de pruebas) |
 | `SUPABASE_URL` | URL base del proyecto Supabase (`https://<project-ref>.supabase.co`). | Obligatorio con `STORAGE_BACKEND=cloud` | Production / Preview |
 | `SUPABASE_SERVICE_ROLE_KEY` | Llave `service_role` de Supabase usada exclusivamente en servidor. | Obligatorio con `STORAGE_BACKEND=cloud` | Production / Preview |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Llave pública (`anon` / Publishable) de Supabase; obligatoria para registro/login de artistas y Google OAuth. | Obligatorio con `STORAGE_BACKEND=cloud` | Production / Preview |
 | `SUPABASE_STORAGE_BUCKET` | Nombre del bucket de Supabase Storage para medios de artistas. | Opcional (default: `artist-media`) | Production / Preview |
 | `ARTIST_TOKEN_HASHES` | Mapa JSON `{"<slug>":"<sha256-hex>"}` usado como respaldo de validación cloud y como entrada opcional en `scripts/seed-cloud.ts`. | Opcional | Production / Preview |
 | `AI_PROVIDER` | Proveedor de IA: `anthropic` o `mock`. En `NODE_ENV=production`, si se omite usa `anthropic`. | Recomendado explícito (`anthropic` en Prod, `mock` en Preview) | Production (`anthropic`) / Preview (`mock`) |
@@ -84,6 +85,30 @@ USING (bucket_id = 'artist-media');
 ```
 
 3. Verifica que no existan políticas de `INSERT`, `UPDATE` o `DELETE` abiertas a `anon` o `authenticated` para `bucket_id = 'artist-media'`. Las subidas desde `/api/upload` se realizan exclusivamente en servidor mediante `SUPABASE_SERVICE_ROLE_KEY`.
+
+### 3.3. Autenticación de artistas (Supabase Auth + Google Login)
+
+1. **Migración SQL idempotente (para bases ya creadas):** si tu tabla `artists` fue creada antes de habilitar cuentas de artista, ejecuta en **SQL Editor**:
+
+```sql
+ALTER TABLE artists ADD COLUMN IF NOT EXISTS owner_user_id uuid UNIQUE;
+ALTER TABLE artists ADD COLUMN IF NOT EXISTS owner_email text;
+ALTER TABLE artists ADD COLUMN IF NOT EXISTS display_name text;
+```
+
+2. **Configuración de URLs en Supabase (`Authentication → URL Configuration`):**
+   - **Site URL:** `https://<tu-dominio>` (por ejemplo, `https://quadro-nt.com`).
+   - **Redirect URLs:** agrega las rutas de callback permitidas para OAuth y confirmación por correo:
+     - `https://<tu-dominio>/api/auth/callback`
+     - `https://*.vercel.app/api/auth/callback`
+
+3. **Activar proveedores en Supabase (`Authentication → Providers`):**
+   - **Email:** habilita el proveedor **Email**.
+     - *Confirm email:* déjalo **ON** en producción si deseas exigir verificación de correo antes de iniciar sesión (el enlace redirige a `/api/auth/callback`), o **OFF** si prefieres ingreso inmediato tras el registro durante el piloto.
+   - **Google OAuth:**
+     1. En **Google Cloud Console → APIs & Services → Credentials**, crea un **OAuth 2.0 Client ID** (tipo *Web application*) y registra como *Authorized redirect URI* el callback de Supabase (`https://<project-ref>.supabase.co/auth/v1/callback`).
+     2. Copia el **Client ID** y el **Client Secret** generados.
+     3. En **Supabase → Authentication → Providers → Google**, activa el proveedor, pega el **Client ID** y el **Client Secret**, y guarda los cambios.
 
 ---
 
