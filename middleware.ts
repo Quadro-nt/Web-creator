@@ -1,7 +1,12 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
+const APP_SUBDOMAINS = new Set(['www', 'app'])
+
 function rewriteSubdomain(request: NextRequest, subdomain: string): NextResponse {
+  if (APP_SUBDOMAINS.has(subdomain.toLowerCase())) {
+    return NextResponse.next()
+  }
   const url = request.nextUrl.clone()
   if (url.pathname.startsWith('/sites/')) {
     return NextResponse.next()
@@ -48,6 +53,6 @@ export function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    '/((?!_next|api|editor|.*\\.ico|.*\\.png|.*\\.jpg|.*\\.jpeg|.*\\.svg|.*\\.gif|.*\\.webp|.*\\.css|.*\\.js).*)',
+    '/((?!_next|api|editor|studio|login|signup|onboarding|.*\\.ico|.*\\.png|.*\\.jpg|.*\\.jpeg|.*\\.svg|.*\\.gif|.*\\.webp|.*\\.css|.*\\.js).*)',
   ],
 }

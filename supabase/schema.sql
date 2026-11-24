@@ -38,3 +38,7 @@ CREATE TABLE IF NOT EXISTS ai_logs (
   validation_error text,
   created_at timestamptz NOT NULL DEFAULT now()
 );
+
+ALTER TABLE artists ADD COLUMN IF NOT EXISTS owner_user_id uuid UNIQUE;
+ALTER TABLE artists ADD COLUMN IF NOT EXISTS owner_email text;
+ALTER TABLE artists ADD COLUMN IF NOT EXISTS display_name text;
