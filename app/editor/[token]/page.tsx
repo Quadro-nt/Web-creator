@@ -1,6 +1,6 @@
 import { validateEditorToken } from '@/lib/auth/token-validator'
-import { createFileAdapter } from '@/lib/storage'
-import { createFileWorksAdapter } from '@/lib/works/file-adapter'
+import { getStorageAdapter } from '@/lib/storage'
+import { getWorksRepository } from '@/lib/works/repository'
 import { defaultSiteConfig } from '@/lib/schemas/site-config.schema'
 import EditorClient from './EditorClient'
 
@@ -20,14 +20,14 @@ export default async function EditorPage({ params }: Props) {
     )
   }
 
-  const storage = createFileAdapter()
+  const storage = getStorageAdapter()
   const [draft, published] = await Promise.all([
     storage.getDraft(slug),
     storage.getPublished(slug),
   ])
   const config = draft ?? published ?? defaultSiteConfig
 
-  const worksRepo = createFileWorksAdapter()
+  const worksRepo = getWorksRepository()
   const works = await worksRepo.getWorks(slug)
 
   return (

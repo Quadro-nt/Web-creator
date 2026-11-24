@@ -34,6 +34,10 @@ jest.mock('@/lib/storage', () => {
       ...actual.createFileAdapter(),
       getPublished: (slug: string) => mockGetPublished(slug),
     }),
+    getStorageAdapter: () => ({
+      ...actual.createFileAdapter(),
+      getPublished: (slug: string) => mockGetPublished(slug),
+    }),
   }
 })
 

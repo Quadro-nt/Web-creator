@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
-import { createFileAdapter } from '@/lib/storage'
-import { createFileWorksAdapter } from '@/lib/works/file-adapter'
+import { getStorageAdapter } from '@/lib/storage'
+import { getWorksRepository } from '@/lib/works/repository'
 import { ArtworkDetail } from '@/components/ArtworkDetail'
 
 type Props = {
@@ -9,13 +9,13 @@ type Props = {
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const worksRepo = createFileWorksAdapter()
+  const worksRepo = getWorksRepository()
   const work = await worksRepo.getWork(params.artist, params.slug)
   if (!work) {
     return { title: 'Obra no encontrada' }
   }
 
-  const storage = createFileAdapter()
+  const storage = getStorageAdapter()
   const config = await storage.getPublished(params.artist)
   const siteTitle = config?.identity.siteTitle ?? params.artist
 
@@ -28,7 +28,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function ArtworkPage({ params }: Props) {
-  const worksRepo = createFileWorksAdapter()
+  const worksRepo = getWorksRepository()
   const work = await worksRepo.getWork(params.artist, params.slug)
 
   if (!work) {

@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { SiteConfigSchema } from '@/lib/schemas/site-config.schema'
-import { createFileAdapter } from '@/lib/storage'
+import { getStorageAdapter } from '@/lib/storage'
 import { verifyEditorRequest } from '@/lib/auth/verify-api-request'
 
 const BodySchema = z.object({
@@ -35,7 +35,7 @@ export async function POST(request: Request) {
     )
   }
 
-  const storage = createFileAdapter()
+  const storage = getStorageAdapter()
   await storage.saveDraft(auth.artistSlug, configResult.data)
   return NextResponse.json({ ok: true })
 }
@@ -60,7 +60,7 @@ export async function DELETE(request: Request) {
     return NextResponse.json({ error: auth.error }, { status: auth.status })
   }
 
-  const storage = createFileAdapter()
+  const storage = getStorageAdapter()
   await storage.discardDraft(auth.artistSlug)
   const publishedConfig = await storage.getPublished(auth.artistSlug)
   return NextResponse.json({ ok: true, publishedConfig })

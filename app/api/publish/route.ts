@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server'
+import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
 import { SiteConfigSchema } from '@/lib/schemas/site-config.schema'
-import { createFileAdapter } from '@/lib/storage'
+import { getStorageAdapter } from '@/lib/storage'
 import { verifyEditorRequest } from '@/lib/auth/verify-api-request'
 
 const BodySchema = z.object({
@@ -35,8 +36,9 @@ export async function POST(request: Request) {
     )
   }
 
-  const storage = createFileAdapter()
+  const storage = getStorageAdapter()
   await storage.saveDraft(auth.artistSlug, configResult.data)
   await storage.publish(auth.artistSlug)
+  revalidatePath('/sites/' + auth.artistSlug, 'layout')
   return NextResponse.json({ ok: true })
 }
