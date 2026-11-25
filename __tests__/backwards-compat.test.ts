@@ -1,5 +1,6 @@
 import fs from 'fs'
 import path from 'path'
+import { describe, it, expect } from '@jest/globals'
 import { SiteConfigSchema } from '@/lib/schemas/site-config.schema'
 
 describe('backwards compat', () => {
