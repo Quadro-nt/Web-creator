@@ -84,6 +84,8 @@ NEXT_PUBLIC_BASE_URL     # URL base (ej: https://quadro-nt.com)
 - Al agregar dependencias a `package.json`, la regla de seguridad bloquea `npm install` a los agentes: Lionel debe ejecutar `npm install --package-lock-only` para mantener `package-lock.json` sincronizado para `npm ci`.
 - En `@supabase/auth-js` (`GoTrueClient`), `persistSession: false` ignora `options.storage`; para PKCE server-side con cookies usar `persistSession: Boolean(options?.storage)`.
 - Con Refresh Token Rotation de Supabase Auth, los Server Components validan sesión con `allowRefresh: false` y delegan la renovación de tokens expirados a `GET /api/auth/refresh` para poder emitir `Set-Cookie`.
+- La suite de jest requiere **Node.js ≥ 22** porque `lib/auth/__tests__/session-and-onboarding.test.ts` ("writes code-verifier into PKCE storage using the real createSupabaseAuthClient") crea un `SupabaseClient` real que inicializa `RealtimeClient`, y `@supabase/realtime-js` necesita `globalThis.WebSocket` (nativo en Node 22+, ausente en 18/20). Correr las verificaciones en servers con Node ≥ 22 (o importar un polyfill `ws` antes de ejecutar).
+- Verificación final de `design-system-museo` en Linux (Lenovo) reveló que `__tests__/backwards-compat.test.ts` fallaba `tsc` por ausencia de tipos globales de Jest; patrón obligatorio en este repo: **todo test nuevo debe importar explícitamente `{ describe, it, expect }` de `@jest/globals`**.
 
 ## Historial de tiempos
 
@@ -92,3 +94,4 @@ NEXT_PUBLIC_BASE_URL     # URL base (ej: https://quadro-nt.com)
 | 2026-11-24 | pilot-hardening-and-fixes | M | 3 | 09:45 | 09:36 | -9 min (0 rondas compuerta / 0 rondas verificación) |
 | 2026-11-24 | prod-adapters-and-ai | L | 7 | 10:35 | 10:49 | +14 min (0 rondas compuerta / 1 ronda verificación; incl. 2 pausas manuales npm) |
 | 2026-11-24 | artist-auth-and-home | L | 5 | 12:15 | 12:14 | -1 min (0 rondas compuerta / 1 ronda verificación) |
+| 2026-11-24 | design-system-museo | M | 5 | 19:30 | 2026-11-25 10:45 | overnight + 1 FIX3 por tsc en Lenovo (0 rondas compuerta / 3 rondas verificación: local OK, Lenovo descubrió tsc fail por `@jest/globals` faltante + jest fail por Node<22 documentado) |
