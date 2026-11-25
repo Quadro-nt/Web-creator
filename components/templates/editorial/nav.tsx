@@ -229,43 +229,65 @@ export default function Nav({ config, inPreview = false }: Props) {
     <>
       <nav
         className="qs-section-pad"
+        aria-label="Masthead"
         style={{
           ...positionStyle,
           top: 0,
           left: 0,
           right: 0,
           backgroundColor: 'var(--color-bg)',
-          borderBottom: '1px solid rgba(128,128,128,0.18)',
+          borderBottom: '2px solid var(--color-text)',
           zIndex: 100,
           display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: '1rem',
-          flexWrap: 'wrap',
-          padding: '1.25rem 3rem',
+          flexDirection: 'column',
+          gap: '0.5rem',
+          padding: 'clamp(1.25rem, 3vw, 2rem) clamp(1.5rem, 4vw, 3rem) 0.75rem',
         }}
       >
-        <span
+        <div
           style={{
-            fontSize: '0.7rem',
-            letterSpacing: '0.25em',
-            textTransform: 'uppercase',
-            color: 'var(--color-text)',
-            fontWeight: 700,
-            opacity: 0.9,
+            display: 'flex',
+            alignItems: 'baseline',
+            justifyContent: 'space-between',
+            gap: '1rem',
+            flexWrap: 'wrap',
           }}
         >
-          {brandNode}
-        </span>
+          <span
+            style={{
+              fontFamily: 'var(--font-heading)',
+              fontSize: 'clamp(1.6rem, 3.4vw, 2.5rem)',
+              letterSpacing: '-0.015em',
+              color: 'var(--color-text)',
+              fontWeight: 700,
+              lineHeight: 1,
+            }}
+          >
+            {brandNode}
+          </span>
+          <span
+            style={{
+              fontSize: '0.65rem',
+              letterSpacing: '0.3em',
+              textTransform: 'uppercase',
+              opacity: 0.55,
+              fontWeight: 600,
+            }}
+          >
+            Edición en curso
+          </span>
+        </div>
         <ul
           className="qs-nav-links"
           style={{
             listStyle: 'none',
             margin: 0,
-            padding: 0,
+            padding: '0.5rem 0 0',
             display: 'flex',
             gap: '0',
             alignItems: 'center',
+            borderTop: '1px solid rgba(128,128,128,0.22)',
+            flexWrap: 'wrap',
           }}
         >
           {visibleSections.map((item, i) => (
@@ -273,13 +295,13 @@ export default function Nav({ config, inPreview = false }: Props) {
               {i > 0 && (
                 <span
                   style={{
-                    padding: '0 0.75rem',
-                    opacity: 0.2,
+                    padding: '0 0.9rem',
+                    opacity: 0.25,
                     fontSize: '0.7rem',
                     color: 'var(--color-text)',
                   }}
                 >
-                  —
+                  ·
                 </span>
               )}
               <a
@@ -287,11 +309,12 @@ export default function Nav({ config, inPreview = false }: Props) {
                 style={{
                   textDecoration: 'none',
                   color: 'var(--color-text)',
-                  fontSize: '0.75rem',
-                  letterSpacing: '0.12em',
+                  fontSize: '0.72rem',
+                  letterSpacing: '0.18em',
                   textTransform: 'uppercase',
-                  fontWeight: 600,
-                  opacity: 0.7,
+                  fontWeight: 700,
+                  opacity: 0.78,
+                  padding: '0.35rem 0',
                 }}
               >
                 {item.label}

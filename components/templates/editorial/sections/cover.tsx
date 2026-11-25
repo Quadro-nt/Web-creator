@@ -45,7 +45,7 @@ export default function Cover({ section, config }: Props) {
             flexDirection: 'column',
             justifyContent: 'flex-end',
             padding: '5rem 4rem 5rem 5rem',
-            borderRight: '1px solid rgba(128,128,128,0.18)',
+            borderRight: '1px solid var(--qs-border)',
           }}
         >
           <span
@@ -62,6 +62,7 @@ export default function Cover({ section, config }: Props) {
           </span>
           <h1
             style={{
+              fontFamily: 'var(--qs-font-heading)',
               fontSize: 'clamp(3rem, 7vw, 6rem)',
               fontWeight: 700,
               lineHeight: 0.92,
@@ -119,6 +120,7 @@ export default function Cover({ section, config }: Props) {
           </span>
           <h1
             style={{
+              fontFamily: 'var(--qs-font-heading)',
               fontSize: 'clamp(3.25rem, 9vw, 7.5rem)',
               fontWeight: 800,
               lineHeight: 0.88,
@@ -165,10 +167,10 @@ export default function Cover({ section, config }: Props) {
             zIndex: 1,
             margin: '3rem',
             padding: '2.5rem 3rem',
-            backgroundColor: 'rgba(245,240,232,0.9)',
+            backgroundColor: 'var(--qs-secondary-bg)',
             backdropFilter: 'blur(4px)',
             maxWidth: '500px',
-            color: '#1a1a1a',
+            color: 'var(--qs-text)',
           }}
         >
           <span
@@ -185,6 +187,7 @@ export default function Cover({ section, config }: Props) {
           </span>
           <h1
             style={{
+              fontFamily: 'var(--qs-font-heading)',
               fontSize: 'clamp(2.25rem, 5vw, 4rem)',
               fontWeight: 700,
               lineHeight: 0.95,
@@ -227,6 +230,7 @@ export default function Cover({ section, config }: Props) {
       >
         <h1
           style={{
+            fontFamily: 'var(--qs-font-heading)',
             fontSize: 'clamp(3.25rem, 9vw, 7.5rem)',
             fontWeight: 800,
             lineHeight: 0.88,
@@ -246,7 +250,7 @@ export default function Cover({ section, config }: Props) {
       <div
         style={{
           marginTop: '3rem',
-          borderTop: '1px solid rgba(128,128,128,0.2)',
+          borderTop: '1px solid var(--qs-border)',
           paddingTop: '1.5rem',
           display: 'flex',
           gap: '2rem',

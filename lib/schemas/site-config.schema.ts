@@ -286,12 +286,13 @@ export const defaultSiteConfig: SiteConfig = {
   template: 'minimal-gallery',
 
   styleTokens: {
-    background: '#ffffff',
+    background: '#faf7f2',
     text: '#1a1a1a',
     accent: '#c47a3a',
-    fontPair: 'playfair-raleway',
+    fontPair: 'fraunces-nunito',
     spacing: 'normal',
     artworkTreatment: 'margin',
+    secondaryBg: '#efe9e0',
   },
 
   button: {

@@ -24,7 +24,7 @@ export default function Bio({ section, config }: Props) {
           padding: '6rem 5rem',
           backgroundColor: 'var(--color-bg)',
           color: 'var(--color-text)',
-          borderTop: '1px solid rgba(128,128,128,0.18)',
+          borderTop: '1px solid var(--qs-border)',
         }}
       >
         <ContentWrapper width={width}>
@@ -45,6 +45,7 @@ export default function Bio({ section, config }: Props) {
             <div>
               <h2
                 style={{
+                  fontFamily: 'var(--qs-font-heading)',
                   fontSize: 'var(--text-3xl)',
                   fontWeight: 700,
                   letterSpacing: '-0.02em',
@@ -74,13 +75,13 @@ export default function Bio({ section, config }: Props) {
           padding: '6rem 5rem',
           backgroundColor: 'var(--color-bg)',
           color: 'var(--color-text)',
-          borderTop: '1px solid rgba(128,128,128,0.18)',
+          borderTop: '1px solid var(--qs-border)',
           textAlign: 'center',
         }}
       >
         <ContentWrapper width={width}>
           <div style={{ maxWidth: '720px', margin: '0 auto' }}>
-            <h2 style={{ fontSize: 'var(--text-3xl)', fontWeight: 700, margin: '0 0 1.5rem' }}>{heading}</h2>
+            <h2 style={{ fontFamily: 'var(--qs-font-heading)', fontSize: 'var(--text-3xl)', fontWeight: 700, margin: '0 0 1.5rem' }}>{heading}</h2>
             <p style={{ fontSize: 'var(--text-base)', lineHeight: 1.85, whiteSpace: 'pre-line', margin: 0, opacity: 0.85 }}>
               {text}
             </p>
@@ -98,7 +99,7 @@ export default function Bio({ section, config }: Props) {
           padding: '6rem 5rem',
           backgroundColor: 'var(--color-bg)',
           color: 'var(--color-text)',
-          borderTop: '1px solid rgba(128,128,128,0.18)',
+          borderTop: '1px solid var(--qs-border)',
         }}
       >
         <ContentWrapper width={width}>
@@ -123,13 +124,13 @@ export default function Bio({ section, config }: Props) {
         padding: '6rem 5rem',
         backgroundColor: 'var(--color-bg)',
         color: 'var(--color-text)',
-        borderTop: '1px solid rgba(128,128,128,0.18)',
+        borderTop: '1px solid var(--qs-border)',
       }}
     >
       <ContentWrapper width={width}>
         <div className="qs-split-responsive" style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '4rem' }}>
           <div>
-            <h2 style={{ fontSize: 'var(--text-3xl)', fontWeight: 700, letterSpacing: '-0.02em', margin: 0, lineHeight: 1.05 }}>
+            <h2 style={{ fontFamily: 'var(--qs-font-heading)', fontSize: 'var(--text-3xl)', fontWeight: 700, letterSpacing: '-0.02em', margin: 0, lineHeight: 1.05 }}>
               {heading}
             </h2>
             <div style={{ width: '40px', height: '3px', backgroundColor: 'var(--color-accent)', marginTop: '1.5rem' }} />

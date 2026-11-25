@@ -34,7 +34,7 @@ export default function ImmersiveCover({ section, config }: Props) {
           width: '100%',
           minHeight: '520px',
           height: '100%',
-          backgroundColor: '#000',
+          backgroundColor: 'var(--qs-text)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -58,11 +58,12 @@ export default function ImmersiveCover({ section, config }: Props) {
         >
           <h1
             style={{
+              fontFamily: 'var(--qs-font-heading)',
               fontSize: 'clamp(2.5rem, 7vw, 6rem)',
               fontWeight: 300,
               letterSpacing: '0.15em',
               textTransform: 'uppercase',
-              color: '#f0f0f0',
+              color: 'var(--qs-bg)',
               margin: 0,
               lineHeight: 1,
             }}
@@ -70,7 +71,7 @@ export default function ImmersiveCover({ section, config }: Props) {
             {headline}
           </h1>
           {subtitle && (
-            <p style={{ margin: 0, color: 'rgba(240,240,240,0.8)', fontSize: 'var(--text-lg)' }}>{subtitle}</p>
+            <p style={{ margin: 0, color: 'var(--qs-bg)', opacity: 0.8, fontSize: 'var(--text-lg)' }}>{subtitle}</p>
           )}
           {ctaButton}
         </div>
@@ -89,7 +90,7 @@ export default function ImmersiveCover({ section, config }: Props) {
           overflow: 'hidden',
           display: 'flex',
           alignItems: 'flex-end',
-          backgroundColor: '#0a0a0a',
+          backgroundColor: 'var(--qs-text)',
         }}
       >
         {coverImageUrl && (
@@ -111,17 +112,18 @@ export default function ImmersiveCover({ section, config }: Props) {
               opacity: 0.6,
               display: 'block',
               marginBottom: '1.25rem',
-              color: '#f0f0f0',
+              color: 'var(--qs-bg)',
             }}
           >
             Portfolio
           </span>
           <h1
             style={{
+              fontFamily: 'var(--qs-font-heading)',
               fontSize: 'clamp(2.5rem, 6vw, 5.5rem)',
               fontWeight: 300,
               letterSpacing: '0.08em',
-              color: '#f0f0f0',
+              color: 'var(--qs-bg)',
               margin: 0,
               lineHeight: 1,
             }}
@@ -129,7 +131,7 @@ export default function ImmersiveCover({ section, config }: Props) {
             {headline}
           </h1>
           {subtitle && (
-            <p style={{ margin: '1rem 0 0', color: 'rgba(240,240,240,0.8)', fontSize: 'var(--text-lg)' }}>
+            <p style={{ margin: '1rem 0 0', color: 'var(--qs-bg)', opacity: 0.8, fontSize: 'var(--text-lg)' }}>
               {subtitle}
             </p>
           )}
@@ -160,7 +162,7 @@ export default function ImmersiveCover({ section, config }: Props) {
             flexDirection: 'column',
             justifyContent: 'center',
             padding: '4rem 5rem',
-            borderRight: '1px solid rgba(128,128,128,0.18)',
+            borderRight: '1px solid var(--qs-border)',
           }}
         >
           <span
@@ -175,7 +177,7 @@ export default function ImmersiveCover({ section, config }: Props) {
           >
             Arte
           </span>
-          <h1 style={{ fontSize: 'clamp(2.75rem, 5.5vw, 5rem)', fontWeight: 700, lineHeight: 0.95, letterSpacing: '-0.02em', margin: 0 }}>
+          <h1 style={{ fontFamily: 'var(--qs-font-heading)', fontSize: 'clamp(2.75rem, 5.5vw, 5rem)', fontWeight: 700, lineHeight: 0.95, letterSpacing: '-0.02em', margin: 0 }}>
             {headline}
           </h1>
           {subtitle && (
@@ -194,7 +196,7 @@ export default function ImmersiveCover({ section, config }: Props) {
             />
           </div>
         ) : (
-          <div style={{ backgroundColor: 'rgba(128,128,128,0.1)' }} />
+          <div style={{ backgroundColor: 'var(--qs-secondary-bg)' }} />
         )}
       </div>
     )
@@ -217,7 +219,7 @@ export default function ImmersiveCover({ section, config }: Props) {
           color: 'var(--color-text)',
         }}
       >
-        <h1 style={{ fontSize: 'clamp(2.75rem, 7vw, 6rem)', fontWeight: 300, letterSpacing: '0.08em', margin: 0 }}>
+        <h1 style={{ fontFamily: 'var(--qs-font-heading)', fontSize: 'clamp(2.75rem, 7vw, 6rem)', fontWeight: 300, letterSpacing: '0.08em', margin: 0 }}>
           {headline}
         </h1>
         {subtitle && (
@@ -235,7 +237,7 @@ export default function ImmersiveCover({ section, config }: Props) {
         width: '100%',
         minHeight: '520px',
         height: '100%',
-        backgroundColor: '#000',
+        backgroundColor: 'var(--qs-text)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -259,10 +261,11 @@ export default function ImmersiveCover({ section, config }: Props) {
         </span>
         <h1
           style={{
+            fontFamily: 'var(--qs-font-heading)',
             fontSize: 'clamp(3rem, 8vw, 7rem)',
             fontWeight: 300,
             letterSpacing: '0.1em',
-            color: '#f0f0f0',
+            color: 'var(--qs-bg)',
             margin: 0,
             lineHeight: 1,
           }}
@@ -270,7 +273,7 @@ export default function ImmersiveCover({ section, config }: Props) {
           {headline}
         </h1>
         {subtitle && (
-          <p style={{ margin: '1.25rem 0 0', color: 'rgba(240,240,240,0.8)', fontSize: 'var(--text-lg)' }}>
+          <p style={{ margin: '1.25rem 0 0', color: 'var(--qs-bg)', opacity: 0.8, fontSize: 'var(--text-lg)' }}>
             {subtitle}
           </p>
         )}

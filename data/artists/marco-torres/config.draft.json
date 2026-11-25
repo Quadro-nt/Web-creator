@@ -1,12 +1,13 @@
 {
   "template": "editorial",
   "styleTokens": {
-    "background": "#f2ede6",
-    "text": "#1c1c1c",
-    "accent": "#c8420a",
+    "background": "#faf7f2",
+    "text": "#1a1a1a",
+    "accent": "#c47a3a",
     "fontPair": "fraunces-nunito",
     "spacing": "normal",
-    "artworkTreatment": "frame"
+    "artworkTreatment": "frame",
+    "secondaryBg": "#efe9e0"
   },
   "button": {
     "shape": "square",
