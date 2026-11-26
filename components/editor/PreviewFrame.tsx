@@ -2,7 +2,7 @@
 
 import { createElement } from 'react'
 import type { ComponentType, ReactNode } from 'react'
-import type { SectionConfig, SiteConfig } from '@/lib/schemas/site-config.schema'
+import type { PageConfig, SectionConfig, SiteConfig } from '@/lib/schemas/site-config.schema'
 import type { Artwork } from '@/lib/schemas/works.schema'
 import MinimalGallery from '@/components/templates/minimal-gallery'
 import EditorialTemplate from '@/components/templates/editorial'
@@ -11,6 +11,7 @@ import type { Viewport } from '@/app/editor/[token]/EditorConfig'
 
 type TemplateProps = {
   config: SiteConfig
+  page: PageConfig
   works: Artwork[]
   artistSlug: string
   inPreview?: boolean
@@ -26,6 +27,7 @@ const TEMPLATES: Record<SiteConfig['template'], ComponentType<TemplateProps>> = 
 
 type Props = {
   config: SiteConfig
+  page: PageConfig | undefined
   works: Artwork[]
   artistSlug: string
   viewport: Viewport
@@ -35,6 +37,7 @@ type Props = {
 
 export default function PreviewFrame({
   config,
+  page,
   works,
   artistSlug,
   viewport,
@@ -42,6 +45,15 @@ export default function PreviewFrame({
   renderSectionWrapper,
 }: Props) {
   const Template = TEMPLATES[config.template] ?? MinimalGallery
+
+  // Provide a fallback page derived from config.sections for configs without pages[]
+  const effectivePage: PageConfig = page ?? {
+    slug: 'home',
+    title: config.identity.siteTitle,
+    isHome: true,
+    showInNav: true,
+    sections: config.sections,
+  }
 
   const isFramed = viewport !== 'desktop'
   const frameWidth = viewport === 'mobile' ? '390px' : viewport === 'tablet' ? '768px' : '100%'
@@ -75,6 +87,7 @@ export default function PreviewFrame({
       <div style={frameStyle}>
         {createElement(Template, {
           config,
+          page: effectivePage,
           works,
           artistSlug,
           inPreview: true,
