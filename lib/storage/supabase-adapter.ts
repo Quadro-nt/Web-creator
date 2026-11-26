@@ -1,6 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { isSafeArtistSlug } from '@/lib/auth/verify-api-request'
 import { getSupabaseAdminClient } from '@/lib/cloud/supabase-client'
+import { normalizeSiteConfig } from '@/lib/schemas/site-config.schema'
 import type { SiteConfig, StorageAdapter } from './index'
 
 type ConfigColumn = 'config_published' | 'config_draft'
@@ -31,7 +32,9 @@ async function readConfigColumn(
   }
 
   const row = data as Record<string, unknown> | null
-  return (row?.[column] as SiteConfig | null | undefined) ?? null
+  const raw = row?.[column] as SiteConfig | null | undefined
+  if (!raw) return null
+  return normalizeSiteConfig(raw) as SiteConfig
 }
 
 async function updateArtistRow(
