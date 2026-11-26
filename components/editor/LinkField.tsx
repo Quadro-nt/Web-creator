@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import type { SiteConfig } from '@/lib/schemas/site-config.schema'
 import {
   STUDIO_COLORS,
@@ -26,7 +26,7 @@ function detectType(value: string): LinkType {
 }
 
 export default function LinkField({ value, config, onChange, label }: Props) {
-  const [type, setType] = useState<LinkType>(() => detectType(value))
+  const type = detectType(value)
   const pages = config.pages ?? []
   const missingInternal = useMemo(() => {
     if (type !== 'internal') return false
@@ -36,7 +36,6 @@ export default function LinkField({ value, config, onChange, label }: Props) {
   }, [type, value, pages])
 
   const handleTypeChange = (nextType: LinkType) => {
-    setType(nextType)
     switch (nextType) {
       case 'internal':
         onChange(pages.find((p) => p.isHome) ? '/' : '/')

@@ -1,4 +1,5 @@
 import { describe, it, expect, jest } from '@jest/globals'
+import { useState } from 'react'
 import { render, screen, fireEvent } from '@testing-library/react'
 import LinkField from '../LinkField'
 import { defaultSiteConfig } from '@/lib/schemas/site-config.schema'
@@ -31,10 +32,24 @@ describe('LinkField', () => {
 
   it('switches to external and emits URL change', () => {
     const onChange = jest.fn()
-    render(<LinkField value="/exhibitions" config={config} onChange={onChange} />)
+    function Controlled() {
+      const [val, setVal] = useState('/exhibitions')
+      return (
+        <LinkField
+          value={val}
+          config={config}
+          onChange={(next) => {
+            onChange(next)
+            setVal(next)
+          }}
+        />
+      )
+    }
+    render(<Controlled />)
     fireEvent.change(screen.getByLabelText(/tipo/i), { target: { value: 'external' } })
+    // after type switch, value becomes 'https://' — component re-renders showing URL input
     fireEvent.change(screen.getByLabelText(/url/i), { target: { value: 'https://new.com' } })
-    expect(onChange).toHaveBeenCalledWith('https://new.com')
+    expect(onChange).toHaveBeenLastCalledWith('https://new.com')
   })
 
   it('switches internal to another page', () => {
