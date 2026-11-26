@@ -26,7 +26,6 @@ import { createSectionFromModule, createUniqueSectionId, useConfigHistory } from
 import PreviewFrame from '@/components/editor/PreviewFrame'
 import PreviewToggle from '@/components/editor/PreviewToggle'
 import ModuleLibrary from '@/components/editor/ModuleLibrary'
-import SectionList from '@/components/editor/SectionList'
 import PageTree from '@/components/editor/PageTree'
 import * as pageOps from '@/components/editor/page-operations'
 import ThemePanel from '@/components/editor/ThemePanel'
