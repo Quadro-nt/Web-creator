@@ -19,14 +19,15 @@ import {
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable'
-import type { SectionConfig, SectionType, SiteConfig } from '@/lib/schemas/site-config.schema'
+import type { PageConfig, SectionConfig, SectionType, SiteConfig } from '@/lib/schemas/site-config.schema'
 import type { Artwork } from '@/lib/schemas/works.schema'
 import { SECTION_TYPE_LABELS, type Viewport } from './EditorConfig'
 import { createSectionFromModule, createUniqueSectionId, useConfigHistory } from '@/components/editor/useConfigHistory'
 import PreviewFrame from '@/components/editor/PreviewFrame'
 import PreviewToggle from '@/components/editor/PreviewToggle'
 import ModuleLibrary from '@/components/editor/ModuleLibrary'
-import SectionList from '@/components/editor/SectionList'
+import PageTree from '@/components/editor/PageTree'
+import * as pageOps from '@/components/editor/page-operations'
 import ThemePanel from '@/components/editor/ThemePanel'
 import WorksManager from '@/components/editor/WorksManager'
 import MediaLibrary from '@/components/editor/MediaLibrary'
@@ -36,6 +37,7 @@ import SectionInspector from '@/components/editor/SectionInspector'
 import CanvasSectionWrapper from '@/components/editor/CanvasSectionWrapper'
 import CanvasDropZone from '@/components/editor/CanvasDropZone'
 import { STUDIO_COLORS, studioPrimaryBtn, studioSecondaryBtn } from '@/components/editor/studio-styles'
+import PageModal from '@/components/editor/PageModal'
 
 type Status = 'idle' | 'saving' | 'saved' | 'publishing' | 'published' | 'error'
 type LeftTab = 'modules' | 'layers' | 'theme' | 'works' | 'media' | 'ai'
@@ -52,7 +54,7 @@ type Props = {
 
 const LEFT_TABS: Array<{ key: LeftTab; label: string }> = [
   { key: 'modules', label: 'Módulos' },
-  { key: 'layers', label: 'Capas' },
+  { key: 'layers', label: 'Páginas' },
   { key: 'theme', label: 'Diseño' },
   { key: 'works', label: 'Obras' },
   { key: 'media', label: 'Medios' },
@@ -78,6 +80,61 @@ export default function EditorClient({
   const [selectedSectionId, setSelectedSectionId] = useState<string | null>(null)
   const [selectedChrome, setSelectedChrome] = useState<ChromeTarget | null>(null)
   const [aiPreviewConfig, setAiPreviewConfig] = useState<SiteConfig | null>(null)
+
+  const [activePageId, setActivePageId] = useState<string>(() => {
+    const home = initialConfig.pages?.find((p) => p.isHome)
+    return home?.slug ?? initialConfig.pages?.[0]?.slug ?? 'home'
+  })
+
+  const [pageModalMode, setPageModalMode] = useState<'create' | { kind: 'edit'; slug: string } | null>(null)
+
+  const handleOpenCreatePage = () => setPageModalMode('create')
+  const handleOpenEditPage = (slug: string) => setPageModalMode({ kind: 'edit', slug })
+
+  const handleDeletePage = (slug: string) => {
+    try {
+      setConfig((prev) => pageOps.deletePage(prev, slug))
+      if (slug === activePageId) {
+        const home = config.pages?.find((p) => p.isHome)
+        if (home) setActivePageId(home.slug)
+      }
+    } catch (err) {
+      setErrorMsg(err instanceof Error ? err.message : 'No se pudo borrar la página')
+    }
+  }
+
+  const handleSetHomePage = (slug: string) => {
+    try {
+      setConfig((prev) => pageOps.setHomePage(prev, slug))
+    } catch (err) {
+      setErrorMsg(err instanceof Error ? err.message : 'No se pudo marcar como home')
+    }
+  }
+
+  const handleDuplicatePage = (slug: string) => {
+    try {
+      setConfig((prev) => pageOps.duplicatePage(prev, slug))
+    } catch (err) {
+      setErrorMsg(err instanceof Error ? err.message : 'No se pudo duplicar la página')
+    }
+  }
+
+  const activePage = useMemo((): PageConfig | undefined => {
+    const found = config.pages.find((p) => p.slug === activePageId)
+    return found ?? config.pages.find((p) => p.isHome) ?? config.pages[0]
+  }, [config, activePageId])
+
+  const setActivePageSections = useCallback(
+    (updater: (sections: SectionConfig[]) => SectionConfig[]) => {
+      setConfig((prev) => {
+        const pages = prev.pages.map((p) =>
+          p.slug === activePageId ? { ...p, sections: updater(p.sections) } : p
+        )
+        return { ...prev, pages }
+      })
+    },
+    [setConfig, activePageId]
+  )
 
   const selectSection = useCallback((id: string | null) => {
     setSelectedSectionId(id)
@@ -109,8 +166,8 @@ export default function EditorClient({
   )
 
   const selectedSection = useMemo(
-    () => config.sections.find((s) => s.id === selectedSectionId) ?? null,
-    [config.sections, selectedSectionId]
+    () => (activePage?.sections ?? []).find((s) => s.id === selectedSectionId) ?? null,
+    [activePage?.sections, selectedSectionId]
   )
 
   const sensors = useSensors(
@@ -251,27 +308,24 @@ export default function EditorClient({
   )
 
   const handleSectionsChange = useCallback(
-    (sections: SiteConfig['sections']) => {
-      setConfig((prev) => ({ ...prev, sections }))
+    (sections: SectionConfig[]) => {
+      setActivePageSections(() => sections)
     },
-    [setConfig]
+    [setActivePageSections]
   )
 
   const handleUpdateSection = useCallback(
     (sectionId: string, updater: (prev: SectionConfig) => SectionConfig) => {
-      setConfig((prev) => ({
-        ...prev,
-        sections: prev.sections.map((s) => (s.id === sectionId ? updater(s) : s)),
-      }))
+      setActivePageSections((sections) => sections.map((s) => (s.id === sectionId ? updater(s) : s)))
     },
-    [setConfig]
+    [setActivePageSections]
   )
 
   const handleInsertModuleAt = useCallback(
     (type: SectionType, insertIndex?: number) => {
       const created = createSectionFromModule(type)
-      setConfig((prev) => {
-        const nextSections = prev.sections.slice()
+      setActivePageSections((sections) => {
+        const nextSections = sections.slice()
         const targetIndex =
           insertIndex !== undefined
             ? Math.max(0, Math.min(nextSections.length, insertIndex))
@@ -282,63 +336,60 @@ export default function EditorClient({
                 })()
               : nextSections.length
         nextSections.splice(targetIndex, 0, created)
-        return { ...prev, sections: nextSections }
+        return nextSections
       })
       setSelectedSectionId(created.id)
       setSelectedChrome(null)
       setQuickInsertIndex(null)
     },
-    [selectedSectionId, setConfig]
+    [selectedSectionId, setActivePageSections]
   )
 
   const handleDuplicateSection = useCallback(
     (sectionId: string) => {
       let createdId: string | null = null
-      setConfig((prev) => {
-        const idx = prev.sections.findIndex((s) => s.id === sectionId)
-        if (idx < 0) return prev
-        const source = prev.sections[idx]
+      setActivePageSections((sections) => {
+        const idx = sections.findIndex((s) => s.id === sectionId)
+        if (idx < 0) return sections
+        const source = sections[idx]
         const clone: SectionConfig = {
           ...source,
           id: createUniqueSectionId(source.type),
           content: JSON.parse(JSON.stringify(source.content)) as Record<string, unknown>,
         }
         createdId = clone.id
-        const next = prev.sections.slice()
+        const next = sections.slice()
         next.splice(idx + 1, 0, clone)
-        return { ...prev, sections: next }
+        return next
       })
       if (createdId) setSelectedSectionId(createdId)
     },
-    [setConfig]
+    [setActivePageSections]
   )
 
   const handleDeleteSection = useCallback(
     (sectionId: string) => {
-      setConfig((prev) => ({
-        ...prev,
-        sections: prev.sections.filter((s) => s.id !== sectionId),
-      }))
+      setActivePageSections((sections) => sections.filter((s) => s.id !== sectionId))
       setSelectedSectionId((cur) => (cur === sectionId ? null : cur))
     },
-    [setConfig]
+    [setActivePageSections]
   )
 
   const handleMoveSection = useCallback(
     (sectionId: string, direction: -1 | 1) => {
-      setConfig((prev) => {
-        const visible = prev.sections.filter((s) => s.visible)
+      setActivePageSections((sections) => {
+        const visible = sections.filter((s) => s.visible)
         const vIdx = visible.findIndex((s) => s.id === sectionId)
         const targetVisibleIdx = vIdx + direction
-        if (vIdx < 0 || targetVisibleIdx < 0 || targetVisibleIdx >= visible.length) return prev
+        if (vIdx < 0 || targetVisibleIdx < 0 || targetVisibleIdx >= visible.length) return sections
         const targetId = visible[targetVisibleIdx].id
-        const fromIdx = prev.sections.findIndex((s) => s.id === sectionId)
-        const toIdx = prev.sections.findIndex((s) => s.id === targetId)
-        if (fromIdx < 0 || toIdx < 0) return prev
-        return { ...prev, sections: arrayMove(prev.sections, fromIdx, toIdx) }
+        const fromIdx = sections.findIndex((s) => s.id === sectionId)
+        const toIdx = sections.findIndex((s) => s.id === targetId)
+        if (fromIdx < 0 || toIdx < 0) return sections
+        return arrayMove(sections, fromIdx, toIdx)
       })
     },
-    [setConfig]
+    [setActivePageSections]
   )
 
   const handleAiApply = useCallback(
@@ -354,22 +405,24 @@ export default function EditorClient({
   }
 
   function resolveInsertionIndex(visibleBoundaryIndex: number): number {
-    const visible = config.sections.filter((s) => s.visible)
+    const sections = activePage?.sections ?? []
+    const visible = sections.filter((s) => s.visible)
     if (visibleBoundaryIndex <= 0) return 0
-    if (visibleBoundaryIndex >= visible.length) return config.sections.length
+    if (visibleBoundaryIndex >= visible.length) return sections.length
     const anchorId = visible[visibleBoundaryIndex].id
-    const idx = config.sections.findIndex((s) => s.id === anchorId)
-    return idx >= 0 ? idx : config.sections.length
+    const idx = sections.findIndex((s) => s.id === anchorId)
+    return idx >= 0 ? idx : sections.length
   }
 
   function handleDragStart(event: DragStartEvent) {
     const data = event.active.data.current as
       | { source?: string; moduleType?: SectionType; sectionId?: string }
       | undefined
+    const sections = activePage?.sections ?? []
     if (data?.source === 'palette' && data.moduleType) {
       setActiveDragLabel(SECTION_TYPE_LABELS[data.moduleType] ?? data.moduleType)
     } else if (data?.sectionId) {
-      const sec = config.sections.find((s) => s.id === data.sectionId)
+      const sec = sections.find((s) => s.id === data.sectionId)
       setActiveDragLabel(sec ? SECTION_TYPE_LABELS[sec.type] ?? sec.type : 'Sección')
     }
   }
@@ -386,13 +439,15 @@ export default function EditorClient({
       | { source?: string; insertIndex?: number; sectionId?: string }
       | undefined
 
+    const sections = activePage?.sections ?? []
+
     // 1) Dragging a new module from the palette
     if (activeData?.source === 'palette' && activeData.moduleType) {
-      let targetIdx = config.sections.length
+      let targetIdx = sections.length
       if (overData?.source === 'drop-zone' && typeof overData.insertIndex === 'number') {
         targetIdx = resolveInsertionIndex(overData.insertIndex)
       } else if (overData?.sectionId) {
-        const foundIdx = config.sections.findIndex((s) => s.id === overData.sectionId)
+        const foundIdx = sections.findIndex((s) => s.id === overData.sectionId)
         if (foundIdx >= 0) targetIdx = foundIdx + 1
       }
       handleInsertModuleAt(activeData.moduleType, targetIdx)
@@ -403,22 +458,22 @@ export default function EditorClient({
     const activeSectionId = activeData?.sectionId ?? String(active.id).replace(/^layer:/, '')
     if (!activeSectionId) return
 
-    const oldIndex = config.sections.findIndex((s) => s.id === activeSectionId)
+    const oldIndex = sections.findIndex((s) => s.id === activeSectionId)
     if (oldIndex < 0) return
 
     if (overData?.source === 'drop-zone' && typeof overData.insertIndex === 'number') {
       const rawTarget = resolveInsertionIndex(overData.insertIndex)
       const adjusted = rawTarget > oldIndex ? rawTarget - 1 : rawTarget
       if (adjusted !== oldIndex) {
-        handleSectionsChange(arrayMove(config.sections, oldIndex, Math.max(0, Math.min(config.sections.length - 1, adjusted))))
+        handleSectionsChange(arrayMove(sections, oldIndex, Math.max(0, Math.min(sections.length - 1, adjusted))))
       }
       return
     }
 
     const overSectionId = overData?.sectionId ?? String(over.id).replace(/^layer:/, '')
-    const newIndex = config.sections.findIndex((s) => s.id === overSectionId)
+    const newIndex = sections.findIndex((s) => s.id === overSectionId)
     if (newIndex >= 0 && newIndex !== oldIndex) {
-      handleSectionsChange(arrayMove(config.sections, oldIndex, newIndex))
+      handleSectionsChange(arrayMove(sections, oldIndex, newIndex))
     }
   }
 
@@ -438,7 +493,12 @@ export default function EditorClient({
                 : ''
 
   const effectiveConfig = aiPreviewConfig ?? config
-  const visibleSections = effectiveConfig.sections.filter((s) => s.visible)
+  const effectiveActivePage = useMemo((): PageConfig | undefined => {
+    if (!aiPreviewConfig) return activePage
+    const found = aiPreviewConfig.pages.find((p) => p.slug === activePageId)
+    return found ?? aiPreviewConfig.pages.find((p) => p.isHome) ?? aiPreviewConfig.pages[0]
+  }, [aiPreviewConfig, activePage, activePageId])
+  const visibleSections = (effectiveActivePage?.sections ?? []).filter((s) => s.visible)
   const isDraggingPalette = activeDragLabel !== null && quickInsertIndex === null
 
   return (
@@ -687,7 +747,7 @@ export default function EditorClient({
             <div style={{ padding: '0.75rem', flex: 1 }}>
               {leftTab === 'modules' && (
                 <ModuleLibrary
-                  sections={config.sections}
+                  sections={activePage?.sections ?? []}
                   onAddModule={(type) => {
                     handleInsertModuleAt(type, quickInsertIndex ?? undefined)
                   }}
@@ -696,13 +756,17 @@ export default function EditorClient({
               )}
 
               {leftTab === 'layers' && (
-                <SectionList
-                  sections={config.sections}
+                <PageTree
+                  config={config}
+                  activePageId={activePageId}
                   selectedSectionId={selectedSectionId}
-                  onSelect={(id) => selectSection(id)}
-                  onChange={handleSectionsChange}
-                  onDuplicate={handleDuplicateSection}
-                  onDelete={handleDeleteSection}
+                  onSelectPage={(slug) => setActivePageId(slug)}
+                  onSelectSection={(id) => selectSection(id)}
+                  onOpenCreatePage={handleOpenCreatePage}
+                  onOpenEditPage={handleOpenEditPage}
+                  onDeletePage={handleDeletePage}
+                  onSetHomePage={handleSetHomePage}
+                  onDuplicatePage={handleDuplicatePage}
                 />
               )}
 
@@ -796,6 +860,7 @@ export default function EditorClient({
               >
                 <PreviewFrame
                   config={effectiveConfig}
+                  page={effectiveActivePage}
                   works={works}
                   artistSlug={artistSlug}
                   viewport={viewport}
@@ -937,6 +1002,34 @@ export default function EditorClient({
         onSelect={(url) => mediaPicker?.onSelect(url)}
         onClose={() => setMediaPicker(null)}
       />
+
+      {pageModalMode && (
+        <PageModal
+          mode={pageModalMode}
+          config={config}
+          onClose={() => setPageModalMode(null)}
+          onSubmit={(payload) => {
+            try {
+              if (pageModalMode === 'create') {
+                setConfig((prev) => pageOps.addPage(prev, payload))
+                setActivePageId(payload.slug)
+              } else {
+                setConfig((prev) =>
+                  pageOps.renamePage(prev, pageModalMode.slug, {
+                    title: payload.title,
+                    slug: payload.slug,
+                    showInNav: payload.showInNav,
+                  })
+                )
+                if (pageModalMode.slug === activePageId) setActivePageId(payload.slug)
+              }
+              setPageModalMode(null)
+            } catch (err) {
+              setErrorMsg(err instanceof Error ? err.message : 'No se pudo guardar la página')
+            }
+          }}
+        />
+      )}
     </div>
   )
 }

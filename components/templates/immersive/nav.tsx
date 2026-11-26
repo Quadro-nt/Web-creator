@@ -1,10 +1,9 @@
-'use client'
+﻿'use client'
 
 import { useState, useEffect } from 'react'
-import type { SiteConfig } from '@/lib/schemas/site-config.schema'
+import type { SectionConfig, SiteConfig } from '@/lib/schemas/site-config.schema'
 import { getNavItems } from '@/components/templates/shared/template-helpers'
 
-type SectionConfig = SiteConfig['sections'][number]
 
 type Props = {
   config: SiteConfig
@@ -15,7 +14,7 @@ type Props = {
 
 export default function ImmersiveNav({ config, sections, inPreview = false }: Props) {
   const [activeId, setActiveId] = useState<string>('')
-  const navItems = getNavItems({ ...config, sections })
+  const navItems = getNavItems(config)
 
   useEffect(() => {
     if (inPreview || typeof IntersectionObserver === 'undefined') return

@@ -32,8 +32,10 @@ async function safeGetWorks(slug: string) {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const config = await safeGetPublished(params.artist)
+  const home = config?.pages?.find((p) => p.isHome)
   return {
-    title: config?.identity.siteTitle ?? params.artist,
+    title: home?.seo?.title ?? config?.identity.siteTitle ?? params.artist,
+    description: home?.seo?.description,
   }
 }
 
@@ -44,18 +46,21 @@ export default async function ArtistSitePage({ params }: Props) {
     notFound()
   }
 
+  const home = config.pages?.find((p) => p.isHome)
+  if (!home) notFound()
+
   const works = await safeGetWorks(params.artist)
 
   if (config.template === 'minimal-gallery') {
-    return <MinimalGallery config={config} works={works} artistSlug={params.artist} />
+    return <MinimalGallery config={config} page={home} works={works} artistSlug={params.artist} />
   }
 
   if (config.template === 'editorial') {
-    return <EditorialTemplate config={config} works={works} artistSlug={params.artist} />
+    return <EditorialTemplate config={config} page={home} works={works} artistSlug={params.artist} />
   }
 
   if (config.template === 'immersive') {
-    return <ImmersiveTemplate config={config} works={works} artistSlug={params.artist} />
+    return <ImmersiveTemplate config={config} page={home} works={works} artistSlug={params.artist} />
   }
 
   return (

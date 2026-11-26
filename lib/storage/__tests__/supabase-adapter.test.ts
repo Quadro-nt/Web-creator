@@ -3,7 +3,7 @@
  */
 import { describe, it, expect, jest, beforeEach, afterEach } from '@jest/globals'
 import type { SupabaseClient } from '@supabase/supabase-js'
-import { defaultSiteConfig, type SiteConfig } from '@/lib/schemas/site-config.schema'
+import { defaultSiteConfig, normalizeSiteConfig, type SiteConfig } from '@/lib/schemas/site-config.schema'
 
 const mockGetSupabaseAdminClient = jest.fn<() => SupabaseClient>()
 
@@ -40,10 +40,10 @@ function createMockSupabaseClient() {
 
 describe('createSupabaseStorageAdapter', () => {
   const slug = 'luna-vega'
-  const sampleConfig: SiteConfig = {
+  const sampleConfig: SiteConfig = normalizeSiteConfig({
     ...defaultSiteConfig,
     identity: { siteTitle: 'Luna Vega Studio' },
-  }
+  }) as SiteConfig
 
   it('getPublished returns config_published when row exists', async () => {
     const { createSupabaseStorageAdapter } = await import('@/lib/storage/supabase-adapter')
@@ -217,6 +217,37 @@ describe('createSupabaseStorageAdapter', () => {
     mock.updateEq.mockResolvedValueOnce({ error: { message: 'update err' } })
     await expect(adapter.publish(slug)).rejects.toThrow('update err')
   })
+
+  it('getPublished normalizes old-shape sections[] into pages[]', async () => {
+    const { createSupabaseStorageAdapter } = await import('@/lib/storage/supabase-adapter')
+    const oldShape = {
+      template: 'minimal-gallery',
+      sections: [{ id: 'cover', type: 'cover', variant: 'fullscreen', visible: true, content: {} }],
+      identity: { siteTitle: 'Luna Vega' },
+    }
+    const mock = createMockSupabaseClient()
+    mock.maybeSingle.mockResolvedValue({ data: { config_published: oldShape }, error: null })
+
+    const adapter = createSupabaseStorageAdapter(mock.client)
+    const config = await adapter.getPublished(slug)
+
+    expect(config).not.toBeNull()
+    expect((config as any).pages).toHaveLength(1)
+    expect((config as any).pages[0].isHome).toBe(true)
+    expect((config as any).pages[0].title).toBe('Luna Vega')
+  })
+
+  it('getDraft normalizes old-shape sections[] into pages[]', async () => {
+    const { createSupabaseStorageAdapter } = await import('@/lib/storage/supabase-adapter')
+    const oldShape = { template: 'editorial', sections: [], identity: { siteTitle: 'Marco' } }
+    const mock = createMockSupabaseClient()
+    mock.maybeSingle.mockResolvedValue({ data: { config_draft: oldShape }, error: null })
+
+    const adapter = createSupabaseStorageAdapter(mock.client)
+    const config = await adapter.getDraft(slug)
+
+    expect((config as any).pages).toHaveLength(1)
+  })
 })
 
 describe('getStorageAdapter factory', () => {
@@ -250,6 +281,7 @@ describe('getStorageAdapter factory', () => {
     const { getStorageAdapter } = await import('@/lib/storage')
     process.env.STORAGE_BACKEND = 'cloud'
     const mock = createMockSupabaseClient()
+    const normalizedConfig = normalizeSiteConfig(defaultSiteConfig) as SiteConfig
     mock.maybeSingle.mockResolvedValue({ data: { config_published: defaultSiteConfig }, error: null })
     mockGetSupabaseAdminClient.mockReturnValue(mock.client)
 
@@ -258,6 +290,6 @@ describe('getStorageAdapter factory', () => {
 
     expect(mockGetSupabaseAdminClient).toHaveBeenCalledTimes(1)
     expect(mock.from).toHaveBeenCalledWith('artists')
-    expect(result).toEqual(defaultSiteConfig)
+    expect(result).toEqual(normalizedConfig)
   })
 })

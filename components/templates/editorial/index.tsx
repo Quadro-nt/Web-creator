@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import type { SectionConfig, SiteConfig } from '@/lib/schemas/site-config.schema'
+import type { PageConfig, SectionConfig, SiteConfig } from '@/lib/schemas/site-config.schema'
 import type { Artwork } from '@/lib/schemas/works.schema'
 import { generateTokenStyles } from '@/lib/tokens/token-engine'
 import { AnimationProvider } from '@/components/AnimationProvider'
@@ -19,6 +19,7 @@ import Contact from './sections/contact'
 
 type Props = {
   config: SiteConfig
+  page: PageConfig
   works: Artwork[]
   artistSlug: string
   inPreview?: boolean
@@ -28,6 +29,7 @@ type Props = {
 
 export default function EditorialTemplate({
   config,
+  page,
   works,
   artistSlug,
   inPreview = false,
@@ -35,7 +37,7 @@ export default function EditorialTemplate({
   renderSectionWrapper,
 }: Props) {
   const tokenCss = generateTokenStyles(config, '.qs-site-root')
-  const visibleSections = config.sections.filter((s) => s.visible)
+  const visibleSections = page.sections.filter((s) => s.visible)
 
   const editorialCss = `
     .qs-editorial-dialect h1 { font-size: clamp(2.5rem, 7vw, 5.25rem); line-height: 1.02; letter-spacing: -0.02em; }

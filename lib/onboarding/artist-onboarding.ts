@@ -104,12 +104,20 @@ export function buildInitialSiteConfig(params: {
       enabled: true,
       ...(cleanWhatsapp ? { whatsapp: cleanWhatsapp } : {}),
     },
-    sections: [
-      { id: 'cover', type: 'cover', variant: 'fullscreen', visible: true, content: {} },
-      { id: 'artworks', type: 'artworks', variant: 'grid', visible: true, content: {} },
-      { id: 'bio', type: 'bio', variant: 'split', visible: true, content: {} },
-      { id: 'exhibitions', type: 'exhibitions', variant: 'list', visible: false, content: {} },
-      { id: 'contact', type: 'contact', variant: 'simple', visible: true, content: {} },
+    pages: [
+      {
+        slug: 'home',
+        title: cleanName,
+        isHome: true,
+        showInNav: true,
+        sections: [
+          { id: 'cover', type: 'cover', variant: 'fullscreen', visible: true, content: {} },
+          { id: 'artworks', type: 'artworks', variant: 'grid', visible: true, content: {} },
+          { id: 'bio', type: 'bio', variant: 'split', visible: true, content: {} },
+          { id: 'exhibitions', type: 'exhibitions', variant: 'list', visible: false, content: {} },
+          { id: 'contact', type: 'contact', variant: 'simple', visible: true, content: {} },
+        ],
+      },
     ],
     identity: {
       siteTitle: cleanName,

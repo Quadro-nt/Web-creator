@@ -10,6 +10,7 @@ import {
 } from '@/app/editor/[token]/EditorConfig'
 import { parseVideoEmbedUrl } from '@/components/templates/shared/template-helpers'
 import ChromeInspector from './ChromeInspector'
+import LinkField from './LinkField'
 import {
   STUDIO_COLORS,
   studioCardStyle,
@@ -405,6 +406,7 @@ export default function SectionInspector({
         </h3>
         <ModuleFields
           section={section}
+          config={config}
           works={works}
           artistSlug={artistSlug}
           editorToken={editorToken}
@@ -418,6 +420,7 @@ export default function SectionInspector({
 
 function ModuleFields({
   section,
+  config,
   works,
   artistSlug,
   editorToken,
@@ -425,6 +428,7 @@ function ModuleFields({
   onOpenMediaPicker,
 }: {
   section: SectionConfig
+  config: SiteConfig
   works: Artwork[]
   artistSlug: string
   editorToken?: string
@@ -1271,10 +1275,12 @@ function ModuleFields({
                 <span>WhatsApp para encargos</span>
                 <input type="text" value={String(c.whatsapp ?? '')} placeholder="51999000000" onChange={(e) => patchContent({ whatsapp: e.target.value })} style={studioInputStyle} />
               </label>
-              <label style={studioLabelStyle}>
-                <span>Enlace alternativo (opcional)</span>
-                <input type="text" value={String(c.buttonHref ?? '')} placeholder="#contact o https://..." onChange={(e) => patchContent({ buttonHref: e.target.value })} style={studioInputStyle} />
-              </label>
+              <LinkField
+                value={String(c.buttonHref ?? '/')}
+                config={config}
+                label="Link del botón"
+                onChange={(href) => patchContent({ buttonHref: href })}
+              />
             </>
           )}
         </div>

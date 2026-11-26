@@ -2,7 +2,8 @@
 
 import { useState } from 'react'
 import type { SiteConfig } from '@/lib/schemas/site-config.schema'
-import { buildWhatsappUrl, getNavItems, sanitizeHref } from './template-helpers'
+import { buildWhatsappUrl, getNavItems } from './template-helpers'
+import SafeLink from './SafeLink'
 
 type Props = {
   config: SiteConfig
@@ -22,14 +23,16 @@ export default function SiteHeader({ config, artistSlug, inPreview = false, onSe
   const header = config.header
   if (!header) return null
 
-  const autoItems = getNavItems(config).map((item) => ({
-    label: item.label,
-    href: `#${item.id}`,
-  }))
+  const navPages = (config.pages ?? []).filter((p) => p.showInNav)
   const navLinks =
-    header.customLinks && header.customLinks.length > 0
-      ? header.customLinks.filter((l) => l.label.trim().length > 0)
-      : autoItems
+    navPages.length > 0
+      ? navPages.map((p) => ({
+          href: p.isHome ? '/' : `/${p.slug}`,
+          label: p.navLabel ?? p.title,
+        }))
+      : header.customLinks && header.customLinks.length > 0
+        ? header.customLinks.filter((l) => l.label.trim().length > 0)
+        : getNavItems(config).map((item) => ({ label: item.label, href: `#${item.id}` }))
 
   const bgColor = header.transparentOverCover ? 'transparent' : header.backgroundColor || 'var(--color-bg)'
   const fgColor = header.textColor || 'var(--color-text)'
@@ -187,9 +190,9 @@ export default function SiteHeader({ config, artistSlug, inPreview = false, onSe
           >
             {navLinks.map((item, idx) => (
               <li key={idx}>
-                <a href={sanitizeHref(item.href) ?? '#'} style={linkStyle}>
+                <SafeLink href={item.href} artistSlug={artistSlug} style={linkStyle}>
                   {item.label}
-                </a>
+                </SafeLink>
               </li>
             ))}
           </ul>
@@ -240,9 +243,9 @@ export default function SiteHeader({ config, artistSlug, inPreview = false, onSe
             >
               {navLinks.map((item, idx) => (
                 <li key={idx}>
-                  <a href={sanitizeHref(item.href) ?? '#'} style={linkStyle}>
+                  <SafeLink href={item.href} artistSlug={artistSlug} style={linkStyle}>
                     {item.label}
-                  </a>
+                  </SafeLink>
                 </li>
               ))}
             </ul>
@@ -256,13 +259,14 @@ export default function SiteHeader({ config, artistSlug, inPreview = false, onSe
           <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
             {navLinks.map((item, idx) => (
               <li key={idx}>
-                <a
-                  href={sanitizeHref(item.href) ?? '#'}
+                <SafeLink
+                  href={item.href}
+                  artistSlug={artistSlug}
                   onClick={() => setMenuOpen(false)}
                   style={{ ...linkStyle, fontSize: '0.95rem' }}
                 >
                   {item.label}
-                </a>
+                </SafeLink>
               </li>
             ))}
           </ul>

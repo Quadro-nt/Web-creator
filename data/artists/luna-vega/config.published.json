@@ -29,48 +29,56 @@
     "type": "top",
     "sticky": true
   },
-  "sections": [
+  "pages": [
     {
-      "id": "s1",
-      "type": "cover",
-      "variant": "minimal",
-      "visible": true,
-      "content": { "title": "Luna Vega", "subtitle": "Pintora — Lima, Peru" }
-    },
-    {
-      "id": "s2",
-      "type": "artworks",
-      "variant": "grid",
-      "visible": true,
-      "content": {}
-    },
-    {
-      "id": "s3",
-      "type": "bio",
-      "variant": "simple",
-      "visible": true,
-      "content": {
-        "text": "Luna Vega es una pintora limena que explora la abstraccion geometrica y el color como lenguaje emocional. Sus obras cuelgan en colecciones privadas de Peru y Chile."
-      }
-    },
-    {
-      "id": "s4",
-      "type": "exhibitions",
-      "variant": "list",
-      "visible": true,
-      "content": {
-        "exhibitions": [
-          { "title": "Formas Silenciosas", "year": 2024, "place": "Galeria Lucia, Lima" },
-          { "title": "Cromatica", "year": 2023, "place": "CC Ricardo Palma, Miraflores" }
-        ]
-      }
-    },
-    {
-      "id": "s5",
-      "type": "contact",
-      "variant": "simple",
-      "visible": true,
-      "content": { "email": "luna@ejemplo.com", "instagram": "@lunavega.arte" }
+      "slug": "home",
+      "title": "Luna Vega — Arte",
+      "isHome": true,
+      "showInNav": true,
+      "sections": [
+        {
+          "id": "s1",
+          "type": "cover",
+          "variant": "minimal",
+          "visible": true,
+          "content": { "title": "Luna Vega", "subtitle": "Pintora — Lima, Peru" }
+        },
+        {
+          "id": "s2",
+          "type": "artworks",
+          "variant": "grid",
+          "visible": true,
+          "content": {}
+        },
+        {
+          "id": "s3",
+          "type": "bio",
+          "variant": "simple",
+          "visible": true,
+          "content": {
+            "text": "Luna Vega es una pintora limena que explora la abstraccion geometrica y el color como lenguaje emocional. Sus obras cuelgan en colecciones privadas de Peru y Chile."
+          }
+        },
+        {
+          "id": "s4",
+          "type": "exhibitions",
+          "variant": "list",
+          "visible": true,
+          "content": {
+            "exhibitions": [
+              { "title": "Formas Silenciosas", "year": 2024, "place": "Galeria Lucia, Lima" },
+              { "title": "Cromatica", "year": 2023, "place": "CC Ricardo Palma, Miraflores" }
+            ]
+          }
+        },
+        {
+          "id": "s5",
+          "type": "contact",
+          "variant": "simple",
+          "visible": true,
+          "content": { "email": "luna@ejemplo.com", "instagram": "@lunavega.arte" }
+        }
+      ]
     }
   ],
   "identity": {

@@ -2,6 +2,7 @@ import { readFile, writeFile, copyFile, mkdir, unlink } from 'fs/promises'
 import path from 'path'
 import type { StorageAdapter, SiteConfig } from './index'
 import { isSafeArtistSlug } from '@/lib/auth/verify-api-request'
+import { normalizeSiteConfig } from '@/lib/schemas/site-config.schema'
 
 function artistDir(slug: string): string {
   if (!isSafeArtistSlug(slug)) {
@@ -21,7 +22,8 @@ function draftPath(slug: string): string {
 async function readJsonFile(filePath: string): Promise<SiteConfig | null> {
   try {
     const content = await readFile(filePath, 'utf-8')
-    return JSON.parse(content) as SiteConfig
+    const parsed = JSON.parse(content)
+    return normalizeSiteConfig(parsed) as SiteConfig
   } catch {
     return null
   }

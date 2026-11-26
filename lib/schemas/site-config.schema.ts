@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import { FONT_FAMILY_NAMES } from '@/lib/tokens/font-catalog'
+import { RESERVED_PAGE_SLUGS } from './reserved-page-slugs'
 
 const SAFE_UPLOAD_PATH_RE = /^\/uploads\/[a-z0-9-]+\/[a-zA-Z0-9._-]+$/
 const SUPABASE_HOST_RE = /^(?:[a-z0-9-]+\.)+supabase\.co$/i
@@ -160,6 +161,24 @@ const SectionConfigSchema = z.object({
 
 export type SectionConfig = z.infer<typeof SectionConfigSchema>
 
+export const PageConfigSchema = z.object({
+  slug: z.string().min(1).max(60).regex(/^[a-z0-9-]+$/, 'Slug inválido'),
+  title: z.string().min(1).max(80),
+  isHome: z.boolean(),
+  showInNav: z.boolean(),
+  navLabel: z.string().max(40).optional(),
+  sections: z.array(SectionConfigSchema),
+  seo: z
+    .object({
+      title: z.string().max(80).optional(),
+      description: z.string().max(200).optional(),
+      ogImageUrl: mediaUrlSchema.optional(),
+    })
+    .optional(),
+})
+
+export type PageConfig = z.infer<typeof PageConfigSchema>
+
 export const AnnouncementBarSchema = z.object({
   enabled: z.boolean(),
   backgroundColor: cssColorSchema,
@@ -268,7 +287,7 @@ export const SiteConfigSchema = z.object({
   header: HeaderConfigSchema.optional(),
   footer: FooterConfigSchema.optional(),
 
-  sections: z.array(SectionConfigSchema),
+  pages: z.array(PageConfigSchema).min(1),
 
   identity: z.object({
     siteTitle: z.string().min(1).max(80),
@@ -279,8 +298,50 @@ export const SiteConfigSchema = z.object({
     ogImageUrl: mediaUrlSchema.optional(),
   }),
 })
+  .refine(
+    (c) => c.pages.filter((p) => p.isHome).length === 1,
+    'Debe existir exactamente una página marcada como home'
+  )
+  .refine(
+    (c) => new Set(c.pages.map((p) => p.slug)).size === c.pages.length,
+    'Los slugs de página deben ser únicos'
+  )
+  .refine(
+    (c) => c.pages.every((p) => !RESERVED_PAGE_SLUGS.has(p.slug)),
+    'El slug está reservado'
+  )
 
 export type SiteConfig = z.infer<typeof SiteConfigSchema>
+
+/**
+ * Normalizes a raw config object from storage into the new shape (pages[]).
+ * - New-shape configs (with pages[]) pass through untouched.
+ * - Old-shape configs (with sections[] at root) are wrapped: sections move into a
+ *   single home page with slug "home". Other fields (header.customLinks, etc.) are preserved.
+ * - Non-objects pass through (the schema parser will reject them).
+ */
+export function normalizeSiteConfig(raw: unknown): unknown {
+  if (!raw || typeof raw !== 'object') return raw
+  const obj = raw as Record<string, unknown>
+  if (Array.isArray(obj.pages)) return raw
+
+  const sections = Array.isArray(obj.sections) ? obj.sections : []
+  const identity = (obj.identity as Record<string, unknown> | undefined) ?? {}
+  const siteTitle = typeof identity.siteTitle === 'string' ? identity.siteTitle : 'Inicio'
+
+  return {
+    ...obj,
+    pages: [
+      {
+        slug: 'home',
+        title: siteTitle,
+        isHome: true,
+        showInNav: true,
+        sections,
+      },
+    ],
+  }
+}
 
 export const defaultSiteConfig: SiteConfig = {
   template: 'minimal-gallery',
@@ -319,12 +380,20 @@ export const defaultSiteConfig: SiteConfig = {
     sticky: true,
   },
 
-  sections: [
-    { id: 'cover', type: 'cover', variant: 'fullscreen', visible: true, content: {} },
-    { id: 'artworks', type: 'artworks', variant: 'grid', visible: true, content: {} },
-    { id: 'bio', type: 'bio', variant: 'split', visible: true, content: {} },
-    { id: 'exhibitions', type: 'exhibitions', variant: 'list', visible: false, content: {} },
-    { id: 'contact', type: 'contact', variant: 'simple', visible: true, content: {} },
+  pages: [
+    {
+      slug: 'home',
+      title: 'Mi Sitio de Arte',
+      isHome: true,
+      showInNav: true,
+      sections: [
+        { id: 'cover', type: 'cover', variant: 'fullscreen', visible: true, content: {} },
+        { id: 'artworks', type: 'artworks', variant: 'grid', visible: true, content: {} },
+        { id: 'bio', type: 'bio', variant: 'split', visible: true, content: {} },
+        { id: 'exhibitions', type: 'exhibitions', variant: 'list', visible: false, content: {} },
+        { id: 'contact', type: 'contact', variant: 'simple', visible: true, content: {} },
+      ],
+    },
   ],
 
   identity: {

@@ -6,14 +6,22 @@ describe('SiteConfigSchema — 12 módulos y media URLs', () => {
   it('acepta los 18 tipos de sección definidos', () => {
     const config = {
       ...defaultSiteConfig,
-      sections: SECTION_TYPES.map((type, idx) => ({
-        id: `sec-${idx}`,
-        type,
-        variant: 'default',
-        visible: true,
-        content: {},
-        style: { colorScheme: 'soft' as const, framed: true, padding: 'md' as const },
-      })),
+      pages: [
+        {
+          slug: 'home',
+          title: 'Mi Sitio de Arte',
+          isHome: true,
+          showInNav: true,
+          sections: SECTION_TYPES.map((type, idx) => ({
+            id: `sec-${idx}`,
+            type,
+            variant: 'default',
+            visible: true,
+            content: {},
+            style: { colorScheme: 'soft' as const, framed: true, padding: 'md' as const },
+          })),
+        },
+      ],
     }
 
     const result = SiteConfigSchema.safeParse(config)

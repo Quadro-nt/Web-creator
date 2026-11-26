@@ -1,8 +1,8 @@
-'use client'
+﻿'use client'
 
 import { SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import type { SiteConfig } from '@/lib/schemas/site-config.schema'
+import type { SectionConfig, SiteConfig } from '@/lib/schemas/site-config.schema'
 import {
   SECTION_TYPE_LABELS,
   SECTION_VARIANTS,
@@ -10,7 +10,6 @@ import {
 } from '@/app/editor/[token]/EditorConfig'
 import { STUDIO_COLORS, studioIconBtn, studioSelectStyle } from './studio-styles'
 
-type SectionConfig = SiteConfig['sections'][number]
 
 type Props = {
   sections: SectionConfig[]

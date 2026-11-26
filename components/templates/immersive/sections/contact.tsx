@@ -1,9 +1,8 @@
-import type { SiteConfig } from '@/lib/schemas/site-config.schema'
+﻿import type { SectionConfig, SiteConfig } from '@/lib/schemas/site-config.schema'
 import { Button } from '@/components/Button'
 import { ContentWrapper } from '@/components/ContentWrapper'
 import { buildWhatsappUrl, sanitizeSocialHandle } from '@/components/templates/shared/template-helpers'
 
-type SectionConfig = SiteConfig['sections'][number]
 
 type Props = {
   section: SectionConfig
