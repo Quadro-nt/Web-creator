@@ -1,3 +1,5 @@
+'use client'
+
 import type { SiteConfig } from '@/lib/schemas/site-config.schema'
 import { buildWhatsappUrl, getNavItems, sanitizeHref } from './template-helpers'
 
