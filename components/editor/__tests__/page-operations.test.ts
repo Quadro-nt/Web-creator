@@ -30,7 +30,7 @@ describe('addPage', () => {
     })
   })
   it('throws if slug collides with existing', () => {
-    expect(() => addPage(baseConfig, { title: 'Home 2', slug: 'home' })).toThrow(/ya existe/)
+    expect(() => addPage(baseConfig, { title: 'Home 2', slug: 'home' })).toThrow(/ya existe/i)
   })
   it('copies sections when preset is "copy-from"', () => {
     const configWithSections: SiteConfig = {
@@ -136,6 +136,6 @@ describe('renamePage', () => {
   it('throws if new slug collides with another page', () => {
     expect(() =>
       renamePage(baseConfig, 'bio', { title: 'Home', slug: 'home', showInNav: true })
-    ).toThrow(/ya existe/)
+    ).toThrow(/ya existe/i)
   })
 })

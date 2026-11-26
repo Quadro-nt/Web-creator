@@ -15,7 +15,7 @@ export function addPage(
 ): SiteConfig {
   const pages = config.pages ?? []
   if (pages.some((p) => p.slug === input.slug)) {
-    throw new Error(`ya existe una página con slug "${input.slug}"`)
+    throw new Error(`Ya existe una página con slug "${input.slug}"`)
   }
   const copyFrom = input.copyFromSlug
     ? pages.find((p) => p.slug === input.copyFromSlug)
@@ -85,7 +85,7 @@ export function renamePage(
 ): SiteConfig {
   const pages = config.pages ?? []
   if (updates.slug !== currentSlug && pages.some((p) => p.slug === updates.slug)) {
-    throw new Error(`ya existe una página con slug "${updates.slug}"`)
+    throw new Error(`Ya existe una página con slug "${updates.slug}"`)
   }
   return {
     ...config,
