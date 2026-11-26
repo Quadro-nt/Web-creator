@@ -38,6 +38,7 @@ import SectionInspector from '@/components/editor/SectionInspector'
 import CanvasSectionWrapper from '@/components/editor/CanvasSectionWrapper'
 import CanvasDropZone from '@/components/editor/CanvasDropZone'
 import { STUDIO_COLORS, studioPrimaryBtn, studioSecondaryBtn } from '@/components/editor/studio-styles'
+import PageModal from '@/components/editor/PageModal'
 
 type Status = 'idle' | 'saving' | 'saved' | 'publishing' | 'published' | 'error'
 type LeftTab = 'modules' | 'layers' | 'theme' | 'works' | 'media' | 'ai'
@@ -1025,6 +1026,34 @@ export default function EditorClient({
         onSelect={(url) => mediaPicker?.onSelect(url)}
         onClose={() => setMediaPicker(null)}
       />
+
+      {pageModalMode && (
+        <PageModal
+          mode={pageModalMode}
+          config={config}
+          onClose={() => setPageModalMode(null)}
+          onSubmit={(payload) => {
+            try {
+              if (pageModalMode === 'create') {
+                setConfig((prev) => pageOps.addPage(prev, payload))
+                setActivePageId(payload.slug)
+              } else {
+                setConfig((prev) =>
+                  pageOps.renamePage(prev, pageModalMode.slug, {
+                    title: payload.title,
+                    slug: payload.slug,
+                    showInNav: payload.showInNav,
+                  })
+                )
+                if (pageModalMode.slug === activePageId) setActivePageId(payload.slug)
+              }
+              setPageModalMode(null)
+            } catch (err) {
+              setErrorMsg(err instanceof Error ? err.message : 'No se pudo guardar la página')
+            }
+          }}
+        />
+      )}
     </div>
   )
 }
