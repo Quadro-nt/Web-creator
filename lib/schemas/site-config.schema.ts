@@ -315,6 +315,36 @@ export const SiteConfigSchema = z.object({
 
 export type SiteConfig = z.infer<typeof SiteConfigSchema>
 
+/**
+ * Normalizes a raw config object from storage into the new shape (pages[]).
+ * - New-shape configs (with pages[]) pass through untouched.
+ * - Old-shape configs (with sections[] at root) are wrapped: sections move into a
+ *   single home page with slug "home". Other fields (header.customLinks, etc.) are preserved.
+ * - Non-objects pass through (the schema parser will reject them).
+ */
+export function normalizeSiteConfig(raw: unknown): unknown {
+  if (!raw || typeof raw !== 'object') return raw
+  const obj = raw as Record<string, unknown>
+  if (Array.isArray(obj.pages)) return raw
+
+  const sections = Array.isArray(obj.sections) ? obj.sections : []
+  const identity = (obj.identity as Record<string, unknown> | undefined) ?? {}
+  const siteTitle = typeof identity.siteTitle === 'string' ? identity.siteTitle : 'Inicio'
+
+  return {
+    ...obj,
+    pages: [
+      {
+        slug: 'home',
+        title: siteTitle,
+        isHome: true,
+        showInNav: true,
+        sections,
+      },
+    ],
+  }
+}
+
 export const defaultSiteConfig: SiteConfig = {
   template: 'minimal-gallery',
 
