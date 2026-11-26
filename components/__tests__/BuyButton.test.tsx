@@ -86,13 +86,21 @@ describe('BuyButton', () => {
 
       const contactConfig: SiteConfig = {
         ...defaultSiteConfig,
-        sections: [
+        pages: [
           {
-            id: 'contact',
-            type: 'contact',
-            variant: 'simple',
-            visible: true,
-            content: { whatsapp: '+51 944 555 666' },
+            slug: 'home',
+            title: 'Mi Sitio de Arte',
+            isHome: true,
+            showInNav: true,
+            sections: [
+              {
+                id: 'contact',
+                type: 'contact',
+                variant: 'simple',
+                visible: true,
+                content: { whatsapp: '+51 944 555 666' },
+              },
+            ],
           },
         ],
       }

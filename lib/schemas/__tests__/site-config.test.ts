@@ -31,9 +31,17 @@ const validConfig: SiteConfig = {
     type: 'hamburger',
     sticky: false,
   },
-  sections: [
-    { id: 'cover', type: 'cover', variant: 'minimal', visible: true, content: { headline: 'Arte' } },
-    { id: 'artworks', type: 'artworks', variant: 'masonry', visible: true, content: {} },
+  pages: [
+    {
+      slug: 'home',
+      title: 'Galería Luna Vega',
+      isHome: true,
+      showInNav: true,
+      sections: [
+        { id: 'cover', type: 'cover', variant: 'minimal', visible: true, content: { headline: 'Arte' } },
+        { id: 'artworks', type: 'artworks', variant: 'masonry', visible: true, content: {} },
+      ],
+    },
   ],
   identity: {
     siteTitle: 'Galería Luna Vega',

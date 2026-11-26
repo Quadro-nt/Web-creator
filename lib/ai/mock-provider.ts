@@ -88,9 +88,10 @@ export class MockProvider implements AIProvider {
     } else if (prompt.includes('minimal')) {
       const targetMatch = params.prompt.match(/\[Sección seleccionada:\s*([^\]]+)\]/)
       if (targetMatch) {
-        const idx = next.sections.findIndex((s) => s.id === targetMatch[1].trim())
-        if (idx >= 0 && next.sections[idx].type === 'cover') {
-          next.sections[idx] = { ...next.sections[idx], variant: 'minimal' }
+        const homePage = next.pages.find((p) => p.isHome) ?? next.pages[0]
+        const idx = homePage.sections.findIndex((s) => s.id === targetMatch[1].trim())
+        if (idx >= 0 && homePage.sections[idx].type === 'cover') {
+          homePage.sections[idx] = { ...homePage.sections[idx], variant: 'minimal' }
           changes.push('portada en variante minimal')
         }
       } else {
@@ -116,7 +117,8 @@ export class MockProvider implements AIProvider {
     }
 
     const addSection = (section: SectionConfig, label: string) => {
-      next.sections.push(section)
+      const homePage = next.pages.find((p) => p.isHome) ?? next.pages[0]
+      homePage.sections.push(section)
       changes.push(`se agregó módulo ${label}`)
     }
 

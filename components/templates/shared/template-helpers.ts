@@ -8,7 +8,9 @@ export type NavItem = {
 }
 
 export function getNavItems(config: SiteConfig): NavItem[] {
-  return config.sections
+  const homePage = config.pages.find((p) => p.isHome) ?? config.pages[0]
+  const sections = homePage?.sections ?? []
+  return sections
     .filter(
       (s) =>
         s.visible &&

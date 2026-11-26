@@ -46,14 +46,8 @@ export default function PreviewFrame({
 }: Props) {
   const Template = TEMPLATES[config.template] ?? MinimalGallery
 
-  // Provide a fallback page derived from config.sections for configs without pages[]
-  const effectivePage: PageConfig = page ?? {
-    slug: 'home',
-    title: config.identity.siteTitle,
-    isHome: true,
-    showInNav: true,
-    sections: config.sections,
-  }
+  const effectivePage: PageConfig =
+    page ?? config.pages.find((p) => p.isHome) ?? config.pages[0]
 
   const isFramed = viewport !== 'desktop'
   const frameWidth = viewport === 'mobile' ? '390px' : viewport === 'tablet' ? '768px' : '100%'

@@ -28,7 +28,6 @@ describe('normalizeSiteConfig', () => {
       showInNav: true,
       sections,
     })
-    expect(output.sections).toEqual(sections) // sections at root preserved during Phase A
   })
 
   it('defaults title to "Inicio" when siteTitle missing', () => {

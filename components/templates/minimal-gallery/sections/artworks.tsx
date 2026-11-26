@@ -1,8 +1,7 @@
-import type { SiteConfig } from '@/lib/schemas/site-config.schema'
+﻿import type { SectionConfig, SiteConfig } from '@/lib/schemas/site-config.schema'
 import type { Artwork } from '@/lib/schemas/works.schema'
 import InteractiveArtworksGrid from '@/components/templates/shared/InteractiveArtworksGrid'
 
-type SectionConfig = SiteConfig['sections'][number]
 
 type Props = {
   section: SectionConfig

@@ -17,7 +17,9 @@ function resolveWhatsappNumber(config?: SiteConfig | null): string {
     return extractDigits(process.env.NEXT_PUBLIC_WHATSAPP_NUMBER)
   }
 
-  const contactSection = config.sections.find((s) => s.type === 'contact')
+  const contactSection = config.pages
+    .flatMap((p) => p.sections)
+    .find((s) => s.type === 'contact')
   const candidates = [
     config.header?.whatsappNumber,
     config.footer?.whatsapp,

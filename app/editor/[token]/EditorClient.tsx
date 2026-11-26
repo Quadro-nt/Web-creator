@@ -121,16 +121,6 @@ export default function EditorClient({
   }
 
   const activePage = useMemo((): PageConfig | undefined => {
-    if (!config.pages || config.pages.length === 0) {
-      // Legacy config: synthesize a virtual page from root sections
-      return {
-        slug: 'home',
-        title: config.identity.siteTitle,
-        isHome: true,
-        showInNav: true,
-        sections: config.sections,
-      }
-    }
     const found = config.pages.find((p) => p.slug === activePageId)
     return found ?? config.pages.find((p) => p.isHome) ?? config.pages[0]
   }, [config, activePageId])
@@ -138,10 +128,6 @@ export default function EditorClient({
   const setActivePageSections = useCallback(
     (updater: (sections: SectionConfig[]) => SectionConfig[]) => {
       setConfig((prev) => {
-        // Legacy config: no pages array — mutate root sections directly
-        if (!prev.pages || prev.pages.length === 0) {
-          return { ...prev, sections: updater(prev.sections) }
-        }
         const pages = prev.pages.map((p) =>
           p.slug === activePageId ? { ...p, sections: updater(p.sections) } : p
         )
@@ -323,7 +309,7 @@ export default function EditorClient({
   )
 
   const handleSectionsChange = useCallback(
-    (sections: SiteConfig['sections']) => {
+    (sections: SectionConfig[]) => {
       setActivePageSections(() => sections)
     },
     [setActivePageSections]
@@ -510,15 +496,6 @@ export default function EditorClient({
   const effectiveConfig = aiPreviewConfig ?? config
   const effectiveActivePage = useMemo((): PageConfig | undefined => {
     if (!aiPreviewConfig) return activePage
-    if (!aiPreviewConfig.pages || aiPreviewConfig.pages.length === 0) {
-      return {
-        slug: 'home',
-        title: aiPreviewConfig.identity.siteTitle,
-        isHome: true,
-        showInNav: true,
-        sections: aiPreviewConfig.sections,
-      }
-    }
     const found = aiPreviewConfig.pages.find((p) => p.slug === activePageId)
     return found ?? aiPreviewConfig.pages.find((p) => p.isHome) ?? aiPreviewConfig.pages[0]
   }, [aiPreviewConfig, activePage, activePageId])

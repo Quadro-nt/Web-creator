@@ -37,9 +37,17 @@ const fullValidConfig: SiteConfig = {
     type: 'top',
     sticky: true,
   },
-  sections: [
-    { id: 'cover', type: 'cover', variant: 'fullscreen', visible: true, content: {} },
-    { id: 'artworks', type: 'artworks', variant: 'grid', visible: true, content: {} },
+  pages: [
+    {
+      slug: 'home',
+      title: 'Mi Sitio de Arte',
+      isHome: true,
+      showInNav: true,
+      sections: [
+        { id: 'cover', type: 'cover', variant: 'fullscreen', visible: true, content: {} },
+        { id: 'artworks', type: 'artworks', variant: 'grid', visible: true, content: {} },
+      ],
+    },
   ],
   identity: {
     siteTitle: 'Mi Sitio de Arte',
@@ -56,15 +64,15 @@ describe('SiteConfigSchema — extended', () => {
     expect(result.success).toBe(true)
   })
 
-  it('config without sections field fails (sections is required)', () => {
-    const { sections: _sections, ...noSections } = fullValidConfig
-    const result = SiteConfigSchema.safeParse(noSections)
+  it('config without pages field fails (pages is required)', () => {
+    const { pages: _pages, ...noPages } = fullValidConfig
+    const result = SiteConfigSchema.safeParse(noPages)
     expect(result.success).toBe(false)
   })
 
-  it('config with empty sections array passes (empty array is valid)', () => {
-    const result = SiteConfigSchema.safeParse({ ...fullValidConfig, sections: [] })
-    expect(result.success).toBe(true)
+  it('config with empty pages array fails (pages must have at least one entry)', () => {
+    const result = SiteConfigSchema.safeParse({ ...fullValidConfig, pages: [] })
+    expect(result.success).toBe(false)
   })
 
   it('buyText over 40 chars fails validation', () => {

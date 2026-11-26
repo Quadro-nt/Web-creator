@@ -1,9 +1,8 @@
-'use client'
+﻿'use client'
 
 import { useState, useEffect } from 'react'
-import type { SiteConfig } from '@/lib/schemas/site-config.schema'
+import type { SectionConfig, SiteConfig } from '@/lib/schemas/site-config.schema'
 
-type SectionConfig = SiteConfig['sections'][number]
 
 interface NavigationProps {
   config: SiteConfig

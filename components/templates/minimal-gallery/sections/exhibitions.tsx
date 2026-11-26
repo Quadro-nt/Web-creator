@@ -1,7 +1,6 @@
-import type { SiteConfig } from '@/lib/schemas/site-config.schema'
+﻿import type { SectionConfig, SiteConfig } from '@/lib/schemas/site-config.schema'
 import { ContentWrapper } from '@/components/ContentWrapper'
 
-type SectionConfig = SiteConfig['sections'][number]
 
 type Exhibition = {
   title: string

@@ -1,9 +1,8 @@
-import Image from 'next/image'
-import type { SiteConfig } from '@/lib/schemas/site-config.schema'
+﻿import Image from 'next/image'
+import type { SectionConfig, SiteConfig } from '@/lib/schemas/site-config.schema'
 import { Button } from '@/components/Button'
 import { sanitizeExternalUrl, sanitizeHref } from '@/components/templates/shared/template-helpers'
 
-type SectionConfig = SiteConfig['sections'][number]
 
 type Props = {
   section: SectionConfig

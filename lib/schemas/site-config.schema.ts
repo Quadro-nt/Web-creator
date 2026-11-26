@@ -287,9 +287,7 @@ export const SiteConfigSchema = z.object({
   header: HeaderConfigSchema.optional(),
   footer: FooterConfigSchema.optional(),
 
-  sections: z.array(SectionConfigSchema),
-
-  pages: z.array(PageConfigSchema).optional(),
+  pages: z.array(PageConfigSchema).min(1),
 
   identity: z.object({
     siteTitle: z.string().min(1).max(80),
@@ -301,15 +299,15 @@ export const SiteConfigSchema = z.object({
   }),
 })
   .refine(
-    (c) => !c.pages || c.pages.filter((p) => p.isHome).length === 1,
+    (c) => c.pages.filter((p) => p.isHome).length === 1,
     'Debe existir exactamente una página marcada como home'
   )
   .refine(
-    (c) => !c.pages || new Set(c.pages.map((p) => p.slug)).size === c.pages.length,
+    (c) => new Set(c.pages.map((p) => p.slug)).size === c.pages.length,
     'Los slugs de página deben ser únicos'
   )
   .refine(
-    (c) => !c.pages || c.pages.every((p) => !RESERVED_PAGE_SLUGS.has(p.slug)),
+    (c) => c.pages.every((p) => !RESERVED_PAGE_SLUGS.has(p.slug)),
     'El slug está reservado'
   )
 
@@ -382,12 +380,20 @@ export const defaultSiteConfig: SiteConfig = {
     sticky: true,
   },
 
-  sections: [
-    { id: 'cover', type: 'cover', variant: 'fullscreen', visible: true, content: {} },
-    { id: 'artworks', type: 'artworks', variant: 'grid', visible: true, content: {} },
-    { id: 'bio', type: 'bio', variant: 'split', visible: true, content: {} },
-    { id: 'exhibitions', type: 'exhibitions', variant: 'list', visible: false, content: {} },
-    { id: 'contact', type: 'contact', variant: 'simple', visible: true, content: {} },
+  pages: [
+    {
+      slug: 'home',
+      title: 'Mi Sitio de Arte',
+      isHome: true,
+      showInNav: true,
+      sections: [
+        { id: 'cover', type: 'cover', variant: 'fullscreen', visible: true, content: {} },
+        { id: 'artworks', type: 'artworks', variant: 'grid', visible: true, content: {} },
+        { id: 'bio', type: 'bio', variant: 'split', visible: true, content: {} },
+        { id: 'exhibitions', type: 'exhibitions', variant: 'list', visible: false, content: {} },
+        { id: 'contact', type: 'contact', variant: 'simple', visible: true, content: {} },
+      ],
+    },
   ],
 
   identity: {
