@@ -2,7 +2,7 @@ import { z } from 'zod'
 
 const DANGEROUS_SCHEME_RE = /^(?:javascript|data|vbscript):/i
 const INTERNAL_RE = /^\/[a-z0-9-]*$/
-const EXTERNAL_RE = /^(?:https?|mailto|tel):/
+const EXTERNAL_RE = /^(?:https?|mailto|tel):\S+/
 const ANCHOR_RE = /^#[a-zA-Z0-9-_]+$/
 
 /** True when value is a safe href (internal path, external URL, mailto, tel, or anchor). */

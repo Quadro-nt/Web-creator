@@ -34,6 +34,21 @@ describe('validateHref', () => {
   it('rejects vbscript scheme', () => {
     expect(validateHref('vbscript:msgbox')).toBe(false)
   })
+  it('rejects mixed-case javascript scheme', () => {
+    expect(validateHref('JavaScript:alert(1)')).toBe(false)
+    expect(validateHref('JAVASCRIPT:alert(1)')).toBe(false)
+    expect(validateHref('jAvAsCrIpT:alert(1)')).toBe(false)
+  })
+  it('rejects leading-whitespace bypass attempts', () => {
+    expect(validateHref(' javascript:x')).toBe(false)
+    expect(validateHref('\tjavascript:x')).toBe(false)
+    expect(validateHref('\njavascript:x')).toBe(false)
+  })
+  it('rejects bare schemes with no content after colon', () => {
+    expect(validateHref('https:')).toBe(false)
+    expect(validateHref('mailto:')).toBe(false)
+    expect(validateHref('tel:')).toBe(false)
+  })
   it('rejects empty string', () => {
     expect(validateHref('')).toBe(false)
   })
