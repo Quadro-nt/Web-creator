@@ -27,6 +27,8 @@ import PreviewFrame from '@/components/editor/PreviewFrame'
 import PreviewToggle from '@/components/editor/PreviewToggle'
 import ModuleLibrary from '@/components/editor/ModuleLibrary'
 import SectionList from '@/components/editor/SectionList'
+import PageTree from '@/components/editor/PageTree'
+import * as pageOps from '@/components/editor/page-operations'
 import ThemePanel from '@/components/editor/ThemePanel'
 import WorksManager from '@/components/editor/WorksManager'
 import MediaLibrary from '@/components/editor/MediaLibrary'
@@ -52,7 +54,7 @@ type Props = {
 
 const LEFT_TABS: Array<{ key: LeftTab; label: string }> = [
   { key: 'modules', label: 'Módulos' },
-  { key: 'layers', label: 'Capas' },
+  { key: 'layers', label: 'Páginas' },
   { key: 'theme', label: 'Diseño' },
   { key: 'works', label: 'Obras' },
   { key: 'media', label: 'Medios' },
@@ -83,6 +85,39 @@ export default function EditorClient({
     const home = initialConfig.pages?.find((p) => p.isHome)
     return home?.slug ?? initialConfig.pages?.[0]?.slug ?? 'home'
   })
+
+  const [pageModalMode, setPageModalMode] = useState<'create' | { kind: 'edit'; slug: string } | null>(null)
+
+  const handleOpenCreatePage = () => setPageModalMode('create')
+  const handleOpenEditPage = (slug: string) => setPageModalMode({ kind: 'edit', slug })
+
+  const handleDeletePage = (slug: string) => {
+    try {
+      setConfig((prev) => pageOps.deletePage(prev, slug))
+      if (slug === activePageId) {
+        const home = config.pages?.find((p) => p.isHome)
+        if (home) setActivePageId(home.slug)
+      }
+    } catch (err) {
+      setErrorMsg(err instanceof Error ? err.message : 'No se pudo borrar la página')
+    }
+  }
+
+  const handleSetHomePage = (slug: string) => {
+    try {
+      setConfig((prev) => pageOps.setHomePage(prev, slug))
+    } catch (err) {
+      setErrorMsg(err instanceof Error ? err.message : 'No se pudo marcar como home')
+    }
+  }
+
+  const handleDuplicatePage = (slug: string) => {
+    try {
+      setConfig((prev) => pageOps.duplicatePage(prev, slug))
+    } catch (err) {
+      setErrorMsg(err instanceof Error ? err.message : 'No se pudo duplicar la página')
+    }
+  }
 
   const activePage = useMemo((): PageConfig | undefined => {
     if (!config.pages || config.pages.length === 0) {
@@ -744,13 +779,17 @@ export default function EditorClient({
               )}
 
               {leftTab === 'layers' && (
-                <SectionList
-                  sections={activePage?.sections ?? []}
+                <PageTree
+                  config={config}
+                  activePageId={activePageId}
                   selectedSectionId={selectedSectionId}
-                  onSelect={(id) => selectSection(id)}
-                  onChange={handleSectionsChange}
-                  onDuplicate={handleDuplicateSection}
-                  onDelete={handleDeleteSection}
+                  onSelectPage={(slug) => setActivePageId(slug)}
+                  onSelectSection={(id) => selectSection(id)}
+                  onOpenCreatePage={handleOpenCreatePage}
+                  onOpenEditPage={handleOpenEditPage}
+                  onDeletePage={handleDeletePage}
+                  onSetHomePage={handleSetHomePage}
+                  onDuplicatePage={handleDuplicatePage}
                 />
               )}
 
