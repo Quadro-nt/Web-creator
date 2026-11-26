@@ -4,6 +4,10 @@ import { getStorageAdapter } from '@/lib/storage'
 import { getWorksRepository } from '@/lib/works/repository'
 import { ArtworkDetail } from '@/components/ArtworkDetail'
 
+export const dynamic = 'force-dynamic'
+export const fetchCache = 'force-no-store'
+export const revalidate = 0
+
 type Props = {
   params: { artist: string; slug: string }
 }

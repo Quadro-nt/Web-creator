@@ -7,6 +7,8 @@ import EditorialTemplate from '@/components/templates/editorial'
 import ImmersiveTemplate from '@/components/templates/immersive'
 
 export const dynamic = 'force-dynamic'
+export const fetchCache = 'force-no-store'
+export const revalidate = 0
 
 type Props = {
   params: { artist: string }
