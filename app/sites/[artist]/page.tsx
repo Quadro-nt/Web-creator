@@ -10,37 +10,51 @@ type Props = {
   params: { artist: string }
 }
 
+async function safeGetPublished(slug: string) {
+  try {
+    const storage = getStorageAdapter()
+    return await storage.getPublished(slug)
+  } catch (err) {
+    console.error(`[sites/${slug}] getPublished failed:`, err)
+    return null
+  }
+}
+
+async function safeGetWorks(slug: string) {
+  try {
+    const worksRepo = getWorksRepository()
+    return await worksRepo.getWorks(slug)
+  } catch (err) {
+    console.error(`[sites/${slug}] getWorks failed:`, err)
+    return []
+  }
+}
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const storage = getStorageAdapter()
-  const config = await storage.getPublished(params.artist)
+  const config = await safeGetPublished(params.artist)
   return {
     title: config?.identity.siteTitle ?? params.artist,
   }
 }
 
 export default async function ArtistSitePage({ params }: Props) {
-  const storage = getStorageAdapter()
-  const config = await storage.getPublished(params.artist)
+  const config = await safeGetPublished(params.artist)
 
   if (!config) {
     notFound()
   }
 
+  const works = await safeGetWorks(params.artist)
+
   if (config.template === 'minimal-gallery') {
-    const worksRepo = getWorksRepository()
-    const works = await worksRepo.getWorks(params.artist)
     return <MinimalGallery config={config} works={works} artistSlug={params.artist} />
   }
 
   if (config.template === 'editorial') {
-    const worksRepo = getWorksRepository()
-    const works = await worksRepo.getWorks(params.artist)
     return <EditorialTemplate config={config} works={works} artistSlug={params.artist} />
   }
 
   if (config.template === 'immersive') {
-    const worksRepo = getWorksRepository()
-    const works = await worksRepo.getWorks(params.artist)
     return <ImmersiveTemplate config={config} works={works} artistSlug={params.artist} />
   }
 

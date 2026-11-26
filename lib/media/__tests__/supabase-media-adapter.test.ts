@@ -22,6 +22,8 @@ jest.mock('@/lib/cloud/supabase-client', () => ({
 function createMockSupabaseStorage(overrides?: {
   listResult?: { data: unknown[] | null; error: { message: string } | null }
   uploadResult?: { data?: unknown; error: { message: string } | null }
+  getBucketResult?: { data: unknown | null; error: { message: string } | null }
+  createBucketResult?: { data?: unknown; error: { message: string } | null }
 }) {
   const listMock = jest.fn<AnyAsyncFn>().mockResolvedValue(
     overrides?.listResult ?? {
@@ -51,13 +53,31 @@ function createMockSupabaseStorage(overrides?: {
     getPublicUrl: getPublicUrlMock,
   }))
 
+  const getBucketMock = jest.fn<AnyAsyncFn>().mockResolvedValue(
+    overrides?.getBucketResult ?? { data: { name: 'artist-media', public: true }, error: null }
+  )
+
+  const createBucketMock = jest.fn<AnyAsyncFn>().mockResolvedValue(
+    overrides?.createBucketResult ?? { data: { name: 'artist-media' }, error: null }
+  )
+
   const client = {
     storage: {
       from: fromMock,
+      getBucket: getBucketMock,
+      createBucket: createBucketMock,
     },
   } as unknown as SupabaseClient
 
-  return { client, fromMock, listMock, uploadMock, getPublicUrlMock }
+  return {
+    client,
+    fromMock,
+    listMock,
+    uploadMock,
+    getPublicUrlMock,
+    getBucketMock,
+    createBucketMock,
+  }
 }
 
 const VALID_PNG_BUFFER = Buffer.from([
@@ -68,10 +88,12 @@ describe('createSupabaseMediaAdapter', () => {
   const originalBackend = process.env.STORAGE_BACKEND
   const originalBucket = process.env.SUPABASE_STORAGE_BUCKET
 
-  beforeEach(() => {
+  beforeEach(async () => {
     jest.clearAllMocks()
     delete process.env.STORAGE_BACKEND
     delete process.env.SUPABASE_STORAGE_BUCKET
+    const { resetEnsuredBucketsForTests } = await import('../supabase-media-adapter')
+    resetEnsuredBucketsForTests()
   })
 
   afterAll(() => {
@@ -181,6 +203,56 @@ describe('createSupabaseMediaAdapter', () => {
 
     expect(listMock).not.toHaveBeenCalled()
     expect(uploadMock).not.toHaveBeenCalled()
+  })
+
+  it('auto-creates the bucket as public when getBucket returns "Bucket not found"', async () => {
+    const { createSupabaseMediaAdapter } = await import('../supabase-media-adapter')
+    const { client, getBucketMock, createBucketMock } = createMockSupabaseStorage({
+      getBucketResult: { data: null, error: { message: 'Bucket not found' } },
+    })
+    const adapter = createSupabaseMediaAdapter({ client, bucket: 'artist-media' })
+
+    await adapter.list('luna-vega')
+
+    expect(getBucketMock).toHaveBeenCalledWith('artist-media')
+    expect(createBucketMock).toHaveBeenCalledWith('artist-media', { public: true })
+  })
+
+  it('caches the ensured bucket so getBucket is called only once across multiple operations', async () => {
+    const { createSupabaseMediaAdapter } = await import('../supabase-media-adapter')
+    const { client, getBucketMock, createBucketMock } = createMockSupabaseStorage()
+    const adapter = createSupabaseMediaAdapter({ client, bucket: 'artist-media' })
+
+    await adapter.list('luna-vega')
+    await adapter.list('marco-torres')
+    await adapter.save('luna-vega', 'obra.png', 'image/png', VALID_PNG_BUFFER)
+
+    expect(getBucketMock).toHaveBeenCalledTimes(1)
+    expect(createBucketMock).not.toHaveBeenCalled()
+  })
+
+  it('treats "already exists" from createBucket as success (race-safe)', async () => {
+    const { createSupabaseMediaAdapter } = await import('../supabase-media-adapter')
+    const { client } = createMockSupabaseStorage({
+      getBucketResult: { data: null, error: { message: 'Bucket not found' } },
+      createBucketResult: { error: { message: 'The resource already exists' } },
+    })
+    const adapter = createSupabaseMediaAdapter({ client, bucket: 'artist-media' })
+
+    await expect(adapter.list('luna-vega')).resolves.toBeDefined()
+  })
+
+  it('throws a descriptive error when bucket creation fails with an unexpected error', async () => {
+    const { createSupabaseMediaAdapter } = await import('../supabase-media-adapter')
+    const { client } = createMockSupabaseStorage({
+      getBucketResult: { data: null, error: { message: 'Bucket not found' } },
+      createBucketResult: { error: { message: 'permission denied' } },
+    })
+    const adapter = createSupabaseMediaAdapter({ client, bucket: 'artist-media' })
+
+    await expect(adapter.list('luna-vega')).rejects.toThrow(
+      /No se pudo crear el bucket "artist-media".*permission denied/
+    )
   })
 
   it('getMediaAdapter returns Supabase adapter when STORAGE_BACKEND=cloud and local adapter otherwise', async () => {

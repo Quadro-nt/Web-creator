@@ -9,6 +9,14 @@ import {
   studioSecondaryBtn,
 } from './studio-styles'
 
+function humanizeUploadError(message: string): string {
+  const normalized = message.toLowerCase()
+  if (normalized.includes('bucket not found')) {
+    return 'El espacio de almacenamiento todavía no está listo. Reintentá en unos segundos; si persiste, avisanos.'
+  }
+  return message
+}
+
 type Props = {
   artistSlug: string
   editorToken?: string
@@ -40,7 +48,9 @@ export default function MediaLibrary({ artistSlug, editorToken, onSelect, select
       const data = (await res.json()) as { items?: MediaItem[] }
       setItems(data.items ?? [])
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'No se pudo cargar la galería')
+      setError(
+        err instanceof Error ? humanizeUploadError(err.message) : 'No se pudo cargar la galería'
+      )
     } finally {
       setLoading(false)
     }
@@ -78,7 +88,9 @@ export default function MediaLibrary({ artistSlug, editorToken, onSelect, select
         }
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error subiendo archivo')
+      setError(
+        err instanceof Error ? humanizeUploadError(err.message) : 'Error subiendo archivo'
+      )
     } finally {
       setUploading(false)
       if (fileInputRef.current) fileInputRef.current.value = ''

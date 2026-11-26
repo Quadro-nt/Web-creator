@@ -21,6 +21,51 @@ function assertSafeArtistSlug(artistSlug: string): void {
   }
 }
 
+const ensuredBuckets = new Set<string>()
+
+function isBucketNotFoundMessage(message: string | undefined): boolean {
+  if (!message) return false
+  const normalized = message.toLowerCase()
+  return normalized.includes('bucket not found') || normalized.includes('not found')
+}
+
+/** Ensures the Supabase Storage bucket exists (as public), creating it on first miss. */
+export async function ensureStorageBucketExists(
+  client: SupabaseClient,
+  bucket: string
+): Promise<void> {
+  if (ensuredBuckets.has(bucket)) return
+
+  const { data, error } = await client.storage.getBucket(bucket)
+  if (data && !error) {
+    ensuredBuckets.add(bucket)
+    return
+  }
+  if (error && !isBucketNotFoundMessage(error.message)) {
+    throw new Error(
+      `No se pudo verificar el bucket "${bucket}" en Supabase Storage: ${error.message}`
+    )
+  }
+
+  const { error: createError } = await client.storage.createBucket(bucket, {
+    public: true,
+  })
+  if (createError) {
+    const alreadyExists = createError.message.toLowerCase().includes('already exists')
+    if (!alreadyExists) {
+      throw new Error(
+        `No se pudo crear el bucket "${bucket}" en Supabase Storage: ${createError.message}. ` +
+          'Verificá que el service role key tenga permisos sobre Storage o creá el bucket manualmente.'
+      )
+    }
+  }
+  ensuredBuckets.add(bucket)
+}
+
+export function resetEnsuredBucketsForTests(): void {
+  ensuredBuckets.clear()
+}
+
 /** Creates a MediaAdapter backed by Supabase Storage. */
 export function createSupabaseMediaAdapter(
   options?: SupabaseMediaAdapterOptions
@@ -34,6 +79,7 @@ export function createSupabaseMediaAdapter(
 
       const client = getClient()
       const bucket = getBucket()
+      await ensureStorageBucketExists(client, bucket)
       const storage = client.storage.from(bucket)
 
       const { data, error } = await storage.list(artistSlug, {
@@ -88,6 +134,7 @@ export function createSupabaseMediaAdapter(
 
       const client = getClient()
       const bucket = getBucket()
+      await ensureStorageBucketExists(client, bucket)
       const storage = client.storage.from(bucket)
       const objectPath = `${artistSlug}/${filename}`
 
