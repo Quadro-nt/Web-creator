@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { notFound } from 'next/navigation'
 import { getStorageAdapter } from '@/lib/storage'
 import { getWorksRepository } from '@/lib/works/repository'
 import MinimalGallery from '@/components/templates/minimal-gallery'
@@ -12,8 +13,10 @@ type Props = {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const storage = getStorageAdapter()
   const config = await storage.getPublished(params.artist)
+  const home = config?.pages?.find((p) => p.isHome)
   return {
-    title: config?.identity.siteTitle ?? params.artist,
+    title: home?.seo?.title ?? config?.identity.siteTitle ?? params.artist,
+    description: home?.seo?.description,
   }
 }
 
@@ -22,29 +25,25 @@ export default async function ArtistSitePage({ params }: Props) {
   const config = await storage.getPublished(params.artist)
 
   if (!config) {
-    return (
-      <main style={{ padding: '4rem 2rem', textAlign: 'center' }}>
-        <h1>Sitio no encontrado</h1>
-      </main>
-    )
+    notFound()
   }
 
+  const home = config.pages?.find((p) => p.isHome)
+  if (!home) notFound()
+
+  const worksRepo = getWorksRepository()
+  const works = await worksRepo.getWorks(params.artist)
+
   if (config.template === 'minimal-gallery') {
-    const worksRepo = getWorksRepository()
-    const works = await worksRepo.getWorks(params.artist)
-    return <MinimalGallery config={config} works={works} artistSlug={params.artist} />
+    return <MinimalGallery config={config} page={home} works={works} artistSlug={params.artist} />
   }
 
   if (config.template === 'editorial') {
-    const worksRepo = getWorksRepository()
-    const works = await worksRepo.getWorks(params.artist)
-    return <EditorialTemplate config={config} works={works} artistSlug={params.artist} />
+    return <EditorialTemplate config={config} page={home} works={works} artistSlug={params.artist} />
   }
 
   if (config.template === 'immersive') {
-    const worksRepo = getWorksRepository()
-    const works = await worksRepo.getWorks(params.artist)
-    return <ImmersiveTemplate config={config} works={works} artistSlug={params.artist} />
+    return <ImmersiveTemplate config={config} page={home} works={works} artistSlug={params.artist} />
   }
 
   return (
