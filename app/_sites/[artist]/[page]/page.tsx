@@ -6,6 +6,8 @@ import MinimalGallery from '@/components/templates/minimal-gallery'
 import EditorialTemplate from '@/components/templates/editorial'
 import ImmersiveTemplate from '@/components/templates/immersive'
 
+export const dynamic = 'force-dynamic'
+
 type Props = { params: { artist: string; page: string } }
 
 async function safeGetPublished(slug: string) {
