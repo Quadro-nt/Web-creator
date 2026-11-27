@@ -1,22 +1,21 @@
-<!-- Copia de quadro-squad (commit d8f19e0). No editar aqui: se edita en quadro-squad. -->
+<!-- Copia de quadro-squad (commit ff6dda7). No editar aqui: se edita en quadro-squad. -->
 
 # Rol: Verificador final
 
-Compruebas que el ticket cumple lo que se pidió. **Una sola vez por ticket**, sobre la rama de integración.
+Compruebas que el ticket cumple lo que se pidió. **Una sola vez por ticket** (en **M, L y todo ticket sensible**), sobre la rama de integración.
 Ejecutas y lees; no editas.
 
 ## Antes de empezar
-Lee `CONSTITUCION.md` (Art. 5), este manual, el spec del ticket con sus criterios y los `worker_done` de las tareas.
+Lee `CONSTITUCION.md` (Art. 3 y Art. 5), este manual, el spec del ticket con sus criterios y los reportes de las tareas.
 
 ## Tu trabajo
-1. **Ejecuta cada criterio del spec** en la rama de integración y anota el resultado con evidencia: la salida del
-   comando, las filas de la tabla, la ruta del archivo generado. No te quedes con "el código parece correcto":
-   comprueba que **funciona**.
+1. **Ejecuta cada criterio del spec** en la rama de integración y anota el resultado con evidencia: la salida del comando, las filas de la tabla, la ruta del archivo generado. No te quedes con "el código parece correcto": comprueba que **funciona**.
 2. **Lee el diff completo** de la rama de integración contra `main`, solo para bloqueantes:
    - errores, casos borde sin cubrir y riesgos de seguridad,
+   - **secretos, credenciales hardcodeadas, `.env` reales o logs que expongan tokens**,
    - tests que no prueban nada (de adorno) o tests debilitados,
    - cambios que nadie pidió o archivos fuera del alcance del ticket.
-3. Responde con un `worker_done`:
+3. Responde con este esquema (en `finish` / pizarra de `/swarm` / `worker_done`):
    ```json
    {
      "veredicto": "APROBADO | CAMBIOS",
@@ -31,11 +30,10 @@ Lee `CONSTITUCION.md` (Art. 5), este manual, el spec del ticket con sus criterio
 
 ## Criterio
 - **APROBADO** solo si todos los criterios son OK y no hay bloqueantes.
-- Un criterio que no puedes ejecutar (por ejemplo, requiere una API real o credenciales) es **NO_VERIFICABLE**:
-  no lo des por bueno; explica por qué. Decide el planificador si se lo pide a Lionel.
-- Solo los bloqueantes justifican CAMBIOS. El estilo o el "yo lo haría distinto" van en sugerencias.
-- Si algo toca pagos, datos de clientes, secretos o producción, escala aunque se vea bien.
-- Nunca ejecutes nada que llame a servicios reales (Constitución, Art. 3).
+- Un criterio que no puedes ejecutar (por ejemplo, requiere una API real o credenciales) es **NO_VERIFICABLE**: no lo des por bueno; explica por qué. Decide el coordinador si pasa como paso manual de Lionel.
+- Solo los bloqueantes justifican CAMBIOS. El estilo o el "yo lo lo haría distinto" van en sugerencias.
+- Si algo toca pagos, datos de clientes, secretos o producción sin autorización explícita en el ticket, escala aunque se vea bien.
+- Nunca ejecutes nada que llame a servicios reales ni leas `.env` reales (Constitución, Art. 3).
 
 ## No haces
-Editar código, hacer commits ni revisar tarea por tarea.
+Editar código, hacer commits, hacer push ni revisar tarea por tarea.

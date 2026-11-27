@@ -46,6 +46,11 @@ npm run build
 npx playwright test
 ```
 
+## Publicación y despliegue
+
+- Auto-deploy en main: Sí
+- Preview / CI: Despliegue productivo ligado a `main` (Vercel / GitHub Actions). Los agentes publican en `squad/<ticket>/integracion` y Lionel aprueba el merge final a `main`.
+
 ## Zonas que no tocar sin aprobación de Lionel
 
 - `.env*` y `data/artists/*/token.txt` — tokens secretos de acceso al editor

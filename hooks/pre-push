@@ -1,35 +1,93 @@
 #!/bin/sh
-# pre-push hook — instalado por squad-init
-# Bloquea pushes cuando el proceso es un agente IA (Claude Code u Orca).
-# Los pushes desde GitHub Desktop u otros clientes sin esas variables pasan.
+# pre-push hook — instalado por squad-init (v1.0)
+# 1. Protege main/master contra borrado o force-push.
+# 2. En agentes IA, permite push autonomo a ramas de trabajo y solo permite push directo
+#    a main/master si PROYECTO.md declara "Auto-deploy en main: No".
+# 3. Escanea secretos en los commits salientes (para humanos y agentes).
 
+ZERO_SHA="0000000000000000000000000000000000000000"
+REPO_ROOT=$(git rev-parse --show-toplevel 2>/dev/null)
+if [ -z "$REPO_ROOT" ]; then
+    REPO_ROOT="."
+fi
+
+# Leer todo stdin (lineas: <local_ref> <local_sha> <remote_ref> <remote_sha>)
+PUSH_LINES=$(cat)
+if [ -z "$PUSH_LINES" ]; then
+    exit 0
+fi
+
+# Detectar agente IA
 AGENT_DETECTED=0
 AGENT_NAME=""
-
-# Claude Code
-if [ -n "$CLAUDECODE" ]; then
+if [ -n "$ANTIGRAVITY_AGENT" ] || [ -n "$ANTIGRAVITY_CONVERSATION_ID" ]; then
     AGENT_DETECTED=1
-    AGENT_NAME="Claude Code (CLAUDECODE=$CLAUDECODE)"
+    AGENT_NAME="Antigravity"
+elif [ -n "$CLAUDECODE" ]; then
+    AGENT_DETECTED=1
+    AGENT_NAME="Claude Code"
+elif [ -n "$ORCA_AGENT_LAUNCH" ] || [ -n "$ORCA_WORKTREE_ID" ]; then
+    AGENT_DETECTED=1
+    AGENT_NAME="Orca"
 fi
 
-# Orca (cualquier variable ORCA_AGENT_* o ORCA_WORKTREE_ID)
-if [ -n "$ORCA_AGENT_LAUNCH" ]; then
-    AGENT_DETECTED=1
-    AGENT_NAME="Orca (ORCA_AGENT_LAUNCH set)"
+# Verificar reglas de ramas protegidas
+OLD_IFS="$IFS"
+IFS='
+'
+for line in $PUSH_LINES; do
+    [ -z "$line" ] && continue
+    local_ref=$(printf "%s" "$line" | awk '{print $1}')
+    local_sha=$(printf "%s" "$line" | awk '{print $2}')
+    remote_ref=$(printf "%s" "$line" | awk '{print $3}')
+    remote_sha=$(printf "%s" "$line" | awk '{print $4}')
+
+    if [ "$remote_ref" = "refs/heads/main" ] || [ "$remote_ref" = "refs/heads/master" ]; then
+        if [ "$local_sha" = "$ZERO_SHA" ]; then
+            echo "ERROR: no esta permitido borrar la rama protegida $remote_ref." >&2
+            exit 1
+        fi
+        if [ "$remote_sha" != "$ZERO_SHA" ]; then
+            if ! git merge-base --is-ancestor "$remote_sha" "$local_sha" 2>/dev/null; then
+                echo "ERROR: force-push bloqueado sobre rama protegida $remote_ref." >&2
+                exit 1
+            fi
+        fi
+        if [ "$AGENT_DETECTED" -eq 1 ] && [ -f "$REPO_ROOT/PROYECTO.md" ]; then
+            if ! grep -qiE 'Auto-deploy en main:[[:space:]]*No\b' "$REPO_ROOT/PROYECTO.md"; then
+                echo "" >&2
+                echo "ERROR: push directo a main bloqueado para $AGENT_NAME." >&2
+                echo "main puede desplegar a produccion (PROYECTO.md no declara 'Auto-deploy en main: No')." >&2
+                echo "Haz push a tu rama de integracion: git push -u origin squad/<ticket>/integracion" >&2
+                echo "" >&2
+                exit 1
+            fi
+        fi
+    fi
+done
+IFS="$OLD_IFS"
+
+# Seleccionar interprete Python disponible y localizar escaner
+PYTHON_BIN=""
+if command -v python >/dev/null 2>&1; then
+    PYTHON_BIN="python"
+elif command -v python3 >/dev/null 2>&1; then
+    PYTHON_BIN="python3"
 fi
 
-if [ -n "$ORCA_WORKTREE_ID" ] && [ "$AGENT_DETECTED" -eq 0 ]; then
-    AGENT_DETECTED=1
-    AGENT_NAME="Orca (ORCA_WORKTREE_ID set)"
+SCANNER=""
+if [ -f "$REPO_ROOT/.squad/scripts/escanear-fugas.py" ]; then
+    SCANNER="$REPO_ROOT/.squad/scripts/escanear-fugas.py"
+elif [ -f "$REPO_ROOT/scripts/escanear-fugas.py" ]; then
+    SCANNER="$REPO_ROOT/scripts/escanear-fugas.py"
 fi
 
-if [ "$AGENT_DETECTED" -eq 1 ]; then
-    echo ""
-    echo "ERROR: push bloqueado — detectado agente IA: $AGENT_NAME"
-    echo "Solo Lionel hace push (Art. 2 de la Constitucion de los escuadrones Quadro)."
-    echo "Haz commit en tu rama y envia merge_ready o worker_done."
-    echo ""
-    exit 1
+if [ -n "$SCANNER" ]; then
+    if [ -z "$PYTHON_BIN" ]; then
+        echo "ERROR: Python no encontrado para ejecutar $SCANNER." >&2
+        exit 1
+    fi
+    printf "%s\n" "$PUSH_LINES" | "$PYTHON_BIN" "$SCANNER" --repo "$REPO_ROOT" --pre-push || exit 1
 fi
 
 exit 0

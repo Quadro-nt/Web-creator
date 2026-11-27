@@ -1,101 +1,74 @@
-<!-- Copia de quadro-squad (commit d8f19e0). No editar aqui: se edita en quadro-squad. -->
+<!-- Copia de quadro-squad (commit ff6dda7). No editar aqui: se edita en quadro-squad. -->
 
-# Ruteo de modelos
+# Ruteo de modelos y motores
 
-> Versión 0.5. `scripts/cuota.py` aplica esta tabla: si cambia una, cambia la otra. Basado en las mediciones de spike/ y spike2/ (nov 2026).
-> Los slugs de agy se confirman con `agy models`.
+> Versión 1.0 — Antigravity nativo (`/swarm`, `/teamwork`, `run_workflow`) + autonomía de `commit`/`push` con escaneo de secretos.
+> `scripts/cuota.py` aplica la tabla de modelos: si cambia una, cambia la otra. Los slugs de `agy` se confirman con `agy models`.
 
-## Tamaño del ticket
+## Tamaño del ticket y Gates
 
-| Tamaño | Ejemplos | Spec | Gate de spec |
-|---|---|---|---|
-| **S** | cambiar un texto, arreglar un bug obvio, ajustar estilos | 2-3 líneas en la tarea | No |
-| **M** | un feature acotado, un endpoint, una pantalla | corto | Sí |
-| **L** | arquitectura, integraciones, pagos, datos de clientes | completo | Sí, y considerar partir en varios M |
+| Tamaño | Ejemplos | Spec | Gate previo | Verificación final independiente |
+|---|---|---|---|---|
+| **S** | cambiar un texto, arreglar un bug obvio, ajustar estilos | 2-3 líneas | **No** *(salvo si es sensible o ambiguo)* | **No** *(salvo sensible)* |
+| **M** | un feature acotado, un endpoint, una pantalla | corto en `.agents/tickets/` (o en el plan) | **No** *(salvo si es sensible o ambiguo)* | **Sí** |
+| **L** | arquitectura, integraciones, pagos, datos de clientes | completo | **Sí** *(o lanzar directo con `/teamwork`)* | **Sí** |
 
 ## Modelo por rol
 
-| Rol | Por defecto | Si su bolsa baja del umbral | Reserva |
-|---|---|---|---|
-| Planificador (ticket S o M) | Claude Code · Sonnet 5.5 | agy · `gemini-4-argon-medium` | — |
-| Planificador (ticket L) | Claude Code · Opus 5.5 | Claude Code · Sonnet 5.5 | agy · `gemini-4-argon-medium` |
-| Ejecutor S | agy · `gemini-3.8-flash-low` | agy · `gemini-4-argon-medium`; último recurso Claude Code · Haiku 5.5 | — |
-| Ejecutor M | agy · `gemini-3.8-flash-medium` | agy · `gemini-4-argon-medium`; último recurso Claude Code · Sonnet 5.5 | — |
-| Ejecutor sensible* | agy · `gemini-3.8-flash-medium`, con las salvaguardas de abajo | agy · `gemini-4-argon-medium` | — |
-| Ejecutor difícil | agy · `gemini-4-argon-medium` | Claude Code · Sonnet 5.5 | — |
-| Compuerta por tarea | Sin modelo: la corre el planificador (comandos de `PROYECTO.md`) | — | — |
-| Verificador final (una vez por ticket M/L), ejecutores Gemini | Claude Code · Sonnet 5.5 | agy · `gemini-3.8-flash-high` | — |
-| Verificador final, ejecutores Claude | agy · `gemini-3.8-flash-high` | Claude Code · Sonnet 5.5 (sesión distinta) | — |
+| Rol | Por defecto | Alternativa / fallback |
+|---|---|---|
+| Coordinador (UI `/squad-ag` / `/swarm`) | **Orchestrator** (`Neon` en Pro; `Carbon` en Ultra) | CLI `agy`: `gemini-4-neon-medium` (S/M) y `gemini-4-carbon-high` (L; fallback `gemini-4-neon-high`) |
+| Ejecutor S | Tier `flash` / `gemini-4-hydrogen-low` | `gemini-4-neon-low` |
+| Ejecutor M y sensible* | Tier `flash` / `gemini-4-hydrogen-medium` | `gemini-4-neon-medium` |
+| Ejecutor difícil | `gemini-4-neon-medium` (vía `swarm` o CLI) | `gemini-4-hydrogen-high` |
+| Compuerta por tarea | Sin modelo: comandos de `PROYECTO.md` + `escanear-fugas.py` | — |
+| Verificador final (M, L y todo ticket sensible) | Tier `pro` / `gemini-4-neon-high` (distinto de los ejecutores Hydrogen) | `gemini-4-carbon-high` |
 
-*Sensible: toca datos de clientes, integraciones con Meta/WhatsApp/Gmail, precios o esquema de base de datos.
-**Decisión (9 nov 2026): todos los ejecutores son Gemini (`agy`)**, para cuidar la cuota de Claude. Claude se
-reserva para planificar y para la verificación final. Salvaguardas para tareas sensibles con `agy`
-(los permisos por worktree solo existen en Claude Code, así que se compensa con otras capas):
-- Los worktrees no contienen `.env` (no están en git): sin credenciales, una llamada real a un servicio falla.
-- La lista de prohibidos de `agy` (push, borrar, red, secretos, lecturas fuera del worktree) sigue activa.
-- Los hooks `pre-commit` y `pre-push` siguen bloqueando a los agentes.
-- Verificación final obligatoria por otra familia (Claude) en todo ticket M y L.
-- El `PROYECTO.md` lista qué scripts nunca se ejecutan (los que llaman a servicios reales).
+### Salvaguardas para tickets sensibles
 
-## Revisión por resultado (12 nov 2026)
+*Sensible: toca datos de clientes, pagos/precios, esquema de base de datos, auth/permisos, integraciones críticas (Meta/WhatsApp/Gmail) o zonas sensibles declaradas en `PROYECTO.md`.*
 
-Se revisa el resultado, no cada tarea (Constitución, Art. 5): compuerta sin modelo por tarea y **una** verificación final
-por ticket (M y L) que ejecuta los criterios del spec y lee el diff completo. Los tickets S solo pasan por la compuerta.
-Motivo: la revisión por tarea duplicaba los agentes (tickets de 16 tareas, 8 de ellas de revisión) y un modelo que
-solo lee el diff no ejecuta nada.
+Todo ticket sensible activa estas 5 capas:
+1. **Gate previo obligatorio** (incluso si es tamaño S o M).
+2. **Verificación final obligatoria** (`"sensible": true` fuerza verificador `pro` / `Neon` / `Carbon`).
+3. **Worktrees/ramas sin `.env`** (los `.env` reales no están en git y están excluidos del sandbox).
+4. **Revisión de secretos antes de publicar**: `escanear-fugas.py` en `pre-commit`, `pre-push` y verificación `--range main..HEAD`, además de lista cerrada de archivos por tarea.
+5. **Cero ejecución de scripts reales** de producción (quedan como paso manual de Lionel al cierre) y **prohibido push directo a `main`** (se publica en `squad/<ticket>/integracion`).
 
-## Las tres bolsas
+## Revisión por resultado y cierre autónomo
+
+Se revisa el resultado, no cada tarea (Constitución, Art. 5):
+1. **Compuerta sin modelo** por tarea (`PROYECTO.md`).
+2. **Verificación final independiente** (en M, L y todo ticket sensible) sobre la rama de integración.
+3. **Escaneo obligatorio de fugas** (`python .squad/scripts/escanear-fugas.py --range main..HEAD`).
+4. **Publicación autónoma (`commit` + `push`)**:
+   - Si `PROYECTO.md` declara `Auto-deploy en main: No` y el ticket es **S o M no sensible** → puede integrar en `main` y hacer `git push origin main`.
+   - Si `Auto-deploy en main: Sí` (o no confirmado, o ticket **L / sensible**) → hace `git push -u origin squad/<ticket>/integracion` y avisa a Lionel para que revise preview/CI y apruebe el merge a `main`.
+
+## Bolsas y umbrales
 
 | Bolsa | Cómo se mide | Se renueva | Observado |
 |---|---|---|---|
-| Claude Code | `/usage` dentro de Claude Code | semanal + ventana de 5 h | sesiones largas y skills pesados son lo que más gasta |
-| Gemini (Flash) | `agy -p /usage` → Gemini Models | semanal + ventana de 5 h | casi imperceptible por tarea chica |
-| Gemini 4 Argon | `agy -p /usage` → Gemini 4 Argon | semanal | ~1-2 puntos por revisión mínima: **solo reserva** |
+| Gemini Models | `agy -p /usage` → `Gemini Models` | semanal + ventana de 5 h | cubre `Hydrogen`, `Neon`, `Carbon` y `Orchestrator` en bolsa unificada |
+| Gemini 4 Pro (Neon / Carbon) | `agy -p /usage` → fila propia (si el plan la separa) | semanal + ventana de 5 h | si no aparece fila aparte, comparte `Gemini Models` |
 
-La bolsa "Claude and GPT models" de Antigravity **no se usa** en el flujo: su límite total es bajo.
+La bolsa `"Claude and GPT models"` de Antigravity **no se usa** en el flujo por defecto.
 
-## Umbrales
+- **Bajo 30 %:** avisar antes de lanzar y pasar a alternativa si existe una bolsa separada disponible.
+- **Bajo 15 %:** **no lanzar** (`ESCALATION` a Lionel).
+- **Modelos en retiro:** `gemini-3.8-flash-*` y `gemini-4-argon-*` no se usan. Ejecución = `gemini-4-hydrogen-*`; razonamiento y verificación = `gemini-4-neon-*` (y `gemini-4-carbon-*` en reserva L).
+- **Esfuerzo (`agy` CLI):** `low` para tareas S y QA; `medium` por defecto; `high` para planificar L y verificación final de tickets L.
 
-- Una bolsa **bajo 30%**: se pasa a la alternativa para tareas S y M.
-- Una bolsa **bajo 15%**: se deja de usar salvo para la verificación final.
-- **Argon** solo se usa en tareas L o cuando las otras dos bolsas están bajo 30%.
-- Si todas las opciones de un rol están bajo umbral: **escalation**, no se improvisa.
+## Triage del ticket (elección de motor nativo)
 
-## Esfuerzo
+Si un ticket es **sensible** o **L**, activa **Gate previo**. Luego `/squad-ag` evalúa esta tabla de arriba hacia abajo (aplica **la primera fila que coincida**):
 
-- `low`: tareas S y QA.
-- `medium`: por defecto.
-- `high`: planificar tickets L y verificación final de tickets L.
-
-## Reglas de uso (aprendidas en producción, nov 2026)
-
-- **Máximo 2 tickets simultáneos con Claude.** Cuatro planificadores y sus trabajadores en paralelo agotan
-  la ventana de 5 horas en minutos. Lo que sobre espera o se pasa a `agy` si no es sensible.
-- **Verificar el modelo al abrir la sesión** (`/model`): Orca puede arrancar Claude Code con un modelo
-  anterior al configurado. El planificador debe ser Opus 5.5.
-- **Slugs que no existen en agy:** `claude-sonnet-5-5-medium` no está disponible en el perfil actual.
-  Revisor de código Gemini = `gemini-3.8-flash-high` hasta que se confirme otro slug con `agy models`.
-- **Sensible por zona, no por repo.** Cada `PROYECTO.md` puede definir qué carpetas son sensibles
-  (ver el CRM). Lo sensible va con Claude Code; lo demás, con `agy`.
-- **Al agotarse una bolsa a media tarea:** no se cancela nada. Lo no sensible pendiente pasa a `agy`
-  y lo sensible espera la renovación; el planificador deja un resumen antes de cerrar.
-
-## Modo Antigravity completo (`/squad-ag`)
-
-Todo dentro de Antigravity, sin Orca ni Claude Code. Motor: **`/run-workflow`** con el script guardado
-`.agents/workflows/squad_ticket.py` (determinista: capas en paralelo, compuerta sin modelo, una verificación final).
-
-| Rol | Cómo | Modelo |
-|---|---|---|
-| Planificador | Esta conversación (skill `/squad-ag`) | **Orchestrator** (Argon en Pro; Carbon en Ultra) |
-| Ejecutor | Agente nativo `.agents/agents/ejecutor.md` | `flash` (por confirmar que el nivel "flash" corresponde a Gemini 4 Hydrogen) |
-| Compuerta | El script del workflow, sin modelo | — |
-| Verificador final | Agente nativo `.agents/agents/verificador.md` | `pro` (distinto de los ejecutores) |
-
-Cuándo usar otras herramientas nativas:
-- **`/boost`:** un bug difícil y acotado (varios intentos que se verifican entre sí).
-- **`/swarm`:** solo si las tareas necesitan coordinarse entre sí mientras trabajan.
-- **`/teamwork`:** solo proyectos L de varios días. Ojo: por defecto trabaja fuera del repo (`~/teamwork_projects/`)
-  y revisa por hito (Critic, Challenger, Auditor), que es más caro; indica el repo en la entrevista inicial.
+| Prioridad | Señal al medir el ticket | Motor | Acción |
+|---|---|---|---|
+| **1. Bug duro** | Bug difícil y acotado (causa incierta, regresión sutil, race condition en pocos archivos) | **`/boost`** *(UI)* | Frena sin gastar cuota y entrega el prompt listo con síntoma y comando reproductor para lanzar `/boost`. |
+| **2. Largo / L abierto** | Trabajo de varias horas/días, exploración abierta o arquitectura desde cero | **`/teamwork`** *(nativo)* | Da a elegir: **(a)** partirlo en 2-4 tickets M, o **(b)** lanzar `/teamwork` con prompt que incluye **ruta exacta del repo**, verificación de `PROYECTO.md`, escaneo de secretos y zonas fuera de alcance. |
+| **3. Coordinado (2-5 tareas)** | Tareas que negocian contratos en vivo mientras codifican (ej. API + UI + tests) o requieren asignar modelo exacto por worker | **`/swarm`** *(nativo)* | Coordina workers en `workspace: "share"` (`gemini-4-hydrogen-medium`), pizarra compartida (`swarm_pane`), compuerta sin modelo, verificador `gemini-4-neon-high`, `escanear-fugas.py` y merge antes de `kill`. |
+| **4. Paralelo por capas** | 3+ tareas repetitivas o independientes con listas de archivos separables | **`run_workflow`** (`squad_ticket.py`) | Flujo determinista por capas (`workspace: "share"`), compuerta sin modelo, verificación final y escaneo de secretos automático. |
+| **5. Directo / Ágil** | Ticket S (1-2 archivos) o M simple (1-2 tareas acotadas sin cruce de contratos) | **Ejecución directa / `invoke_subagent`** | Sin overhead de `run_workflow` ni `swarm`: se ejecuta en la sesión actual (o con subagente `flash` + verificador `pro` en M), corre `PROYECTO.md` + `escanear-fugas.py`, hace `commit` y `push`. |
 
 Reglas: máximo 3 tareas en paralelo por capa; bolsa bajo 30 % = avisar, bajo 15 % = no lanzar.

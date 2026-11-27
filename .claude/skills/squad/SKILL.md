@@ -5,6 +5,8 @@ description: Arranca el planificador del escuadrón de agentes para un ticket. U
 
 # Skill: /squad
 
+> **Nota v1.0:** El motor principal en Quadro es **Antigravity nativo** (`/squad-ag`, `/swarm`, `/teamwork`, `run_workflow`). Usa `/squad` en Claude Code solo cuando necesites ejecutar explícitamente desde CLI de Claude. Recuerda: en v1.0, los tickets **S y M no sensibles** no requieren Gate previo, y el cierre incluye **revisión obligatoria de secretos** (`.squad/scripts/escanear-fugas.py`) antes de `git commit` / `git push` autónomo (push a `main` solo si `PROYECTO.md` declara `Auto-deploy en main: No`).
+
 Arranca el planificador del escuadrón para un ticket.
 
 Invocación: `/squad <objetivo del ticket>`
@@ -34,7 +36,7 @@ Usa el ruteo recomendado para asignar modelos a cada rol en el ticket.
 - **Ignora los nombres "Orca" y "Antigravity" de las tablas de dueños de carpetas** (AGENTS.md,
   PROYECTO.md): son nombres de zona, no el modelo que ejecuta. Una tarea de backend NO va a Claude por ser de "Orca".
 - Si `PROYECTO.md` dice algo distinto sobre el ejecutor, vale `.squad/ruteo.md`; si hay duda, pregunta a Lionel.
-- En el spec y en la tabla de tareas escribe el modelo concreto (ej. `agy · gemini-3.8-flash-medium`), no "Orca".
+- En el spec y en la tabla de tareas escribe el modelo concreto (ej. `agy · gemini-4-hydrogen-medium`), no "Orca".
 - Planificador S/M: Sonnet. Opus solo en tickets L.
 Si alguna bolsa está en CRITICO y el rol no tiene alternativa → escala antes de continuar.
 
@@ -183,8 +185,9 @@ solo slugs que aparezcan en esa lista. Para Claude Code usa los nombres que acep
 Si el slug de `.squad/ruteo.md` no existe, usa la alternativa del ruteo y anótalo como aprendizaje.
 
 **Slugs de modelo validados** (de `agy models` + Claude Code):
-- `gemini-3.8-flash-low`, `gemini-3.8-flash-medium`, `gemini-3.8-flash-high`
-- `gemini-4-argon-low`, `gemini-4-argon-medium`, `gemini-4-argon-high`
+- `gemini-4-hydrogen-low`, `gemini-4-hydrogen-medium`, `gemini-4-hydrogen-high`
+- `gemini-4-neon-low`, `gemini-4-neon-medium`, `gemini-4-neon-high`
+- `gemini-4-carbon-low`, `gemini-4-carbon-medium`, `gemini-4-carbon-high`
 - Para Claude Code: pasar sin `--model` y Claude Code usa el modelo del perfil activo,
   o bien `--model claude-sonnet-5-5-medium` etc.
 

@@ -1,37 +1,62 @@
 #!/bin/sh
-# pre-commit hook — instalado por squad-init
-# Bloquea commits de agentes IA que toquen archivos protegidos:
-#   .claude/, seguridad/, roles/, CONSTITUCION.md
-# Los commits de Lionel (sin variables de agente) pasan sin restriccion.
+# pre-commit hook — instalado por squad-init (v1.0)
+# 1. Escanea fugas y secretos en archivos staged (para humanos y agentes).
+# 2. Si es un agente IA (Antigravity, Claude Code u Orca) y no esta SQUAD_ALLOW_SYNC=1,
+#    bloquea commits en repos hijos que modifiquen .squad/ o .claude/settings*.
 
+REPO_ROOT=$(git rev-parse --show-toplevel 2>/dev/null)
+if [ -z "$REPO_ROOT" ]; then
+    REPO_ROOT="."
+fi
+
+# Seleccionar interprete Python disponible
+PYTHON_BIN=""
+if command -v python >/dev/null 2>&1; then
+    PYTHON_BIN="python"
+elif command -v python3 >/dev/null 2>&1; then
+    PYTHON_BIN="python3"
+fi
+
+# Localizar escaner (.squad/scripts/ en repos hijos o scripts/ en quadro-squad)
+SCANNER=""
+if [ -f "$REPO_ROOT/.squad/scripts/escanear-fugas.py" ]; then
+    SCANNER="$REPO_ROOT/.squad/scripts/escanear-fugas.py"
+elif [ -f "$REPO_ROOT/scripts/escanear-fugas.py" ]; then
+    SCANNER="$REPO_ROOT/scripts/escanear-fugas.py"
+fi
+
+if [ -n "$SCANNER" ]; then
+    if [ -z "$PYTHON_BIN" ]; then
+        echo "ERROR: Python no encontrado para ejecutar $SCANNER." >&2
+        exit 1
+    fi
+    "$PYTHON_BIN" "$SCANNER" --repo "$REPO_ROOT" --staged || exit 1
+fi
+
+# Detectar agente IA
 AGENT_DETECTED=0
 AGENT_NAME=""
 
-# Claude Code
-if [ -n "$CLAUDECODE" ]; then
+if [ -n "$ANTIGRAVITY_AGENT" ] || [ -n "$ANTIGRAVITY_CONVERSATION_ID" ]; then
     AGENT_DETECTED=1
-    AGENT_NAME="Claude Code (CLAUDECODE=$CLAUDECODE)"
+    AGENT_NAME="Antigravity"
+elif [ -n "$CLAUDECODE" ]; then
+    AGENT_DETECTED=1
+    AGENT_NAME="Claude Code"
+elif [ -n "$ORCA_AGENT_LAUNCH" ] || [ -n "$ORCA_WORKTREE_ID" ]; then
+    AGENT_DETECTED=1
+    AGENT_NAME="Orca"
 fi
 
-# Orca (cualquier variable ORCA_AGENT_* o ORCA_WORKTREE_ID)
-if [ -n "$ORCA_AGENT_LAUNCH" ]; then
-    AGENT_DETECTED=1
-    AGENT_NAME="Orca (ORCA_AGENT_LAUNCH set)"
-fi
-
-if [ -n "$ORCA_WORKTREE_ID" ] && [ "$AGENT_DETECTED" -eq 0 ]; then
-    AGENT_DETECTED=1
-    AGENT_NAME="Orca (ORCA_WORKTREE_ID set)"
-fi
-
-if [ "$AGENT_DETECTED" -eq 1 ]; then
-    PROTECTED=$(git diff --cached --name-only | grep -E '^(\.claude/|\.squad/|seguridad/|roles/|CONSTITUCION\.md$)')
+# Proteger reglas del escuadron en repos hijos (cuando existe .squad/)
+if [ "$AGENT_DETECTED" -eq 1 ] && [ -z "$SQUAD_ALLOW_SYNC" ] && [ -d "$REPO_ROOT/.squad" ]; then
+    PROTECTED=$(git diff --cached --name-only | grep -E '^(\.squad/|\.claude/settings)')
     if [ -n "$PROTECTED" ]; then
-        echo ""
-        echo "ERROR: commit bloqueado — agente $AGENT_NAME intentó modificar archivos protegidos:"
-        echo "$PROTECTED"
-        echo "Solo Lionel puede commitear cambios en .claude/, .squad/, seguridad/, roles/ o CONSTITUCION.md"
-        echo ""
+        echo "" >&2
+        echo "ERROR: commit bloqueado — agente $AGENT_NAME intento modificar reglas protegidas:" >&2
+        echo "$PROTECTED" >&2
+        echo "Edita en quadro-squad y sincroniza con squad-init --sync." >&2
+        echo "" >&2
         exit 1
     fi
 fi

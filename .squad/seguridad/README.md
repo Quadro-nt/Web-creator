@@ -1,57 +1,34 @@
-<!-- Copia de quadro-squad (commit d8f19e0). No editar aqui: se edita en quadro-squad. -->
+<!-- Copia de quadro-squad (commit ff6dda7). No editar aqui: se edita en quadro-squad. -->
 
-# Seguridad
+# Seguridad (v1.0)
 
-Modelo: **cerrar lo peligroso y aislar el entorno**, en vez de listar todo lo permitido.
-Las pruebas de spike2 mostraron que las listas de comandos permitidos no funcionan con agentes
-reales: usan demasiadas variantes para predecirlas.
+Modelo: **Terminal Sandbox + Preset `Auto` + escaneo de secretos antes de publicar**, eliminando aprobaciones innecesarias sin perder protección real.
 
-## Capas
-1. **Fuera de alcance**: secretos fuera de `C:\dev\ORCA`, sin `.env` reales en los worktrees.
-2. **Escritura acotada**: cada tarea declara sus archivos (Claude Code lo aplica por worktree).
-3. **Lista de prohibidos**: `agy-base.json` y `claude-base.json`.
-4. **Hooks de git**: `pre-push` bloquea pushes de agentes; `pre-commit` bloquea commits que
-   toquen `.claude/`, `.squad/`, `seguridad/`, `roles/` o `CONSTITUCION.md`. Instalados por `squad-init`.
-5. **Guardrails externos**: push solo de Lionel (GitHub Desktop). Branch protection en GitHub
-   queda **pendiente**: en repos privados del plan gratis los rulesets no se aplican.
-6. **Nunca yolo.**
+## Capas de protección
+1. **Secretos fuera del workspace y git**: credenciales productivas fuera de `C:\dev\ORCA`; sin `.env` reales versionados (solo `.env.example` / `.env.test` con datos falsos).
+2. **Terminal Sandbox + Preset `Auto` (Antigravity)**: los comandos dentro del workspace corren aislados sin pedir confirmación; `nonWorkspaceFileAccessPolicy: AGENT_SETTING_POLICY_DENY` impide leer o escribir fuera del repo asignado (y `workspace: "share"` / `.worktrees/` mantiene los worktrees dentro del proyecto).
+3. **Lista de prohibidos quirúrgica (`agy-base.json` / `claude-base.json`)**:
+   - Permite `git commit`, `git push`, `git pull`, `git fetch` y comandos diarios sin prompts.
+   - Bloquea acciones irreversibles o productivas: `git push --force`, `git reset --hard`, `git clean -f`, `--no-verify`, borrados recursivos (`rm -rf` / `Remove-Item -Recurse`), `vercel --prod`, `ssh`/`scp`, `.env` reales y archivos de configuración de permisos (`.gemini/config`, `.claude/settings*`).
+   - Se corrigió el falso positivo histórico de `del` (ya no bloquea la palabra en español ni commits que digan `del panel`) y de `secret` / `.env.example`.
+4. **Escaneo obligatorio de secretos (`scripts/escanear-fugas.py`)**:
+   - Corre automáticamente en cada `git commit` (`pre-commit`) y cada `git push` (`pre-push`), además de `--range main..HEAD` en el cierre del ticket.
+   - Bloquea `.env` reales, llaves privadas (`.pem`, `.key`, `id_rsa`, bloques `PRIVATE KEY`), `credentials.json` y tokens conocidos (Anthropic, OpenAI, Google/Gemini, GitHub, Notion, Slack, Stripe, AWS, Telegram, Meta, URLs remotas de BD), redactando los valores en consola.
+   - Si `gitleaks` está instalado en el sistema, también lo ejecuta en `--staged`.
+5. **Protección de ramas y reglas en hooks git**:
+   - `pre-push` impide borrar o forzar historial en `main`/`master`, y bloquea `git push` directo de agentes a `main` cuando `PROYECTO.md` no declara explícitamente `Auto-deploy en main: No`.
+   - `pre-commit` impide a agentes modificar `.squad/` o `.claude/settings*` (salvo `SQUAD_ALLOW_SYNC=1` en sincronizaciones autorizadas).
+6. **Nunca modo `Turbo` sin sandbox ni `--dangerously-skip-permissions`.**
 
-## Configuracion real de agy
+## Notas de configuración de Antigravity (`agy`)
 
-Archivo: `~/.gemini/config/config.json` → `userSettings.globalPermissionGrants`
-
-La base aplicada en fase 2 esta en `seguridad/agy-base.json`.
-
-La regla `.gemini/.claude` NO requiere separador antes del punto (`\.(gemini|claude)[\\/]`),
-asi captura tanto `C:\ruta\.claude\` como argumentos bare tipo `.claude/settings.json`.
-Las entradas `write_file(...)` usan rutas absolutas — las relativas no funcionan porque agy
-normaliza las rutas a absolutas antes de comparar.
-
-Backups con fecha en `~/.gemini/config/config.json.bak-YYYY-MM-DD` y
-`~/.gemini/antigravity-cli/settings.json.bak-YYYY-MM-DD`.
-
-`trustedWorkspaces` en `~/.gemini/antigravity-cli/settings.json`:
-lista vacia (los worktrees Orca no necesitan trust explicito para arrancar).
-
-`nonWorkspaceFileAccessPolicy: AGENT_SETTING_POLICY_DENY` — workers que intentan leer
-fuera de su worktree reciben denegacion silenciosa sin prompt interactivo.
-Con POLICY_ASK el agente se traba esperando respuesta en headless.
-Verificado en agy 1.5.2: la app de Antigravity sigue funcionando porque los repos
-que Lionel abre son el workspace del agente — sus archivos no son "fuera del workspace".
-
-## Limites conocidos
-
-- Las reglas `deny` por patron son una red, no un muro: un agente puede formular un comando
-  que no coincida. Por eso las capas 1 y 4 son las que de verdad protegen.
-- `agy` dentro de Orca solo acepta configuracion global: todos los workers agy comparten caja.
-  Lo sensible va con ejecutores Claude Code (ver `ruteo.md`).
-- Para que workers agy puedan escribir archivos en sus worktrees sin prompt interactivo,
-  se necesita una entrada `write_file(C:/Users/lione/orca/workspaces/)` en el allow list.
-  Sin ella, agy pide confirmacion por cada archivo (bloquea workers orquestados).
-- `write_file` no acepta regex (probado en agy 1.5.2). Las entradas de worktrees dinamicos
-  no se pueden enumerar aqui. La proteccion de `.claude/` en worktrees la dan el command
-  deny (`\.(gemini|claude)[\\/]`) y el hook pre-commit.
-- Los deny de `write_file` protegen las herramientas nativas de agy pero no las escrituras
-  via shell (ej. `Set-Content`, `echo >`). La proteccion real son las capas 1 y 2.
-- Al crear un worktree nuevo NO es necesario agregar su `.claude/` al deny de agy:
-  el command deny y el pre-commit hook cubren ese caso.
+- Archivo global: `~/.gemini/config/config.json` → `userSettings`.
+- Ajustes recomendados:
+  - `permissionPreset`: `"AGENT_PERMISSION_PRESET_AUTO"`
+  - `enableTerminalSandbox`: `true`
+  - `nonWorkspaceFileAccessPolicy`: `"AGENT_SETTING_POLICY_DENY"`
+- Auditar reglas acumuladas mensualmente con:
+  ```powershell
+  python scripts/auditar-permisos.py
+  ```
+- Si tienes decenas de reglas one-off antiguas en `globalPermissionGrants.allow`, puedes reemplazarlas por el bloque limpio de `seguridad/agy-base.json` para que el preset `Auto` + Sandbox gobierne sin ruido.
