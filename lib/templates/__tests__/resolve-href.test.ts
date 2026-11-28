@@ -8,6 +8,15 @@ describe('resolveSiteHref', () => {
   it('prepends /sites/<slug> for internal page path', () => {
     expect(resolveSiteHref('/exhibitions', 'luna-vega')).toBe('/sites/luna-vega/exhibitions')
   })
+  it('prepends /sites/<slug> for artwork detail paths', () => {
+    expect(resolveSiteHref('/obras/formas-01', 'luna-vega')).toBe('/sites/luna-vega/obras/formas-01')
+  })
+  it('does not double-prefix paths already scoped under /sites/', () => {
+    expect(resolveSiteHref('/sites/luna-vega/obras/formas-01', 'luna-vega')).toBe('/sites/luna-vega/obras/formas-01')
+  })
+  it('does not rewrite protocol-relative paths', () => {
+    expect(resolveSiteHref('//evil.com', 'luna-vega')).toBe('//evil.com')
+  })
   it('passes through https URLs', () => {
     expect(resolveSiteHref('https://example.com', 'luna-vega')).toBe('https://example.com')
   })

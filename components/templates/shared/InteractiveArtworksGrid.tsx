@@ -1,11 +1,11 @@
 'use client'
 
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
-import Link from 'next/link'
 import type { SectionConfig, SiteConfig } from '@/lib/schemas/site-config.schema'
 import type { Artwork } from '@/lib/schemas/works.schema'
 import { ArtworkFrame } from '@/components/ArtworkFrame'
 import { ContentWrapper } from '@/components/ContentWrapper'
+import SafeLink from './SafeLink'
 
 type Props = {
   section: SectionConfig
@@ -31,6 +31,7 @@ function formatPrice(price: number, currency: Artwork['currency']): string {
 export default function InteractiveArtworksGrid({
   section,
   works,
+  artistSlug,
   config,
   templateVariant = 'minimal-gallery',
 }: Props) {
@@ -124,6 +125,11 @@ export default function InteractiveArtworksGrid({
   const contentWidth = config?.sizes.contentWidth ?? (templateVariant === 'minimal-gallery' ? 'mid' : 'full')
   const hoverEffect = config?.animations.hoverEffect ?? 'none'
   const hoverClass = hoverEffect === 'zoom' ? 'qs-hover-zoom' : hoverEffect === 'info' ? 'qs-hover-info' : ''
+  const useNaturalAspect =
+    templateVariant === 'immersive' ||
+    section.variant === 'mosaic' ||
+    section.variant === 'masonry' ||
+    (templateVariant === 'editorial' && section.variant === 'list')
 
   const headingNode =
     title || subtitle ? (
@@ -140,7 +146,7 @@ export default function InteractiveArtworksGrid({
             {title}
           </h2>
         )}
-        {subtitle && <p style={{ margin: 0, opacity: 0.68, fontSize: 'var(--text-sm)' }}>{subtitle}</p>}
+        {subtitle && <p style={{ margin: 0, opacity: 0.72, fontSize: 'var(--text-sm)' }}>{subtitle}</p>}
       </div>
     ) : null
 
@@ -204,7 +210,7 @@ export default function InteractiveArtworksGrid({
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
-          <span style={{ fontSize: 'var(--text-xs)', opacity: 0.65 }}>
+          <span style={{ fontSize: 'var(--text-xs)', opacity: 0.72 }}>
             {filteredWorks.length} {filteredWorks.length === 1 ? 'obra' : 'obras'}
           </span>
           <select
@@ -246,28 +252,85 @@ export default function InteractiveArtworksGrid({
         {controlsBar}
 
         {filteredWorks.length === 0 ? (
-          <div style={{ padding: '2.5rem', textAlign: 'center', opacity: 0.6, border: '1px dashed currentColor', borderRadius: 'var(--radius-card)' }}>
+          <div style={{ padding: '2.5rem', textAlign: 'center', opacity: 0.72, border: '1px dashed currentColor', borderRadius: 'var(--radius-card)' }}>
             No hay obras que coincidan con los filtros seleccionados.
           </div>
         ) : section.variant === 'carousel' ? (
-          <div style={{ display: 'flex', gap: '1.25rem', overflowX: 'auto', scrollSnapType: 'x mandatory', paddingBottom: '1rem' }}>
+          <div style={{ display: 'flex', gap: '1.25rem', overflowX: 'auto', scrollSnapType: 'x mandatory', paddingBottom: '1rem', alignItems: 'flex-start' }}>
             {filteredWorks.map((work) => (
               <ArtworkCard
                 key={work.slug}
                 work={work}
+                artistSlug={artistSlug}
                 treatment={treatment}
                 hoverClass={hoverClass}
                 showPrices={showPrices}
+                naturalAspect={useNaturalAspect}
                 style={{ flex: `0 0 ${imgSize}`, scrollSnapAlign: 'start' }}
               />
+            ))}
+          </div>
+        ) : section.variant === 'list' && templateVariant === 'editorial' ? (
+          <div
+            className="qs-editorial-catalog"
+            style={{
+              display: 'grid',
+              gridTemplateColumns: '1fr',
+              gap: '2rem',
+            }}
+          >
+            {filteredWorks.map((work, idx) => (
+              <SafeLink
+                key={work.slug}
+                href={`/obras/${work.slug}`}
+                artistSlug={artistSlug}
+                className="qs-split-responsive"
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'minmax(140px, 44%) minmax(0, 1fr)',
+                  gap: '1.35rem',
+                  textDecoration: 'none',
+                  color: 'inherit',
+                  alignItems: 'start',
+                  paddingBottom: '1.75rem',
+                  borderBottom: '1px solid rgba(128,128,128,0.2)',
+                }}
+              >
+                <ArtworkFrame treatment={treatment} className={hoverClass}>
+                  <WorkThumbnail work={work} treatment={treatment} naturalAspect />
+                </ArtworkFrame>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', minWidth: 0 }}>
+                  <span
+                    style={{
+                      fontSize: '0.75rem',
+                      letterSpacing: '0.12em',
+                      textTransform: 'uppercase',
+                      opacity: 0.72,
+                    }}
+                  >
+                    N.º {String(idx + 1).padStart(2, '0')} · {work.year}
+                  </span>
+                  <h3 style={{ margin: 0, fontWeight: 600, fontSize: 'var(--text-lg)', lineHeight: 1.25 }}>
+                    {work.title}
+                  </h3>
+                  <p style={{ margin: 0, opacity: 0.78, fontSize: 'var(--text-sm)' }}>{work.medium}</p>
+                  <p style={{ margin: 0, opacity: 0.72, fontSize: 'var(--text-xs)' }}>{work.dimensions}</p>
+                  {showPrices && work.price !== undefined && !work.sold && (
+                    <p style={{ margin: '0.35rem 0 0', fontSize: 'var(--text-sm)', fontWeight: 600 }}>
+                      {formatPrice(work.price, work.currency)}
+                    </p>
+                  )}
+                </div>
+              </SafeLink>
             ))}
           </div>
         ) : section.variant === 'list' ? (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '2.25rem' }}>
             {filteredWorks.map((work) => (
-              <Link
+              <SafeLink
                 key={work.slug}
                 href={`/obras/${work.slug}`}
+                artistSlug={artistSlug}
                 className="qs-split-responsive"
                 style={{
                   display: 'grid',
@@ -279,36 +342,43 @@ export default function InteractiveArtworksGrid({
                 }}
               >
                 <ArtworkFrame treatment={treatment} className={hoverClass}>
-                  <WorkThumbnail work={work} />
+                  <WorkThumbnail work={work} treatment={treatment} naturalAspect={useNaturalAspect} />
                 </ArtworkFrame>
                 <div>
                   <h3 style={{ margin: '0 0 0.45rem', fontWeight: 500, fontSize: 'var(--text-xl)' }}>{work.title}</h3>
-                  <p style={{ margin: '0 0 0.25rem', opacity: 0.65, fontSize: 'var(--text-sm)' }}>
+                  <p style={{ margin: '0 0 0.25rem', opacity: 0.75, fontSize: 'var(--text-sm)' }}>
                     {work.medium}, {work.year}
                   </p>
-                  <p style={{ margin: 0, opacity: 0.5, fontSize: 'var(--text-xs)' }}>{work.dimensions}</p>
+                  <p style={{ margin: 0, opacity: 0.72, fontSize: 'var(--text-xs)' }}>{work.dimensions}</p>
                   {showPrices && work.price !== undefined && !work.sold && (
                     <p style={{ margin: '0.5rem 0 0', fontSize: 'var(--text-sm)', fontWeight: 600 }}>
                       {formatPrice(work.price, work.currency)}
                     </p>
                   )}
                 </div>
-              </Link>
+              </SafeLink>
             ))}
           </div>
         ) : section.variant === 'mosaic' || section.variant === 'masonry' ? (
-          <div style={{ columnCount: colCount, columnGap: '1rem' }}>
+          <div style={{ columnCount: colCount, columnGap: '1.25rem' }}>
             {filteredWorks.map((work) => (
-              <Link
+              <SafeLink
                 key={work.slug}
                 href={`/obras/${work.slug}`}
-                style={{ display: 'block', marginBottom: '1rem', breakInside: 'avoid', textDecoration: 'none', color: 'inherit' }}
+                artistSlug={artistSlug}
+                style={{ display: 'block', marginBottom: '1.25rem', breakInside: 'avoid', textDecoration: 'none', color: 'inherit' }}
               >
                 <ArtworkFrame treatment={treatment} className={hoverClass}>
-                  <WorkThumbnail work={work} aspectRatio="4/3" />
+                  <WorkThumbnail work={work} treatment={treatment} naturalAspect />
                 </ArtworkFrame>
-                <p style={{ margin: '0.45rem 0 0', fontSize: 'var(--text-sm)', fontWeight: 500 }}>{work.title}</p>
-              </Link>
+                <p style={{ margin: '0.45rem 0 0.15rem', fontSize: 'var(--text-sm)', fontWeight: 500 }}>{work.title}</p>
+                <p style={{ margin: 0, fontSize: 'var(--text-xs)', opacity: 0.72 }}>
+                  {work.medium}, {work.year}
+                  {showPrices && work.price !== undefined && !work.sold
+                    ? ` · ${formatPrice(work.price, work.currency)}`
+                    : ''}
+                </p>
+              </SafeLink>
             ))}
           </div>
         ) : (
@@ -318,15 +388,18 @@ export default function InteractiveArtworksGrid({
               display: 'grid',
               gridTemplateColumns: `repeat(${colCount}, 1fr)`,
               gap: 'var(--spacing-md)',
+              alignItems: 'start',
             }}
           >
             {filteredWorks.map((work) => (
               <ArtworkCard
                 key={work.slug}
                 work={work}
+                artistSlug={artistSlug}
                 treatment={treatment}
                 hoverClass={hoverClass}
                 showPrices={showPrices}
+                naturalAspect={useNaturalAspect}
               />
             ))}
           </div>
@@ -367,28 +440,62 @@ function FilterPill({
   )
 }
 
-function WorkThumbnail({ work, aspectRatio = '1' }: { work: Artwork; aspectRatio?: string }) {
+function WorkThumbnail({
+  work,
+  treatment,
+  naturalAspect = false,
+}: {
+  work: Artwork
+  treatment: SiteConfig['styleTokens']['artworkTreatment']
+  naturalAspect?: boolean
+}) {
   const [hovered, setHovered] = useState(false)
   const secondaryImg = work.images.length > 1 ? work.images[1] : null
   const activeSrc = hovered && secondaryImg ? secondaryImg : work.images[0]
+  const isBleed = treatment === 'bleed'
+
+  const containerStyle: CSSProperties = naturalAspect
+    ? {
+        position: 'relative',
+        overflow: 'hidden',
+        borderRadius: 'var(--radius-media)',
+        backgroundColor: 'var(--color-surface, rgba(128,128,128,0.08))',
+      }
+    : {
+        position: 'relative',
+        aspectRatio: '4/5',
+        overflow: 'hidden',
+        borderRadius: 'var(--radius-media)',
+        backgroundColor: 'var(--color-surface, rgba(128,128,128,0.08))',
+        padding: isBleed ? 0 : 'clamp(0.65rem, 1.5vw, 1rem)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        boxSizing: 'border-box',
+      }
+
+  const imageStyle: CSSProperties = naturalAspect
+    ? { width: '100%', height: 'auto', display: 'block' }
+    : {
+        width: '100%',
+        height: '100%',
+        objectFit: isBleed ? 'cover' : 'contain',
+        display: 'block',
+      }
 
   return (
     <div
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
-      style={{
-        position: 'relative',
-        aspectRatio,
-        overflow: 'hidden',
-        borderRadius: 'var(--radius-media)',
-        backgroundColor: 'rgba(128,128,128,0.08)',
-      }}
+      style={containerStyle}
     >
       <img
         src={activeSrc}
         alt={work.title}
         data-artwork-image="true"
-        style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+        loading="lazy"
+        decoding="async"
+        style={imageStyle}
       />
       {work.sold && (
         <span
@@ -400,7 +507,7 @@ function WorkThumbnail({ work, aspectRatio = '1' }: { work: Artwork; aspectRatio
             borderRadius: '9999px',
             backgroundColor: 'var(--color-text)',
             color: 'var(--color-bg)',
-            fontSize: '0.68rem',
+            fontSize: '0.75rem',
             fontWeight: 700,
             letterSpacing: '0.08em',
             textTransform: 'uppercase',
@@ -415,42 +522,47 @@ function WorkThumbnail({ work, aspectRatio = '1' }: { work: Artwork; aspectRatio
 
 function ArtworkCard({
   work,
+  artistSlug,
   treatment,
   hoverClass,
   showPrices,
+  naturalAspect,
   style,
 }: {
   work: Artwork
+  artistSlug: string
   treatment: SiteConfig['styleTokens']['artworkTreatment']
   hoverClass: string
   showPrices: boolean
+  naturalAspect: boolean
   style?: CSSProperties
 }) {
   return (
-    <Link
+    <SafeLink
       href={`/obras/${work.slug}`}
+      artistSlug={artistSlug}
       style={{ textDecoration: 'none', color: 'inherit', display: 'block', ...style }}
     >
       <ArtworkFrame treatment={treatment} className={hoverClass}>
         <div style={{ position: 'relative' }}>
-          <WorkThumbnail work={work} />
+          <WorkThumbnail work={work} treatment={treatment} naturalAspect={naturalAspect} />
           {hoverClass === 'qs-hover-info' && (
             <div className="qs-hover-info-overlay">
               <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>{work.title}</span>
-              <span style={{ fontSize: '0.75rem', opacity: 0.8 }}>{work.year}</span>
+              <span style={{ fontSize: '0.75rem', opacity: 0.85 }}>{work.year}</span>
             </div>
           )}
         </div>
       </ArtworkFrame>
       <div style={{ padding: '0.65rem 0.15rem' }}>
         <p style={{ margin: '0 0 0.25rem', fontWeight: 600, fontSize: 'var(--text-base)' }}>{work.title}</p>
-        <p style={{ margin: 0, opacity: 0.65, fontSize: 'var(--text-xs)' }}>
+        <p style={{ margin: 0, opacity: 0.72, fontSize: 'var(--text-xs)' }}>
           {work.medium}, {work.year}
           {showPrices && work.price !== undefined && !work.sold
             ? ` · ${formatPrice(work.price, work.currency)}`
             : ''}
         </p>
       </div>
-    </Link>
+    </SafeLink>
   )
 }

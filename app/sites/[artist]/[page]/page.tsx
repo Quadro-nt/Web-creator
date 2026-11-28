@@ -33,10 +33,21 @@ async function safeGetWorks(slug: string) {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const config = await safeGetPublished(params.artist)
   const page = config?.pages?.find((p) => p.slug === params.page && !p.isHome)
+  const title =
+    page?.seo?.title ?? page?.title ?? config?.identity.siteTitle ?? params.artist
+  const description = page?.seo?.description
+  const ogImage = page?.seo?.ogImageUrl ?? config?.identity.ogImageUrl ?? config?.identity.coverImageUrl
+
   return {
-    title:
-      page?.seo?.title ?? page?.title ?? config?.identity.siteTitle ?? params.artist,
-    description: page?.seo?.description,
+    title,
+    ...(description ? { description } : {}),
+    openGraph: {
+      title,
+      ...(description ? { description } : {}),
+      ...(ogImage ? { images: [{ url: ogImage }] } : {}),
+      type: 'website',
+    },
+    ...(config?.identity.faviconUrl ? { icons: { icon: config.identity.faviconUrl } } : {}),
   }
 }
 

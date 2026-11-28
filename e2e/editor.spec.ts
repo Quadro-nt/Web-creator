@@ -4,7 +4,7 @@ import { backupArtistConfig, resetArtistConfig, getEditorUrl, getPublicSiteUrl }
 const ARTIST_SLUG = 'luna-vega'
 const TOKEN = 'token-luna-vega-dev'
 const PUBLISHED_TITLE = 'Luna Vega — Arte'
-const DRAFT_TITLE = 'Luna Vega — Arte y Diseno'
+const DRAFT_TITLE = 'Luna Vega — Arte y Diseño'
 
 test.describe('Editor', () => {
   test.beforeAll(() => {

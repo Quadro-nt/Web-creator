@@ -52,10 +52,10 @@ export default function Nav({ config, inPreview = false }: Props) {
           <div style={{ flex: 1 }}>
             <p
               style={{
-                fontSize: '0.65rem',
-                letterSpacing: '0.3em',
+                fontSize: '0.75rem',
+                letterSpacing: '0.22em',
                 textTransform: 'uppercase',
-                opacity: 0.5,
+                opacity: 0.72,
                 marginBottom: '3rem',
               }}
             >
@@ -66,8 +66,8 @@ export default function Nav({ config, inPreview = false }: Props) {
                 <li key={item.id} style={{ marginBottom: '0.75rem', display: 'flex', alignItems: 'baseline', gap: '0.75rem' }}>
                   <span
                     style={{
-                      fontSize: '0.6rem',
-                      opacity: 0.35,
+                      fontSize: '0.75rem',
+                      opacity: 0.72,
                       letterSpacing: '0.1em',
                       minWidth: '1.5rem',
                       fontWeight: 600,
@@ -83,7 +83,7 @@ export default function Nav({ config, inPreview = false }: Props) {
                       fontSize: '0.9rem',
                       letterSpacing: '0.02em',
                       fontWeight: 600,
-                      opacity: 0.75,
+                      opacity: 0.82,
                     }}
                   >
                     {item.label}
@@ -97,8 +97,8 @@ export default function Nav({ config, inPreview = false }: Props) {
             target="_blank"
             rel="noopener noreferrer"
             style={{
-              fontSize: '0.65rem',
-              opacity: 0.35,
+              fontSize: '0.75rem',
+              opacity: 0.72,
               color: 'var(--color-text)',
               textDecoration: 'none',
               letterSpacing: '0.08em',
@@ -133,11 +133,11 @@ export default function Nav({ config, inPreview = false }: Props) {
         >
           <span
             style={{
-              fontSize: '0.65rem',
-              letterSpacing: '0.3em',
+              fontSize: '0.75rem',
+              letterSpacing: '0.22em',
               textTransform: 'uppercase',
               fontWeight: 700,
-              opacity: 0.75,
+              opacity: 0.85,
             }}
           >
             {brandNode}
@@ -182,7 +182,7 @@ export default function Nav({ config, inPreview = false }: Props) {
                     padding: '0.9rem 0',
                   }}
                 >
-                  <span style={{ fontSize: '0.6rem', opacity: 0.35, fontWeight: 600 }}>
+                  <span style={{ fontSize: '0.75rem', opacity: 0.72, fontWeight: 600 }}>
                     {String(item.index).padStart(2, '0')}
                   </span>
                   <a
@@ -207,8 +207,8 @@ export default function Nav({ config, inPreview = false }: Props) {
               target="_blank"
               rel="noopener noreferrer"
               style={{
-                fontSize: '0.65rem',
-                opacity: 0.35,
+                fontSize: '0.75rem',
+                opacity: 0.72,
                 color: 'var(--color-text)',
                 textDecoration: 'none',
                 display: 'block',
@@ -226,129 +226,101 @@ export default function Nav({ config, inPreview = false }: Props) {
   }
 
   return (
-    <>
-      <nav
-        className="qs-section-pad"
-        aria-label="Masthead"
+    <nav
+      className="qs-section-pad"
+      aria-label="Masthead"
+      style={{
+        ...positionStyle,
+        top: 0,
+        left: 0,
+        right: 0,
+        backgroundColor: 'var(--color-bg)',
+        borderBottom: '2px solid var(--color-text)',
+        zIndex: 100,
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '0.5rem',
+        padding: 'clamp(1.25rem, 3vw, 2rem) clamp(1.5rem, 4vw, 3rem) 0.75rem',
+      }}
+    >
+      <div
         style={{
-          ...positionStyle,
-          top: 0,
-          left: 0,
-          right: 0,
-          backgroundColor: 'var(--color-bg)',
-          borderBottom: '2px solid var(--color-text)',
-          zIndex: 100,
           display: 'flex',
-          flexDirection: 'column',
-          gap: '0.5rem',
-          padding: 'clamp(1.25rem, 3vw, 2rem) clamp(1.5rem, 4vw, 3rem) 0.75rem',
+          alignItems: 'baseline',
+          justifyContent: 'space-between',
+          gap: '1rem',
+          flexWrap: 'wrap',
         }}
       >
-        <div
+        <span
           style={{
-            display: 'flex',
-            alignItems: 'baseline',
-            justifyContent: 'space-between',
-            gap: '1rem',
-            flexWrap: 'wrap',
+            fontFamily: 'var(--font-heading)',
+            fontSize: 'clamp(1.6rem, 3.4vw, 2.5rem)',
+            letterSpacing: '-0.015em',
+            color: 'var(--color-text)',
+            fontWeight: 700,
+            lineHeight: 1,
           }}
         >
-          <span
-            style={{
-              fontFamily: 'var(--font-heading)',
-              fontSize: 'clamp(1.6rem, 3.4vw, 2.5rem)',
-              letterSpacing: '-0.015em',
-              color: 'var(--color-text)',
-              fontWeight: 700,
-              lineHeight: 1,
-            }}
-          >
-            {brandNode}
-          </span>
-          <span
-            style={{
-              fontSize: '0.65rem',
-              letterSpacing: '0.3em',
-              textTransform: 'uppercase',
-              opacity: 0.55,
-              fontWeight: 600,
-            }}
-          >
-            Edición en curso
-          </span>
-        </div>
-        <ul
-          className="qs-nav-links"
+          {brandNode}
+        </span>
+        <span
           style={{
-            listStyle: 'none',
-            margin: 0,
-            padding: '0.5rem 0 0',
-            display: 'flex',
-            gap: '0',
-            alignItems: 'center',
-            borderTop: '1px solid rgba(128,128,128,0.22)',
-            flexWrap: 'wrap',
+            fontSize: '0.75rem',
+            letterSpacing: '0.24em',
+            textTransform: 'uppercase',
+            opacity: 0.72,
+            fontWeight: 600,
           }}
         >
-          {visibleSections.map((item, i) => (
-            <li key={item.id} style={{ display: 'flex', alignItems: 'center' }}>
-              {i > 0 && (
-                <span
-                  style={{
-                    padding: '0 0.9rem',
-                    opacity: 0.25,
-                    fontSize: '0.7rem',
-                    color: 'var(--color-text)',
-                  }}
-                >
-                  ·
-                </span>
-              )}
-              <a
-                href={`#${item.id}`}
+          Catálogo razonado
+        </span>
+      </div>
+      <ul
+        className="qs-nav-links"
+        style={{
+          listStyle: 'none',
+          margin: 0,
+          padding: '0.5rem 0 0',
+          display: 'flex',
+          gap: '0',
+          alignItems: 'center',
+          borderTop: '1px solid rgba(128,128,128,0.22)',
+          flexWrap: 'wrap',
+        }}
+      >
+        {visibleSections.map((item, i) => (
+          <li key={item.id} style={{ display: 'flex', alignItems: 'center' }}>
+            {i > 0 && (
+              <span
                 style={{
-                  textDecoration: 'none',
+                  padding: '0 0.9rem',
+                  opacity: 0.72,
+                  fontSize: '0.75rem',
                   color: 'var(--color-text)',
-                  fontSize: '0.72rem',
-                  letterSpacing: '0.18em',
-                  textTransform: 'uppercase',
-                  fontWeight: 700,
-                  opacity: 0.78,
-                  padding: '0.35rem 0',
                 }}
               >
-                {item.label}
-              </a>
-            </li>
-          ))}
-        </ul>
-      </nav>
-      {!inPreview && !config.footer?.enabled && (
-        <footer
-          style={{
-            position: 'fixed',
-            bottom: '1rem',
-            right: '1.5rem',
-            zIndex: 50,
-          }}
-        >
-          <a
-            href="https://quadro-nt.com"
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{
-              fontSize: '0.65rem',
-              opacity: 0.3,
-              color: 'var(--color-text)',
-              textDecoration: 'none',
-              letterSpacing: '0.08em',
-              textTransform: 'uppercase',
-            }}
-          >
-            Hecho con Quadro
-          </a>
-        </footer>
-      )}
-    </>
+                ·
+              </span>
+            )}
+            <a
+              href={`#${item.id}`}
+              style={{
+                textDecoration: 'none',
+                color: 'var(--color-text)',
+                fontSize: '0.75rem',
+                letterSpacing: '0.18em',
+                textTransform: 'uppercase',
+                fontWeight: 700,
+                opacity: 0.85,
+                padding: '0.35rem 0',
+              }}
+            >
+              {item.label}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </nav>
   )
 }

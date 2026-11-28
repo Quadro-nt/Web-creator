@@ -3,7 +3,7 @@
   "works": [
     {
       "slug": "instalacion-01",
-      "title": "Camara negra",
+      "title": "Cámara negra",
       "year": 2024,
       "medium": "acero oxidado y luz",
       "dimensions": "300 x 200 x 200 cm",
@@ -11,20 +11,20 @@
       "currency": "USD",
       "sold": false,
       "images": ["https://picsum.photos/seed/sofia-1/800/1000"],
-      "description": "Habitacion cerrada en la que solo entra un hilo de luz por hora.",
+      "description": "Habitación cerrada en la que solo entra un hilo de luz por hora.",
       "tags": ["instalacion", "luz"]
     },
     {
       "slug": "instalacion-02",
       "title": "Muda",
       "year": 2023,
-      "medium": "ceramica negra",
+      "medium": "cerámica negra",
       "dimensions": "90 x 40 x 40 cm",
       "price": 1800,
       "currency": "USD",
       "sold": false,
       "images": ["https://picsum.photos/seed/sofia-2/800/1000"],
-      "description": "Serie de tres figuras sin rostro, cocidas en atmosfera reductora.",
+      "description": "Serie de tres figuras sin rostro, cocidas en atmósfera reductora.",
       "tags": ["escultura", "ceramica"]
     },
     {
@@ -44,13 +44,13 @@
       "slug": "instalacion-04",
       "title": "Sala en silencio",
       "year": 2023,
-      "medium": "instalacion sonora",
+      "medium": "instalación sonora",
       "dimensions": "variable",
       "price": 3200,
       "currency": "USD",
       "sold": true,
       "images": ["https://picsum.photos/seed/sofia-4/800/1000"],
-      "description": "Vendida al Museo MALI para su coleccion permanente.",
+      "description": "Vendida al Museo MALI para su colección permanente.",
       "tags": ["instalacion", "destacada"]
     },
     {
@@ -70,7 +70,7 @@
       "slug": "instalacion-06",
       "title": "Duplo",
       "year": 2022,
-      "medium": "ceramica y espejo",
+      "medium": "cerámica y espejo",
       "dimensions": "50 x 50 x 120 cm",
       "price": 1500,
       "currency": "USD",
@@ -89,7 +89,7 @@
       "currency": "USD",
       "sold": false,
       "images": ["https://picsum.photos/seed/sofia-7/800/1000"],
-      "description": "Serie hecha con restos del incendio de 2023 en Ancash.",
+      "description": "Serie hecha con restos del incendio de 2023 en Áncash.",
       "tags": ["escultura", "madera"]
     },
     {
@@ -102,7 +102,7 @@
       "currency": "USD",
       "sold": false,
       "images": ["https://picsum.photos/seed/sofia-8/800/1000"],
-      "description": "Instalacion para espacio cubico, requiere oscuridad total.",
+      "description": "Instalación para espacio cúbico, requiere oscuridad total.",
       "tags": ["instalacion", "textil"]
     },
     {
@@ -115,7 +115,7 @@
       "currency": "USD",
       "sold": false,
       "images": ["https://picsum.photos/seed/sofia-9/800/1000"],
-      "description": "Pieza unica de porcelana sin esmaltar.",
+      "description": "Pieza única de porcelana sin esmaltar.",
       "tags": ["escultura", "porcelana"]
     },
     {
@@ -128,7 +128,7 @@
       "currency": "USD",
       "sold": false,
       "images": ["https://picsum.photos/seed/sofia-10/800/1000"],
-      "description": "Figura vertical, pieza central de la exposicion 2025.",
+      "description": "Figura vertical, pieza central de la exposición 2025.",
       "tags": ["escultura", "bronce", "destacada"]
     },
     {
@@ -148,13 +148,13 @@
       "slug": "instalacion-12",
       "title": "Cuarto propio",
       "year": 2024,
-      "medium": "instalacion mixta",
+      "medium": "instalación mixta",
       "dimensions": "400 x 400 x 300 cm",
       "price": 7200,
       "currency": "USD",
       "sold": false,
       "images": ["https://picsum.photos/seed/sofia-12/800/1000"],
-      "description": "Habitacion habitable, ocho objetos dispuestos en penumbra.",
+      "description": "Habitación habitable, ocho objetos dispuestos en penumbra.",
       "tags": ["instalacion", "gran-formato"]
     }
   ]

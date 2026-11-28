@@ -2,6 +2,7 @@
 import { Button } from '@/components/Button'
 import { ContentWrapper } from '@/components/ContentWrapper'
 import { buildWhatsappUrl, sanitizeSocialHandle } from '@/components/templates/shared/template-helpers'
+import EditorialContactForm from './EditorialContactForm'
 
 
 type Props = {
@@ -63,65 +64,7 @@ export default function Contact({ section, config }: Props) {
           <div className="qs-split-responsive" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4rem', alignItems: 'start' }}>
             {infoBlock}
             <div>
-              {email && (
-                <form action={`mailto:${email}`} method="post" encType="text/plain">
-                  <div style={{ marginBottom: '2rem' }}>
-                    <label htmlFor="ed-contact-name" style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.7rem', letterSpacing: '0.2em', textTransform: 'uppercase', opacity: 0.85 }}>
-                      Nombre
-                    </label>
-                    <input
-                      id="ed-contact-name"
-                      name="nombre"
-                      type="text"
-                      style={{
-                        width: '100%',
-                        padding: '0.75rem 0',
-                        border: 'none',
-                        borderBottom: '1px solid var(--qs-border)',
-                        background: 'transparent',
-                        color: 'var(--color-bg)',
-                        fontSize: 'var(--text-base)',
-                      }}
-                    />
-                  </div>
-                  <div style={{ marginBottom: '2rem' }}>
-                    <label htmlFor="ed-contact-message" style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.7rem', letterSpacing: '0.2em', textTransform: 'uppercase', opacity: 0.85 }}>
-                      Mensaje
-                    </label>
-                    <textarea
-                      id="ed-contact-message"
-                      name="mensaje"
-                      rows={4}
-                      style={{
-                        width: '100%',
-                        padding: '0.75rem 0',
-                        border: 'none',
-                        borderBottom: '1px solid var(--qs-border)',
-                        background: 'transparent',
-                        color: 'var(--color-bg)',
-                        fontSize: 'var(--text-base)',
-                        resize: 'none',
-                      }}
-                    />
-                  </div>
-                  <button
-                    type="submit"
-                    style={{
-                      padding: '0.9rem 3rem',
-                      backgroundColor: 'var(--color-accent)',
-                      color: 'var(--color-on-accent, #ffffff)',
-                      border: 'none',
-                      cursor: 'pointer',
-                      fontSize: '0.8rem',
-                      letterSpacing: '0.15em',
-                      textTransform: 'uppercase',
-                      fontWeight: 600,
-                    }}
-                  >
-                    Enviar
-                  </button>
-                </form>
-              )}
+              {email && <EditorialContactForm email={email} siteTitle={config?.identity.siteTitle} />}
             </div>
           </div>
         </ContentWrapper>

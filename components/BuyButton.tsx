@@ -58,7 +58,7 @@ export function BuyButton({ artwork, artistSlug, config }: Props) {
 
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? ''
   const artworkUrl = buildArtworkUrl(baseUrl, artistSlug, artwork.slug)
-  const message = `Hola, me interesa la obra '${artwork.title}' (${artwork.year}) de ${artistSlug}. Mas info en: ${artworkUrl}`
+  const message = `Hola, me interesa la obra '${artwork.title}' (${artwork.year}) de ${artistSlug}. Más info en: ${artworkUrl}`
   const url = `https://wa.me/${number}?text=${encodeURIComponent(message)}`
 
   const shape = config ? config.button.shape : 'pill'
@@ -66,8 +66,8 @@ export function BuyButton({ artwork, artistSlug, config }: Props) {
   const label = config
     ? artwork.price === undefined
       ? 'Consultar precio'
-      : config.button.buyText || 'Comprar via WhatsApp'
-    : 'Comprar via WhatsApp'
+      : config.button.buyText || 'Comprar vía WhatsApp'
+    : 'Comprar vía WhatsApp'
 
   return (
     <Button href={url} shape={shape} style={style}>

@@ -35,7 +35,7 @@
       "type": "cover",
       "variant": "minimal",
       "visible": true,
-      "content": { "title": "Luna Vega", "subtitle": "Pintora — Lima, Peru" }
+      "content": { "title": "Luna Vega", "subtitle": "Pintora — Lima, Perú" }
     },
     {
       "id": "s2",
@@ -50,7 +50,7 @@
       "variant": "simple",
       "visible": true,
       "content": {
-        "text": "Luna Vega es una pintora limena que explora la abstraccion geometrica y el color como lenguaje emocional. Sus obras cuelgan en colecciones privadas de Peru y Chile."
+        "text": "Luna Vega es una pintora limeña que explora la abstracción geométrica y el color como lenguaje emocional. Sus obras cuelgan en colecciones privadas de Perú y Chile."
       }
     },
     {
@@ -60,8 +60,8 @@
       "visible": true,
       "content": {
         "exhibitions": [
-          { "title": "Formas Silenciosas", "year": 2024, "place": "Galeria Lucia, Lima" },
-          { "title": "Cromatica", "year": 2023, "place": "CC Ricardo Palma, Miraflores" }
+          { "title": "Formas Silenciosas", "year": 2024, "place": "Galería Lucía, Lima" },
+          { "title": "Cromática", "year": 2023, "place": "CC Ricardo Palma, Miraflores" }
         ]
       }
     },
@@ -74,7 +74,7 @@
     }
   ],
   "identity": {
-    "siteTitle": "Luna Vega — Arte y Diseno",
+    "siteTitle": "Luna Vega — Arte y Diseño",
     "coverImageUrl": "https://picsum.photos/seed/luna-cover/1600/900",
     "ogImageUrl": "https://picsum.photos/seed/luna-og/1200/630"
   }

@@ -12,7 +12,43 @@ type Props = {
 
 export default function SiteFooter({ config, artistSlug, inPreview = false, onSelectChrome }: Props) {
   const footer = config.footer
-  if (!footer?.enabled) return null
+  if (!footer?.enabled) {
+    if (inPreview) return null
+    return (
+      <footer
+        className="qs-section-pad"
+        style={{
+          borderTop: '1px solid rgba(128,128,128,0.18)',
+          padding: '1.75rem clamp(1.25rem, 4vw, 2.5rem)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: '1rem',
+          flexWrap: 'wrap',
+          fontSize: '0.75rem',
+          color: 'var(--color-text)',
+        }}
+      >
+        <span style={{ opacity: 0.72, fontSize: '0.75rem' }}>
+          © {new Date().getFullYear()} {config.identity.siteTitle}
+        </span>
+        <a
+          href="https://quadro-nt.com"
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{
+            color: 'inherit',
+            opacity: 0.72,
+            fontSize: '0.75rem',
+            textDecoration: 'none',
+            letterSpacing: '0.04em',
+          }}
+        >
+          Hecho con Quadro
+        </a>
+      </footer>
+    )
+  }
 
   const bgColor = footer.backgroundColor || '#000000'
   const fgColor = footer.textColor || '#ffffff'
@@ -141,7 +177,7 @@ export default function SiteFooter({ config, artistSlug, inPreview = false, onSe
           gap: '1rem',
           flexWrap: 'wrap',
           fontSize: '0.75rem',
-          opacity: 0.6,
+          opacity: 0.72,
         }}
       >
         <span>{footer.copyrightText || `© ${new Date().getFullYear()} ${config.identity.siteTitle}`}</span>

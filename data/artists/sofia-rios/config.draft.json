@@ -12,7 +12,7 @@
   "button": {
     "shape": "rounded",
     "style": "outlined",
-    "buyText": "Solicitar informacion"
+    "buyText": "Solicitar información"
   },
   "sizes": {
     "typeScale": "large",
@@ -36,8 +36,8 @@
       "variant": "cinematic",
       "visible": true,
       "content": {
-        "title": "Sofia Rios",
-        "subtitle": "Escultura e instalacion"
+        "title": "Sofía Ríos",
+        "subtitle": "Escultura e instalación"
       }
     },
     {
@@ -53,7 +53,7 @@
       "variant": "simple",
       "visible": true,
       "content": {
-        "text": "Sofia Rios trabaja la escultura y la instalacion desde el gesto minimo. Sus piezas buscan la oscuridad como material y el silencio como forma."
+        "text": "Sofía Ríos trabaja la escultura y la instalación desde el gesto mínimo. Sus piezas buscan la oscuridad como material y el silencio como forma."
       }
     },
     {
@@ -64,8 +64,8 @@
       "content": {
         "exhibitions": [
           { "title": "Cuarto propio", "year": 2024, "place": "MALI, Lima" },
-          { "title": "Peso ausente", "year": 2023, "place": "Galeria 80m2, Barranco" },
-          { "title": "Muda", "year": 2022, "place": "Fundacion Wiese, Lima" }
+          { "title": "Peso ausente", "year": 2023, "place": "Galería 80m2, Barranco" },
+          { "title": "Muda", "year": 2022, "place": "Fundación Wiese, Lima" }
         ]
       }
     },
@@ -81,7 +81,7 @@
     }
   ],
   "identity": {
-    "siteTitle": "Sofia Rios — Estudio",
+    "siteTitle": "Sofía Ríos — Estudio",
     "coverImageUrl": "https://picsum.photos/seed/sofia-cover/1600/900",
     "ogImageUrl": "https://picsum.photos/seed/sofia-og/1200/630"
   }

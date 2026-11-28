@@ -85,8 +85,8 @@ export default function Nav({ config, inPreview = false }: Props) {
             target="_blank"
             rel="noopener noreferrer"
             style={{
-              fontSize: '0.7rem',
-              opacity: 0.4,
+              fontSize: '0.75rem',
+              opacity: 0.72,
               color: 'var(--color-text)',
               textDecoration: 'none',
               letterSpacing: '0.05em',
@@ -170,8 +170,8 @@ export default function Nav({ config, inPreview = false }: Props) {
               target="_blank"
               rel="noopener noreferrer"
               style={{
-                fontSize: '0.7rem',
-                opacity: 0.4,
+                fontSize: '0.75rem',
+                opacity: 0.72,
                 color: 'var(--color-text)',
                 textDecoration: 'none',
                 display: 'block',
@@ -248,30 +248,6 @@ export default function Nav({ config, inPreview = false }: Props) {
           ))}
         </ul>
       </nav>
-      {!inPreview && !config.footer?.enabled && (
-        <footer
-          style={{
-            position: 'fixed',
-            bottom: '1rem',
-            right: '1.5rem',
-            zIndex: 50,
-          }}
-        >
-          <a
-            href="https://quadro-nt.com"
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{
-              fontSize: '0.7rem',
-              opacity: 0.35,
-              color: 'var(--color-text)',
-              textDecoration: 'none',
-            }}
-          >
-            Hecho con Quadro
-          </a>
-        </footer>
-      )}
     </>
   )
 }

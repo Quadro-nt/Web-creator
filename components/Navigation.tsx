@@ -3,14 +3,14 @@
 import { useState, useEffect } from 'react'
 import type { SectionConfig, SiteConfig } from '@/lib/schemas/site-config.schema'
 
-
 interface NavigationProps {
   config: SiteConfig
   sections: SectionConfig[]
   artistSlug: string
+  inPreview?: boolean
 }
 
-export function Navigation({ config, sections }: NavigationProps) {
+export function Navigation({ config, sections, inPreview = false }: NavigationProps) {
   const { type, sticky } = config.navigation
   const visibleSections = sections.filter((s) => s.visible)
   const [scrolled, setScrolled] = useState(false)
@@ -33,24 +33,28 @@ export function Navigation({ config, sections }: NavigationProps) {
     </a>
   ))
 
+  const showStaticColophon = !config.footer?.enabled && !inPreview
+
   if (type === 'top') {
     return (
-      <nav
-        className={[
-          'w-full px-6 py-4 flex items-center justify-between gap-6 bg-[var(--color-bg)]',
-          sticky ? 'sticky top-0 z-50' : '',
-          scrolled ? 'shadow-md' : '',
-        ]
-          .filter(Boolean)
-          .join(' ')}
-        aria-label="Site navigation"
-      >
-        <span className="font-semibold text-[var(--color-text)]">
-          {config.identity.siteTitle}
-        </span>
-        <div className="flex items-center gap-6">{links}</div>
-        <QuadroCredit />
-      </nav>
+      <>
+        <nav
+          className={[
+            'w-full px-6 py-4 flex items-center justify-between gap-6 bg-[var(--color-bg)]',
+            sticky ? 'sticky top-0 z-50' : '',
+            scrolled ? 'shadow-md' : '',
+          ]
+            .filter(Boolean)
+            .join(' ')}
+          aria-label="Site navigation"
+        >
+          <span className="font-semibold text-[var(--color-text)]">
+            {config.identity.siteTitle}
+          </span>
+          <div className="flex items-center gap-6">{links}</div>
+        </nav>
+        {showStaticColophon && <StaticColophon />}
+      </>
     )
   }
 
@@ -80,6 +84,7 @@ export function Navigation({ config, sections }: NavigationProps) {
           open={menuOpen}
           onToggle={() => setMenuOpen((o) => !o)}
         />
+        {showStaticColophon && <StaticColophon />}
       </>
     )
   }
@@ -93,18 +98,41 @@ export function Navigation({ config, sections }: NavigationProps) {
         onToggle={() => setMenuOpen((o) => !o)}
         fullscreen
       />
-      <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-10">
-        <QuadroCredit />
-      </div>
+      {showStaticColophon && <StaticColophon />}
     </>
+  )
+}
+
+function StaticColophon() {
+  return (
+    <footer
+      style={{
+        padding: '1.5rem',
+        textAlign: 'center',
+        borderTop: '1px solid rgba(128,128,128,0.18)',
+      }}
+    >
+      <QuadroCredit />
+    </footer>
   )
 }
 
 function QuadroCredit() {
   return (
-    <span className="text-xs text-[var(--color-text)] opacity-40 select-none whitespace-nowrap">
+    <a
+      href="https://quadro-nt.com"
+      target="_blank"
+      rel="noopener noreferrer"
+      style={{
+        color: 'var(--color-text)',
+        opacity: 0.72,
+        fontSize: '0.75rem',
+        textDecoration: 'none',
+        whiteSpace: 'nowrap',
+      }}
+    >
       Hecho con Quadro
-    </span>
+    </a>
   )
 }
 

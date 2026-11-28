@@ -50,6 +50,8 @@ describe('generateTokenStyles', () => {
     const css = generateTokenStyles(defaultSiteConfig, '.qs-site-root')
     expect(css).toContain('.qs-site-root {')
     expect(css).toContain('.qs-site-root .artwork-treatment')
+    expect(css).toContain('@container qs-canvas (min-width: 860px)')
+    expect(css).toContain('.qs-site-root .qs-editorial-catalog')
     expect(css).not.toContain(':root {')
   })
 

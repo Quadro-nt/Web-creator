@@ -5,8 +5,8 @@ test.describe('Artwork page', () => {
   test('Pagina de obra muestra la ficha tecnica', async ({ page }) => {
     await page.goto(getArtworkUrl('luna-vega', 'formas-01'))
     await expect(page.getByRole('heading', { level: 1 })).toContainText('Amanecer en el patio')
-    await expect(page.getByText('Tecnica')).toBeVisible()
-    await expect(page.getByText('oleo sobre lienzo')).toBeVisible()
+    await expect(page.getByText('Técnica')).toBeVisible()
+    await expect(page.getByText('óleo sobre lienzo')).toBeVisible()
   })
 
   test('Boton de WhatsApp en obra no vendida', async ({ page }) => {

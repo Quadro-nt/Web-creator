@@ -33,16 +33,18 @@ describe('BuyButton', () => {
 
   it('renders the button with an href containing wa.me when the artwork is not sold', () => {
     render(<BuyButton artwork={baseArtwork} artistSlug="luna-vega" />)
-    const link = screen.getByText('Comprar via WhatsApp') as HTMLAnchorElement
+    const link = screen.getByText('Comprar vía WhatsApp') as HTMLAnchorElement
     expect(link.tagName.toLowerCase()).toBe('a')
     expect(link.getAttribute('href')).toContain('wa.me')
   })
 
-  it('includes the artwork title in the prebuilt WhatsApp message', () => {
+  it('includes the artwork title and accented copy in the prebuilt WhatsApp message', () => {
     render(<BuyButton artwork={baseArtwork} artistSlug="luna-vega" />)
-    const link = screen.getByText('Comprar via WhatsApp') as HTMLAnchorElement
+    const link = screen.getByText('Comprar vía WhatsApp') as HTMLAnchorElement
     const href = link.getAttribute('href') ?? ''
-    expect(decodeURIComponent(href)).toContain(baseArtwork.title)
+    const decoded = decodeURIComponent(href)
+    expect(decoded).toContain(baseArtwork.title)
+    expect(decoded).toContain('Más info en:')
   })
 
   it('renders nothing when the artwork is sold', () => {

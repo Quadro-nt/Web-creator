@@ -32,7 +32,7 @@
   "pages": [
     {
       "slug": "home",
-      "title": "Marco Torres Fotografia",
+      "title": "Marco Torres Fotografía",
       "isHome": true,
       "showInNav": true,
       "sections": [
@@ -43,7 +43,7 @@
           "visible": true,
           "content": {
             "title": "Marco Torres",
-            "subtitle": "Fotografia documental — Lima"
+            "subtitle": "Fotografía documental — Lima"
           }
         },
         {
@@ -59,7 +59,7 @@
           "variant": "with-photo",
           "visible": true,
           "content": {
-            "text": "Marco Torres (Lima, 1988) retrata la ciudad desde sus esquinas. Trabaja en analogico y digital, siempre sin flash, siempre a pie.",
+            "text": "Marco Torres (Lima, 1988) retrata la ciudad desde sus esquinas. Trabaja en analógico y digital, siempre sin flash, siempre a pie.",
             "photoUrl": "https://picsum.photos/seed/marco-bio/600/800"
           }
         },
@@ -71,7 +71,7 @@
           "content": {
             "exhibitions": [
               { "title": "Calles paralelas", "year": 2024, "place": "Centro de la Imagen, Lima" },
-              { "title": "Rutas cortas", "year": 2022, "place": "Galeria Impakto, Barranco" },
+              { "title": "Rutas cortas", "year": 2022, "place": "Galería Impakto, Barranco" },
               { "title": "Primer plano", "year": 2020, "place": "ICPNA, Miraflores" }
             ]
           }
@@ -90,7 +90,7 @@
     }
   ],
   "identity": {
-    "siteTitle": "Marco Torres Fotografia",
+    "siteTitle": "Marco Torres Fotografía",
     "coverImageUrl": "https://picsum.photos/seed/marco-cover/1600/900",
     "ogImageUrl": "https://picsum.photos/seed/marco-og/1200/630"
   }
