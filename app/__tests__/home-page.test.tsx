@@ -62,4 +62,12 @@ describe('HomePage (Quadro Sites landing)', () => {
     expect(hrefs).toContain('/sites/marco-torres')
     expect(hrefs).toContain('/sites/sofia-rios')
   })
+
+  it('includes a skip link pointing to #main-content', () => {
+    render(<HomePage />)
+
+    const skipLink = screen.getByRole('link', { name: /saltar al contenido principal/i })
+    expect(skipLink.getAttribute('href')).toBe('#main-content')
+    expect(document.getElementById('main-content')).not.toBeNull()
+  })
 })

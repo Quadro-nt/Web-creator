@@ -43,6 +43,8 @@ export default function ImmersiveTemplate({
     .qs-immersive-dialect {
       --color-bg: #0a0a0a;
       --color-text: #f5f5f5;
+      --qs-bg: #0a0a0a;
+      --qs-text: #f5f5f5;
       --color-surface: rgba(255,255,255,0.06);
       color-scheme: dark;
     }
@@ -67,7 +69,6 @@ export default function ImmersiveTemplate({
           id={section.id}
           style={{
             minHeight: inPreview ? 'auto' : '70vh',
-            scrollSnapAlign: inPreview ? undefined : 'start',
             flexShrink: 0,
           }}
         >
@@ -87,9 +88,9 @@ export default function ImmersiveTemplate({
             <section
               id={section.id}
               style={{
-                height: inPreview ? 'auto' : '100vh',
+                display: 'grid',
+                gridTemplateRows: 'minmax(0, 1fr)',
                 minHeight: inPreview ? '520px' : '100vh',
-                scrollSnapAlign: inPreview ? undefined : 'start',
                 flexShrink: 0,
               }}
             >
@@ -111,7 +112,6 @@ export default function ImmersiveTemplate({
               id={section.id}
               style={{
                 minHeight: inPreview ? 'auto' : '100vh',
-                scrollSnapAlign: inPreview ? undefined : 'start',
                 flexShrink: 0,
               }}
             >
@@ -126,7 +126,6 @@ export default function ImmersiveTemplate({
               id={section.id}
               style={{
                 minHeight: inPreview ? 'auto' : '100vh',
-                scrollSnapAlign: inPreview ? undefined : 'start',
                 flexShrink: 0,
               }}
             >
@@ -140,7 +139,6 @@ export default function ImmersiveTemplate({
               id={section.id}
               style={{
                 minHeight: inPreview ? 'auto' : '100vh',
-                scrollSnapAlign: inPreview ? undefined : 'start',
                 flexShrink: 0,
               }}
             >
@@ -154,7 +152,6 @@ export default function ImmersiveTemplate({
               id={section.id}
               style={{
                 minHeight: inPreview ? 'auto' : '100vh',
-                scrollSnapAlign: inPreview ? undefined : 'start',
                 flexShrink: 0,
               }}
             >
@@ -179,15 +176,15 @@ export default function ImmersiveTemplate({
           backgroundColor: 'var(--color-bg)',
           color: 'var(--color-text)',
           minHeight: inPreview ? '100%' : '100vh',
-          height: inPreview ? 'auto' : '100vh',
-          overflowY: inPreview ? 'visible' : 'scroll',
-          scrollSnapType: inPreview ? undefined : 'y mandatory',
           scrollBehavior: 'smooth',
           containerType: 'inline-size',
           containerName: 'qs-canvas',
           position: 'relative',
         }}
       >
+        <a href="#qs-main-content" className="qs-skip-link">
+          Saltar al contenido principal
+        </a>
         <div className="qs-immersive-chrome">
           <AnnouncementBar config={config} inPreview={inPreview} onSelectChrome={onSelectChrome} />
           {config.header && (
@@ -209,13 +206,15 @@ export default function ImmersiveTemplate({
           </ChromeRegion>
         )}
 
-        {visibleSections.map((section, index) => {
-          const node = renderSectionContent(section)
-          if (renderSectionWrapper) {
-            return renderSectionWrapper(section, node, index)
-          }
-          return <div key={section.id}>{node}</div>
-        })}
+        <main id="qs-main-content">
+          {visibleSections.map((section, index) => {
+            const node = renderSectionContent(section)
+            if (renderSectionWrapper) {
+              return renderSectionWrapper(section, node, index)
+            }
+            return <div key={section.id}>{node}</div>
+          })}
+        </main>
 
         <SiteFooter
           config={config}

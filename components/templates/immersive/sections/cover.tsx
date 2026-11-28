@@ -9,8 +9,13 @@ type Props = {
   config: SiteConfig
 }
 
+const DARK_COVER_SCRIM = 'linear-gradient(to bottom, rgba(10,10,10,0.52), rgba(10,10,10,0.72))'
+
 export default function ImmersiveCover({ section, config }: Props) {
-  const headline = (section.content.headline as string)?.trim() || config.identity.siteTitle
+  const headline =
+    (section.content.headline as string)?.trim() ||
+    (section.content.title as string)?.trim() ||
+    config.identity.siteTitle
   const subtitle = (section.content.subtitle as string)?.trim() || ''
   const ctaText = (section.content.ctaText as string)?.trim() || ''
   const ctaHref = sanitizeHref(section.content.ctaHref) ?? '#artworks'
@@ -33,7 +38,8 @@ export default function ImmersiveCover({ section, config }: Props) {
           width: '100%',
           minHeight: '520px',
           height: '100%',
-          backgroundColor: 'var(--qs-text)',
+          backgroundColor: '#0a0a0a',
+          color: '#FAF8F5',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -41,8 +47,17 @@ export default function ImmersiveCover({ section, config }: Props) {
         }}
       >
         {coverImageUrl && (
-          <Image src={coverImageUrl} alt={headline} fill unoptimized style={{ objectFit: 'cover', opacity: 0.5 }} />
+          <Image src={coverImageUrl} alt={headline} fill unoptimized style={{ objectFit: 'cover', opacity: 0.72 }} />
         )}
+        <div
+          aria-hidden="true"
+          style={{
+            position: 'absolute',
+            inset: 0,
+            background: DARK_COVER_SCRIM,
+            pointerEvents: 'none',
+          }}
+        />
         <div
           style={{
             position: 'relative',
@@ -55,14 +70,26 @@ export default function ImmersiveCover({ section, config }: Props) {
             padding: '3rem 2rem',
           }}
         >
+          <span
+            style={{
+              fontSize: '0.7rem',
+              letterSpacing: '0.4em',
+              textTransform: 'uppercase',
+              color: '#F3D5B5',
+              display: 'block',
+            }}
+          >
+            Portfolio
+          </span>
           <h1
             style={{
-              fontFamily: 'var(--qs-font-heading)',
+              fontFamily: 'var(--font-heading)',
               fontSize: 'clamp(2.5rem, 7vw, 6rem)',
               fontWeight: 300,
               letterSpacing: '0.15em',
               textTransform: 'uppercase',
-              color: 'var(--qs-bg)',
+              color: '#FAF8F5',
+              textShadow: '0 2px 18px rgba(0,0,0,0.55)',
               margin: 0,
               lineHeight: 1,
             }}
@@ -70,7 +97,17 @@ export default function ImmersiveCover({ section, config }: Props) {
             {headline}
           </h1>
           {subtitle && (
-            <p style={{ margin: 0, color: 'var(--qs-bg)', opacity: 0.8, fontSize: 'var(--text-lg)' }}>{subtitle}</p>
+            <p
+              style={{
+                margin: 0,
+                color: '#FAF8F5',
+                opacity: 0.9,
+                fontSize: 'var(--text-lg)',
+                textShadow: '0 1px 12px rgba(0,0,0,0.5)',
+              }}
+            >
+              {subtitle}
+            </p>
           )}
           {ctaButton}
         </div>
@@ -89,17 +126,20 @@ export default function ImmersiveCover({ section, config }: Props) {
           overflow: 'hidden',
           display: 'flex',
           alignItems: 'flex-end',
-          backgroundColor: 'var(--qs-text)',
+          backgroundColor: '#0a0a0a',
+          color: '#FAF8F5',
         }}
       >
         {coverImageUrl && (
-          <Image src={coverImageUrl} alt={headline} fill unoptimized style={{ objectFit: 'cover', opacity: 0.6 }} />
+          <Image src={coverImageUrl} alt={headline} fill unoptimized style={{ objectFit: 'cover', opacity: 0.72 }} />
         )}
         <div
+          aria-hidden="true"
           style={{
             position: 'absolute',
             inset: 0,
-            background: 'linear-gradient(to top, rgba(10,10,10,0.9) 0%, transparent 60%)',
+            background: DARK_COVER_SCRIM,
+            pointerEvents: 'none',
           }}
         />
         <div className="qs-section-pad" style={{ position: 'relative', zIndex: 1, padding: '4rem 5rem' }}>
@@ -108,21 +148,21 @@ export default function ImmersiveCover({ section, config }: Props) {
               fontSize: '0.7rem',
               letterSpacing: '0.4em',
               textTransform: 'uppercase',
-              opacity: 0.6,
               display: 'block',
               marginBottom: '1.25rem',
-              color: 'var(--qs-bg)',
+              color: '#F3D5B5',
             }}
           >
             Portfolio
           </span>
           <h1
             style={{
-              fontFamily: 'var(--qs-font-heading)',
+              fontFamily: 'var(--font-heading)',
               fontSize: 'clamp(2.5rem, 6vw, 5.5rem)',
               fontWeight: 300,
               letterSpacing: '0.08em',
-              color: 'var(--qs-bg)',
+              color: '#FAF8F5',
+              textShadow: '0 2px 18px rgba(0,0,0,0.55)',
               margin: 0,
               lineHeight: 1,
             }}
@@ -130,7 +170,15 @@ export default function ImmersiveCover({ section, config }: Props) {
             {headline}
           </h1>
           {subtitle && (
-            <p style={{ margin: '1rem 0 0', color: 'var(--qs-bg)', opacity: 0.8, fontSize: 'var(--text-lg)' }}>
+            <p
+              style={{
+                margin: '1rem 0 0',
+                color: '#FAF8F5',
+                opacity: 0.9,
+                fontSize: 'var(--text-lg)',
+                textShadow: '0 1px 12px rgba(0,0,0,0.5)',
+              }}
+            >
               {subtitle}
             </p>
           )}
@@ -176,11 +224,11 @@ export default function ImmersiveCover({ section, config }: Props) {
           >
             Arte
           </span>
-          <h1 style={{ fontFamily: 'var(--qs-font-heading)', fontSize: 'clamp(2.75rem, 5.5vw, 5rem)', fontWeight: 700, lineHeight: 0.95, letterSpacing: '-0.02em', margin: 0 }}>
+          <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: 'clamp(2.75rem, 5.5vw, 5rem)', fontWeight: 700, lineHeight: 0.95, letterSpacing: '-0.02em', margin: 0 }}>
             {headline}
           </h1>
           {subtitle && (
-            <p style={{ margin: '1.25rem 0 0', opacity: 0.75, fontSize: 'var(--text-lg)' }}>{subtitle}</p>
+            <p style={{ margin: '1.25rem 0 0', opacity: 0.85, fontSize: 'var(--text-lg)' }}>{subtitle}</p>
           )}
           {ctaButton}
         </div>
@@ -218,11 +266,11 @@ export default function ImmersiveCover({ section, config }: Props) {
           color: 'var(--color-text)',
         }}
       >
-        <h1 style={{ fontFamily: 'var(--qs-font-heading)', fontSize: 'clamp(2.75rem, 7vw, 6rem)', fontWeight: 300, letterSpacing: '0.08em', margin: 0 }}>
+        <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: 'clamp(2.75rem, 7vw, 6rem)', fontWeight: 300, letterSpacing: '0.08em', margin: 0 }}>
           {headline}
         </h1>
         {subtitle && (
-          <p style={{ margin: '1rem 0 0', opacity: 0.75, fontSize: 'var(--text-lg)' }}>{subtitle}</p>
+          <p style={{ margin: '1rem 0 0', opacity: 0.85, fontSize: 'var(--text-lg)' }}>{subtitle}</p>
         )}
         {ctaButton}
       </div>
@@ -236,22 +284,33 @@ export default function ImmersiveCover({ section, config }: Props) {
         width: '100%',
         minHeight: '520px',
         height: '100%',
-        backgroundColor: 'var(--qs-text)',
+        backgroundColor: '#0a0a0a',
+        color: '#FAF8F5',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
+        overflow: 'hidden',
       }}
     >
       {coverImageUrl && (
-        <Image src={coverImageUrl} alt={headline} fill unoptimized style={{ objectFit: 'cover', filter: 'brightness(0.4)' }} />
+        <Image src={coverImageUrl} alt={headline} fill unoptimized style={{ objectFit: 'cover', filter: 'brightness(0.72)' }} />
       )}
+      <div
+        aria-hidden="true"
+        style={{
+          position: 'absolute',
+          inset: 0,
+          background: DARK_COVER_SCRIM,
+          pointerEvents: 'none',
+        }}
+      />
       <div style={{ position: 'relative', zIndex: 1, textAlign: 'center', padding: '2rem' }}>
         <span
           style={{
             fontSize: '0.65rem',
             letterSpacing: '0.5em',
             textTransform: 'uppercase',
-            color: 'var(--color-accent)',
+            color: '#F3D5B5',
             display: 'block',
             marginBottom: '1.75rem',
           }}
@@ -260,11 +319,12 @@ export default function ImmersiveCover({ section, config }: Props) {
         </span>
         <h1
           style={{
-            fontFamily: 'var(--qs-font-heading)',
+            fontFamily: 'var(--font-heading)',
             fontSize: 'clamp(3rem, 8vw, 7rem)',
             fontWeight: 300,
             letterSpacing: '0.1em',
-            color: 'var(--qs-bg)',
+            color: '#FAF8F5',
+            textShadow: '0 2px 18px rgba(0,0,0,0.55)',
             margin: 0,
             lineHeight: 1,
           }}
@@ -272,7 +332,15 @@ export default function ImmersiveCover({ section, config }: Props) {
           {headline}
         </h1>
         {subtitle && (
-          <p style={{ margin: '1.25rem 0 0', color: 'var(--qs-bg)', opacity: 0.8, fontSize: 'var(--text-lg)' }}>
+          <p
+            style={{
+              margin: '1.25rem 0 0',
+              color: '#FAF8F5',
+              opacity: 0.9,
+              fontSize: 'var(--text-lg)',
+              textShadow: '0 1px 12px rgba(0,0,0,0.5)',
+            }}
+          >
             {subtitle}
           </p>
         )}
@@ -281,7 +349,7 @@ export default function ImmersiveCover({ section, config }: Props) {
           style={{
             width: '60px',
             height: '1px',
-            backgroundColor: 'var(--color-accent)',
+            backgroundColor: '#F3D5B5',
             margin: '2rem auto 0',
           }}
         />

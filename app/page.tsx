@@ -108,7 +108,7 @@ function TemplateMiniPreview({ template }: { template: TemplateItem }) {
       <div className="relative overflow-hidden rounded-lg border border-[#E6E1DA] bg-[#F5EFE6] p-5 text-[#161616]">
         <div className="mb-4 flex items-center justify-between border-b border-[#E6E1DA] pb-2.5 text-[10px] uppercase tracking-[0.2em] text-[#5C574F]">
           <span>{template.accentLabel}</span>
-          <span className="font-serif italic text-[#B86B35]">N.º 02</span>
+          <span className="font-serif italic text-[#9A5220]">N.º 02</span>
         </div>
         <div className="grid grid-cols-12 items-end gap-3">
           <div className="col-span-6 space-y-2">
@@ -151,13 +151,17 @@ function TemplateMiniPreview({ template }: { template: TemplateItem }) {
 
 export default function HomePage() {
   return (
-    <div className="min-h-screen bg-[#FAF8F5] font-sans text-[#161616] antialiased selection:bg-[#B86B35]/20 selection:text-[#161616]">
+    <div className="min-h-screen bg-[#FAF8F5] font-sans text-[#161616] antialiased selection:bg-[#9A5220]/20 selection:text-[#161616]">
+      <a href="#main-content" className="qs-skip-link">
+        Saltar al contenido principal
+      </a>
+
       {/* Navbar fija/limpia */}
       <header className="sticky top-0 z-40 border-b border-[#E6E1DA] bg-[#FAF8F5]/95 backdrop-blur-sm">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-5 py-4 sm:px-8">
           <Link
             href="/"
-            className="text-xs font-semibold uppercase tracking-[0.24em] text-[#161616] transition-colors hover:text-[#B86B35] sm:text-sm"
+            className="text-xs font-semibold uppercase tracking-[0.24em] text-[#161616] transition-colors hover:text-[#9A5220] sm:text-sm"
           >
             Quadro Sites
           </Link>
@@ -189,7 +193,7 @@ export default function HomePage() {
             </Link>
             <Link
               href="/signup"
-              className="rounded-full bg-[#B86B35] px-4 py-2 text-xs font-medium text-white transition-colors hover:bg-[#9E5929] sm:px-5 sm:text-sm"
+              className="rounded-full bg-[#9A5220] px-4 py-2 text-xs font-medium text-white transition-colors hover:bg-[#7E4118] sm:px-5 sm:text-sm"
             >
               Crear mi sitio
             </Link>
@@ -197,13 +201,13 @@ export default function HomePage() {
         </div>
       </header>
 
-      <main>
+      <main id="main-content">
         {/* Hero principal */}
         <section className="border-b border-[#E6E1DA]">
           <div className="mx-auto grid max-w-6xl gap-12 px-5 py-16 sm:px-8 sm:py-24 lg:grid-cols-12 lg:items-center lg:gap-14">
             <div className="lg:col-span-6">
               <p className="inline-flex items-center gap-2 rounded-full border border-[#E6E1DA] bg-[#FFFFFF] px-3.5 py-1.5 text-xs font-medium uppercase tracking-[0.16em] text-[#5C574F]">
-                <span className="h-1.5 w-1.5 rounded-full bg-[#B86B35]" />
+                <span className="h-1.5 w-1.5 rounded-full bg-[#9A5220]" />
                 Portafolios para artistas de Quadro
               </p>
 
@@ -225,7 +229,7 @@ export default function HomePage() {
               <div className="mt-9 flex flex-col gap-3.5 sm:flex-row sm:items-center">
                 <Link
                   href="/signup"
-                  className="inline-flex items-center justify-center rounded-full bg-[#B86B35] px-7 py-3.5 text-sm font-medium text-white transition-colors hover:bg-[#9E5929]"
+                  className="inline-flex items-center justify-center rounded-full bg-[#9A5220] px-7 py-3.5 text-sm font-medium text-white transition-colors hover:bg-[#7E4118]"
                 >
                   Crear mi sitio gratis
                 </Link>
@@ -266,7 +270,7 @@ export default function HomePage() {
                   <div className="rounded-full border border-[#E6E1DA] bg-[#FAF8F5] px-3.5 py-1 text-xs font-medium text-[#5C574F]">
                     https://tu-nombre.quadro-nt.com
                   </div>
-                  <span className="text-[11px] font-medium uppercase tracking-[0.14em] text-[#B86B35]">
+                  <span className="text-[11px] font-medium uppercase tracking-[0.14em] text-[#9A5220]">
                     Publicado
                   </span>
                 </div>
@@ -295,8 +299,8 @@ export default function HomePage() {
                           Descripción y ficha técnica
                         </p>
                       </div>
-                      <div className="rounded-lg border border-[#B86B35]/30 bg-[#B86B35]/5 px-3 py-2">
-                        <p className="text-xs font-medium text-[#B86B35]">
+                      <div className="rounded-lg border border-[#9A5220]/30 bg-[#9A5220]/5 px-3 py-2">
+                        <p className="text-xs font-medium text-[#9A5220]">
                           Consulta por WhatsApp
                         </p>
                         <p className="mt-0.5 text-[11px] text-[#5C574F]">
@@ -364,7 +368,7 @@ export default function HomePage() {
         >
           <div className="mx-auto max-w-6xl px-5 sm:px-8">
             <div className="max-w-2xl">
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#B86B35]">
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#9A5220]">
                 Cómo funciona
               </p>
               <h2 className="mt-3 font-serif text-3xl font-normal tracking-tight text-[#161616] sm:text-4xl">
@@ -379,7 +383,7 @@ export default function HomePage() {
                   className="flex flex-col justify-between rounded-2xl border border-[#E6E1DA] bg-[#FFFFFF] p-7"
                 >
                   <div>
-                    <span className="font-serif text-3xl text-[#B86B35]">
+                    <span className="font-serif text-3xl text-[#9A5220]">
                       {step.number}
                     </span>
                     <h3 className="mt-4 font-serif text-xl leading-snug text-[#161616]">
@@ -400,7 +404,7 @@ export default function HomePage() {
           <div className="mx-auto max-w-6xl px-5 sm:px-8">
             <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
               <div className="max-w-2xl">
-                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#B86B35]">
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#9A5220]">
                   Plantillas curadas
                 </p>
                 <h2 className="mt-3 font-serif text-3xl font-normal tracking-tight text-[#161616] sm:text-4xl">
@@ -423,7 +427,7 @@ export default function HomePage() {
                     <TemplateMiniPreview template={template} />
 
                     <div className="mt-6">
-                      <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-[#B86B35]">
+                      <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-[#9A5220]">
                         {template.subtitle}
                       </p>
                       <h3 className="mt-1.5 font-serif text-2xl text-[#161616]">
@@ -444,7 +448,7 @@ export default function HomePage() {
                     </Link>
                     <Link
                       href={template.signupHref}
-                      className="inline-flex flex-1 items-center justify-center rounded-full bg-[#B86B35] px-4 py-2.5 text-xs font-medium text-white transition-colors hover:bg-[#9E5929] sm:text-sm"
+                      className="inline-flex flex-1 items-center justify-center rounded-full bg-[#9A5220] px-4 py-2.5 text-xs font-medium text-white transition-colors hover:bg-[#7E4118] sm:text-sm"
                     >
                       Usar esta plantilla
                     </Link>
@@ -459,7 +463,7 @@ export default function HomePage() {
         <section className="py-16 sm:py-24">
           <div className="mx-auto max-w-4xl px-5 text-center sm:px-8">
             <div className="rounded-3xl border border-[#E6E1DA] bg-[#FFFFFF] px-6 py-12 sm:px-12 sm:py-16">
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#B86B35]">
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#9A5220]">
                 Tu galería independiente
               </p>
               <h2 className="mt-4 font-serif text-3xl font-normal tracking-tight text-[#161616] sm:text-4xl">
@@ -472,7 +476,7 @@ export default function HomePage() {
               <div className="mt-8 flex flex-col items-center justify-center gap-3.5 sm:flex-row">
                 <Link
                   href="/signup"
-                  className="inline-flex w-full items-center justify-center rounded-full bg-[#B86B35] px-8 py-3.5 text-sm font-medium text-white transition-colors hover:bg-[#9E5929] sm:w-auto"
+                  className="inline-flex w-full items-center justify-center rounded-full bg-[#9A5220] px-8 py-3.5 text-sm font-medium text-white transition-colors hover:bg-[#7E4118] sm:w-auto"
                 >
                   Crear mi cuenta gratis
                 </Link>
@@ -512,7 +516,7 @@ export default function HomePage() {
             </Link>
             <Link
               href="/signup"
-              className="font-medium text-[#B86B35] hover:text-[#9E5929]"
+              className="font-medium text-[#9A5220] hover:text-[#7E4118]"
             >
               Crear mi sitio
             </Link>

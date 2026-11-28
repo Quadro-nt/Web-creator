@@ -115,4 +115,35 @@ describe('generateTokenStyles', () => {
     expect(css).toContain('--color-bg: white;')
     expect(css).toContain('--color-surface: rgba(10, 10, 10, 0.05);')
   })
+
+  it('emite --color-on-accent, aliases --qs-*, foco visible, skip-link y reduce motion', () => {
+    const css = generateTokenStyles(defaultSiteConfig, '.qs-site-root')
+    expect(css).toContain('--color-on-accent:')
+    expect(css).toContain('--qs-bg: var(--color-bg);')
+    expect(css).toContain('--qs-text: var(--color-text);')
+    expect(css).toContain('--qs-accent: var(--color-accent);')
+    expect(css).toContain('--qs-on-accent: var(--color-on-accent);')
+    expect(css).toContain('--qs-secondary-bg: var(--color-surface);')
+    expect(css).toContain('--qs-font-heading: var(--font-heading);')
+    expect(css).toContain('--qs-font-body: var(--font-body);')
+    expect(css).toContain('.qs-site-root .qs-scheme-accent { background-color: var(--color-accent); color: var(--color-on-accent); }')
+    expect(css).toContain(':focus-visible')
+    expect(css).toContain('.qs-skip-link')
+    expect(css).toContain('@media (prefers-reduced-motion: reduce)')
+    expect(css).toContain('.qs-marquee-track { animation: none !important; }')
+
+    const darkCss = generateTokenStyles(
+      {
+        ...defaultSiteConfig,
+        styleTokens: {
+          ...defaultSiteConfig.styleTokens,
+          background: '#0a0a0a',
+          text: '#f5f5f5',
+          accent: '#d4a373',
+        },
+      },
+      '.qs-site-root'
+    )
+    expect(darkCss).toContain('--color-on-accent: #111111;')
+  })
 })

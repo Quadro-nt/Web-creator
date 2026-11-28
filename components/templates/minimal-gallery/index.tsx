@@ -121,6 +121,9 @@ export default function MinimalGallery({
           position: 'relative',
         }}
       >
+        <a href="#qs-main-content" className="qs-skip-link">
+          Saltar al contenido principal
+        </a>
         <AnnouncementBar config={config} inPreview={inPreview} onSelectChrome={onSelectChrome} />
         {config.header ? (
           <SiteHeader
@@ -140,6 +143,7 @@ export default function MinimalGallery({
         )}
 
         <main
+          id="qs-main-content"
           className="qs-minimal-main"
           style={{
             maxWidth: 'min(1200px, 92vw)',

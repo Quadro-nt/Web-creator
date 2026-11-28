@@ -42,6 +42,8 @@ const ANIMATION_STYLES = `
   transition: opacity 250ms ease;
 }
 .qs-hover-info:hover .qs-hover-info-overlay { opacity: 1; }
+.qs-hover-info:focus-within .qs-hover-info-overlay { opacity: 1; }
+a:focus-visible .qs-hover-info .qs-hover-info-overlay { opacity: 1; }
 .qs-hover-reduced:hover { opacity: 0.85; }
 .qs-page-transition-fade { opacity: 0; }
 .qs-page-transition-visible { animation: qs-page-fadein 300ms ease forwards; }

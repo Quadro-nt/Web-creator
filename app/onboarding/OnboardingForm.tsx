@@ -70,6 +70,7 @@ export function OnboardingForm({ userEmail, initialTemplate }: OnboardingFormPro
   )
   const [slugStatus, setSlugStatus] = useState<SlugStatus>({ state: 'idle' })
   const [error, setError] = useState<string | null>(null)
+  const [errorField, setErrorField] = useState<'displayName' | 'slug' | 'form' | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isLoggingOut, setIsLoggingOut] = useState(false)
 
@@ -138,15 +139,18 @@ export function OnboardingForm({ userEmail, initialTemplate }: OnboardingFormPro
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setError(null)
+    setErrorField(null)
 
     const cleanName = displayName.trim()
     const cleanSlug = slug.trim()
     if (!cleanName) {
       setError('Ingresa tu nombre artístico o el título de tu sitio.')
+      setErrorField('displayName')
       return
     }
     if (!cleanSlug) {
       setError('Elige una dirección para tu web.')
+      setErrorField('slug')
       return
     }
 
@@ -171,6 +175,7 @@ export function OnboardingForm({ userEmail, initialTemplate }: OnboardingFormPro
 
       if (!response.ok || !data.ok) {
         setError(data.error ?? 'No pudimos crear tu sitio. Inténtalo nuevamente.')
+        setErrorField('form')
         return
       }
 
@@ -178,16 +183,28 @@ export function OnboardingForm({ userEmail, initialTemplate }: OnboardingFormPro
       router.refresh()
     } catch {
       setError('No pudimos conectarnos con el servidor. Inténtalo nuevamente.')
+      setErrorField('form')
     } finally {
       setIsSubmitting(false)
     }
   }
 
+  const displayNameInvalid = Boolean(error && (errorField === 'displayName' || errorField === 'form'))
+  const slugHasFormError = Boolean(error && (errorField === 'slug' || errorField === 'form'))
+  const slugInvalid = slugStatus.state === 'unavailable' || slugHasFormError
+  const slugDescribedBy =
+    [
+      slugStatus.state !== 'idle' ? 'artist-slug-status' : null,
+      slugHasFormError ? 'onboarding-form-error' : null,
+    ]
+      .filter(Boolean)
+      .join(' ') || undefined
+
   return (
     <div className="mx-auto w-full max-w-2xl">
       <header className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <div>
-          <p className="text-xs font-medium uppercase tracking-[0.22em] text-[#B86B35]">
+          <p className="text-xs font-medium uppercase tracking-[0.22em] text-[#9A5220]">
             Quadro Sites
           </p>
           <p className="mt-1 text-xs text-[#161616]/60">
@@ -215,6 +232,7 @@ export function OnboardingForm({ userEmail, initialTemplate }: OnboardingFormPro
 
         {error && (
           <div
+            id="onboarding-form-error"
             role="alert"
             className="mt-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800"
           >
@@ -238,8 +256,10 @@ export function OnboardingForm({ userEmail, initialTemplate }: OnboardingFormPro
               maxLength={80}
               value={displayName}
               onChange={(e) => handleDisplayNameChange(e.target.value)}
+              aria-invalid={displayNameInvalid}
+              aria-describedby={displayNameInvalid ? 'onboarding-form-error' : undefined}
               placeholder="Valeria Montes"
-              className="w-full rounded-xl border border-[#161616]/20 bg-[#FAF8F5] px-3.5 py-2.5 text-sm text-[#161616] placeholder:text-[#161616]/40 focus:border-[#B86B35] focus:outline-none focus:ring-2 focus:ring-[#B86B35]/20"
+              className="w-full rounded-xl border border-[#161616]/20 bg-[#FAF8F5] px-3.5 py-2.5 text-sm text-[#161616] placeholder:text-[#161616]/40 focus:border-[#9A5220] focus:outline-none focus:ring-2 focus:ring-[#9A5220]/25"
             />
           </div>
 
@@ -250,7 +270,7 @@ export function OnboardingForm({ userEmail, initialTemplate }: OnboardingFormPro
             >
               Dirección de tu web
             </label>
-            <div className="flex items-stretch overflow-hidden rounded-xl border border-[#161616]/20 bg-[#FAF8F5] focus-within:border-[#B86B35] focus-within:ring-2 focus-within:ring-[#B86B35]/20">
+            <div className="flex items-stretch overflow-hidden rounded-xl border border-[#161616]/20 bg-[#FAF8F5] focus-within:border-[#9A5220] focus-within:ring-2 focus-within:ring-[#9A5220]/25">
               <input
                 id="artist-slug"
                 name="slug"
@@ -259,6 +279,8 @@ export function OnboardingForm({ userEmail, initialTemplate }: OnboardingFormPro
                 maxLength={40}
                 value={slug}
                 onChange={(e) => handleSlugChange(e.target.value)}
+                aria-invalid={slugInvalid}
+                aria-describedby={slugDescribedBy}
                 placeholder="valeria-montes"
                 className="min-w-0 flex-1 bg-transparent px-3.5 py-2.5 text-sm text-[#161616] placeholder:text-[#161616]/40 focus:outline-none"
               />
@@ -267,7 +289,7 @@ export function OnboardingForm({ userEmail, initialTemplate }: OnboardingFormPro
               </span>
             </div>
 
-            <div className="mt-1.5 min-h-[1.25rem] text-xs" aria-live="polite">
+            <div id="artist-slug-status" className="mt-1.5 min-h-[1.25rem] text-xs" aria-live="polite">
               {slugStatus.state === 'checking' && (
                 <span className="text-[#161616]/60">Verificando...</span>
               )}
@@ -296,10 +318,12 @@ export function OnboardingForm({ userEmail, initialTemplate }: OnboardingFormPro
               inputMode="numeric"
               value={whatsappNumber}
               onChange={(e) => setWhatsappNumber(e.target.value.replace(/\D/g, ''))}
+              aria-invalid={false}
+              aria-describedby="whatsapp-number-help"
               placeholder="51999000000"
-              className="w-full rounded-xl border border-[#161616]/20 bg-[#FAF8F5] px-3.5 py-2.5 text-sm text-[#161616] placeholder:text-[#161616]/40 focus:border-[#B86B35] focus:outline-none focus:ring-2 focus:ring-[#B86B35]/20"
+              className="w-full rounded-xl border border-[#161616]/20 bg-[#FAF8F5] px-3.5 py-2.5 text-sm text-[#161616] placeholder:text-[#161616]/40 focus:border-[#9A5220] focus:outline-none focus:ring-2 focus:ring-[#9A5220]/25"
             />
-            <p className="mt-1 text-xs text-[#161616]/55">
+            <p id="whatsapp-number-help" className="mt-1 text-xs text-[#161616]/55">
               Solo números con código de país (sin signos ni espacios).
             </p>
           </div>
@@ -319,7 +343,7 @@ export function OnboardingForm({ userEmail, initialTemplate }: OnboardingFormPro
                     onClick={() => setTemplate(option.id)}
                     className={`flex flex-col rounded-xl border p-3.5 text-left transition ${
                       selected
-                        ? 'border-[#B86B35] bg-[#B86B35]/[0.06] ring-2 ring-[#B86B35]/30'
+                        ? 'border-[#9A5220] bg-[#9A5220]/[0.06] ring-2 ring-[#9A5220]/30'
                         : 'border-[#161616]/15 bg-[#FAF8F5] hover:border-[#161616]/35'
                     }`}
                   >
@@ -351,7 +375,7 @@ export function OnboardingForm({ userEmail, initialTemplate }: OnboardingFormPro
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full rounded-xl bg-[#161616] px-4 py-3 text-sm font-medium text-[#FAF8F5] transition hover:bg-[#B86B35] disabled:cursor-not-allowed disabled:opacity-60"
+            className="w-full rounded-xl bg-[#161616] px-4 py-3 text-sm font-medium text-[#FAF8F5] transition hover:bg-[#9A5220] disabled:cursor-not-allowed disabled:opacity-60"
           >
             {isSubmitting ? 'Creando tu sitio...' : 'Crear mi sitio'}
           </button>

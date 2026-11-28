@@ -1,5 +1,5 @@
 import { describe, it, expect } from '@jest/globals'
-import { adjustForContrast, getContrastRatio } from '../contrast'
+import { adjustForContrast, getContrastRatio, pickReadableOnColor } from '../contrast'
 
 describe('getContrastRatio', () => {
   it('returns ~21 for black on white', () => {
@@ -10,6 +10,12 @@ describe('getContrastRatio', () => {
   it('returns 1 for same color', () => {
     const ratio = getContrastRatio('#ffffff', '#ffffff')
     expect(ratio).toBeCloseTo(1, 1)
+  })
+
+  it('parses #rgb, rgb(r,g,b) and basic CSS color names', () => {
+    expect(getContrastRatio('#000', '#fff')).toBeCloseTo(21, 0)
+    expect(getContrastRatio('rgb(0, 0, 0)', 'rgb(255, 255, 255)')).toBeCloseTo(21, 0)
+    expect(getContrastRatio('black', 'white')).toBeCloseTo(21, 0)
   })
 })
 
@@ -45,7 +51,20 @@ describe('adjustForContrast', () => {
     }
   })
 
+  it('supports custom minRatio threshold', () => {
+    const adjusted = adjustForContrast('#777777', '#ffffff', 7)
+    expect(getContrastRatio(adjusted, '#ffffff')).toBeGreaterThanOrEqual(7)
+  })
+
   it('getContrastRatio black/white equals 21', () => {
     expect(getContrastRatio('#000000', '#ffffff')).toBeCloseTo(21, 0)
+  })
+})
+
+describe('pickReadableOnColor', () => {
+  it('selects #ffffff on dark backgrounds and #111111 on light backgrounds', () => {
+    expect(pickReadableOnColor('#111111')).toBe('#ffffff')
+    expect(pickReadableOnColor('#ffffff')).toBe('#111111')
+    expect(pickReadableOnColor('#9a5220')).toBe('#ffffff')
   })
 })

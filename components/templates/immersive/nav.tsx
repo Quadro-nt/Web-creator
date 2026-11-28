@@ -12,6 +12,24 @@ type Props = {
   inPreview?: boolean
 }
 
+const IMMERSIVE_NAV_CSS = `
+  .qs-immersive-nav-label {
+    opacity: 0;
+    transform: translateX(0.5rem);
+    transition: opacity 0.25s ease, transform 0.25s ease;
+    background-color: rgba(10, 10, 10, 0.72);
+    color: #f5f5f5;
+    padding: 0.22rem 0.55rem;
+    border-radius: 4px;
+  }
+  .qs-immersive-nav-link[data-active='true'] .qs-immersive-nav-label,
+  .qs-immersive-nav-link:hover .qs-immersive-nav-label,
+  .qs-immersive-nav-link:focus-visible .qs-immersive-nav-label {
+    opacity: 1;
+    transform: translateX(0);
+  }
+`
+
 export default function ImmersiveNav({ config, sections, inPreview = false }: Props) {
   const [activeId, setActiveId] = useState<string>('')
   const navItems = getNavItems(config)
@@ -59,6 +77,7 @@ export default function ImmersiveNav({ config, sections, inPreview = false }: Pr
 
   return (
     <>
+      <style dangerouslySetInnerHTML={{ __html: IMMERSIVE_NAV_CSS }} />
       {brandNode}
       {navItems.length > 0 && (
         <nav
@@ -66,12 +85,12 @@ export default function ImmersiveNav({ config, sections, inPreview = false }: Pr
           style={{
             position: inPreview ? 'absolute' : 'fixed',
             right: 'clamp(1rem, 3vw, 2rem)',
-            top: inPreview ? '50%' : '50%',
+            top: '50%',
             transform: 'translateY(-50%)',
             zIndex: 200,
             display: 'flex',
             flexDirection: 'column',
-            gap: '0.85rem',
+            gap: '0.5rem',
             alignItems: 'flex-end',
           }}
         >
@@ -83,22 +102,25 @@ export default function ImmersiveNav({ config, sections, inPreview = false }: Pr
                 href={`#${item.id}`}
                 aria-label={item.label}
                 title={item.label}
+                className="qs-immersive-nav-link"
+                data-active={isActive ? 'true' : 'false'}
                 style={{
                   display: 'flex',
                   alignItems: 'center',
+                  justifyContent: 'flex-end',
                   gap: '0.6rem',
+                  minHeight: '36px',
+                  padding: '0.35rem 0.5rem',
                   textDecoration: 'none',
                   color: '#f5f5f5',
                 }}
               >
                 <span
+                  className="qs-immersive-nav-label"
                   style={{
                     fontSize: '0.65rem',
                     letterSpacing: '0.2em',
                     textTransform: 'uppercase',
-                    opacity: isActive ? 0.9 : 0,
-                    transform: isActive ? 'translateX(0)' : 'translateX(0.5rem)',
-                    transition: 'all 0.35s ease',
                     textShadow: '0 1px 8px rgba(0,0,0,0.6)',
                   }}
                 >
@@ -107,12 +129,12 @@ export default function ImmersiveNav({ config, sections, inPreview = false }: Pr
                 <span
                   style={{
                     display: 'block',
-                    width: isActive ? '28px' : '10px',
+                    width: isActive ? '28px' : '12px',
                     height: '2px',
                     backgroundColor: isActive ? 'var(--color-accent)' : '#f5f5f5',
-                    opacity: isActive ? 1 : 0.5,
+                    opacity: isActive ? 1 : 0.7,
                     transition: 'all 0.35s ease',
-                    boxShadow: isActive ? '0 0 10px rgba(255,255,255,0.3)' : undefined,
+                    boxShadow: isActive ? '0 0 10px rgba(255,255,255,0.3)' : '0 1px 4px rgba(0,0,0,0.7)',
                   }}
                 />
               </a>

@@ -55,6 +55,9 @@ export function AuthFormCard({ mode, initialTemplate, initialError }: AuthFormCa
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(() => translateInitialError(initialError))
+  const [errorField, setErrorField] = useState<'email' | 'password' | 'both' | null>(() =>
+    initialError ? 'both' : null
+  )
   const [confirmationMessage, setConfirmationMessage] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -63,22 +66,33 @@ export function AuthFormCard({ mode, initialTemplate, initialError }: AuthFormCa
     initialTemplate ? `?template=${encodeURIComponent(initialTemplate)}` : ''
   }`
 
+  const emailInvalid = Boolean(error && (errorField === 'email' || errorField === 'both'))
+  const passwordInvalid = Boolean(error && (errorField === 'password' || errorField === 'both'))
+  const passwordDescribedBy =
+    [isSignup ? 'auth-password-help' : null, passwordInvalid ? 'auth-form-error' : null]
+      .filter(Boolean)
+      .join(' ') || undefined
+
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setError(null)
+    setErrorField(null)
     setConfirmationMessage(null)
 
     const trimmedEmail = email.trim()
     if (!trimmedEmail) {
       setError('Ingresa tu correo electrónico.')
+      setErrorField('email')
       return
     }
     if (isSignup && password.length < 8) {
       setError('La contraseña debe tener al menos 8 caracteres.')
+      setErrorField('password')
       return
     }
     if (!isSignup && !password) {
       setError('Ingresa tu contraseña.')
+      setErrorField('password')
       return
     }
 
@@ -105,6 +119,7 @@ export function AuthFormCard({ mode, initialTemplate, initialError }: AuthFormCa
 
       if (!response.ok || !data.ok) {
         setError(data.error ?? 'No pudimos procesar tu solicitud. Inténtalo nuevamente.')
+        setErrorField('both')
         return
       }
 
@@ -120,6 +135,7 @@ export function AuthFormCard({ mode, initialTemplate, initialError }: AuthFormCa
       router.refresh()
     } catch {
       setError('No pudimos conectarnos con el servidor. Inténtalo nuevamente.')
+      setErrorField('both')
     } finally {
       setIsSubmitting(false)
     }
@@ -128,7 +144,7 @@ export function AuthFormCard({ mode, initialTemplate, initialError }: AuthFormCa
   return (
     <div className="w-full max-w-md rounded-2xl border border-[#161616]/12 bg-white/80 p-7 shadow-sm backdrop-blur-sm sm:p-9">
       <div className="mb-7">
-        <p className="text-xs font-medium uppercase tracking-[0.22em] text-[#B86B35]">
+        <p className="text-xs font-medium uppercase tracking-[0.22em] text-[#9A5220]">
           Quadro Sites
         </p>
         <h1 className="mt-2 font-serif text-3xl font-normal tracking-tight text-[#161616]">
@@ -143,6 +159,7 @@ export function AuthFormCard({ mode, initialTemplate, initialError }: AuthFormCa
 
       {error && (
         <div
+          id="auth-form-error"
           role="alert"
           className="mb-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800"
         >
@@ -191,8 +208,10 @@ export function AuthFormCard({ mode, initialTemplate, initialError }: AuthFormCa
             autoComplete="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            aria-invalid={emailInvalid}
+            aria-describedby={emailInvalid ? 'auth-form-error' : undefined}
             placeholder="tu@correo.com"
-            className="w-full rounded-xl border border-[#161616]/20 bg-[#FAF8F5] px-3.5 py-2.5 text-sm text-[#161616] placeholder:text-[#161616]/40 focus:border-[#B86B35] focus:outline-none focus:ring-2 focus:ring-[#B86B35]/20"
+            className="w-full rounded-xl border border-[#161616]/20 bg-[#FAF8F5] px-3.5 py-2.5 text-sm text-[#161616] placeholder:text-[#161616]/40 focus:border-[#9A5220] focus:outline-none focus:ring-2 focus:ring-[#9A5220]/25"
           />
         </div>
 
@@ -212,11 +231,13 @@ export function AuthFormCard({ mode, initialTemplate, initialError }: AuthFormCa
             autoComplete={isSignup ? 'new-password' : 'current-password'}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            aria-invalid={passwordInvalid}
+            aria-describedby={passwordDescribedBy}
             placeholder={isSignup ? 'Mínimo 8 caracteres' : '••••••••'}
-            className="w-full rounded-xl border border-[#161616]/20 bg-[#FAF8F5] px-3.5 py-2.5 text-sm text-[#161616] placeholder:text-[#161616]/40 focus:border-[#B86B35] focus:outline-none focus:ring-2 focus:ring-[#B86B35]/20"
+            className="w-full rounded-xl border border-[#161616]/20 bg-[#FAF8F5] px-3.5 py-2.5 text-sm text-[#161616] placeholder:text-[#161616]/40 focus:border-[#9A5220] focus:outline-none focus:ring-2 focus:ring-[#9A5220]/25"
           />
           {isSignup && (
-            <p className="mt-1.5 text-xs text-[#161616]/60">
+            <p id="auth-password-help" className="mt-1.5 text-xs text-[#161616]/60">
               Usa al menos 8 caracteres para proteger tu estudio.
             </p>
           )}
@@ -225,7 +246,7 @@ export function AuthFormCard({ mode, initialTemplate, initialError }: AuthFormCa
         <button
           type="submit"
           disabled={isSubmitting}
-          className="mt-2 w-full rounded-xl bg-[#161616] px-4 py-2.5 text-sm font-medium text-[#FAF8F5] transition hover:bg-[#B86B35] disabled:cursor-not-allowed disabled:opacity-60"
+          className="mt-2 w-full rounded-xl bg-[#161616] px-4 py-2.5 text-sm font-medium text-[#FAF8F5] transition hover:bg-[#9A5220] disabled:cursor-not-allowed disabled:opacity-60"
         >
           {isSubmitting
             ? isSignup
@@ -244,7 +265,7 @@ export function AuthFormCard({ mode, initialTemplate, initialError }: AuthFormCa
               ¿Ya tienes cuenta?{' '}
               <Link
                 href="/login"
-                className="font-medium text-[#B86B35] underline-offset-4 hover:underline"
+                className="font-medium text-[#9A5220] underline-offset-4 hover:text-[#7E4118] hover:underline"
               >
                 Iniciar sesión
               </Link>
@@ -258,7 +279,7 @@ export function AuthFormCard({ mode, initialTemplate, initialError }: AuthFormCa
                     ? `/signup?template=${encodeURIComponent(initialTemplate)}`
                     : '/signup'
                 }
-                className="font-medium text-[#B86B35] underline-offset-4 hover:underline"
+                className="font-medium text-[#9A5220] underline-offset-4 hover:text-[#7E4118] hover:underline"
               >
                 Crear cuenta
               </Link>

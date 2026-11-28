@@ -66,7 +66,7 @@ export default function Contact({ section, config }: Props) {
               {email && (
                 <form action={`mailto:${email}`} method="post" encType="text/plain">
                   <div style={{ marginBottom: '2rem' }}>
-                    <label htmlFor="ed-contact-name" style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.7rem', letterSpacing: '0.2em', textTransform: 'uppercase', opacity: 0.6 }}>
+                    <label htmlFor="ed-contact-name" style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.7rem', letterSpacing: '0.2em', textTransform: 'uppercase', opacity: 0.85 }}>
                       Nombre
                     </label>
                     <input
@@ -81,12 +81,11 @@ export default function Contact({ section, config }: Props) {
                         background: 'transparent',
                         color: 'var(--color-bg)',
                         fontSize: 'var(--text-base)',
-                        outline: 'none',
                       }}
                     />
                   </div>
                   <div style={{ marginBottom: '2rem' }}>
-                    <label htmlFor="ed-contact-message" style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.7rem', letterSpacing: '0.2em', textTransform: 'uppercase', opacity: 0.6 }}>
+                    <label htmlFor="ed-contact-message" style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.7rem', letterSpacing: '0.2em', textTransform: 'uppercase', opacity: 0.85 }}>
                       Mensaje
                     </label>
                     <textarea
@@ -102,7 +101,6 @@ export default function Contact({ section, config }: Props) {
                         color: 'var(--color-bg)',
                         fontSize: 'var(--text-base)',
                         resize: 'none',
-                        outline: 'none',
                       }}
                     />
                   </div>
@@ -111,7 +109,7 @@ export default function Contact({ section, config }: Props) {
                     style={{
                       padding: '0.9rem 3rem',
                       backgroundColor: 'var(--color-accent)',
-                      color: 'var(--qs-bg)',
+                      color: 'var(--color-on-accent, #ffffff)',
                       border: 'none',
                       cursor: 'pointer',
                       fontSize: '0.8rem',

@@ -1,4 +1,5 @@
 import { isSafeCssColor, type SiteConfig } from '@/lib/schemas/site-config.schema'
+import { pickReadableOnColor } from './contrast'
 import { getFontFallback } from './font-catalog'
 import { MUSEUM_PALETTE } from './museum-palette'
 import { TYPOGRAPHY_PAIRS } from './typography-pairs'
@@ -31,10 +32,13 @@ export function cssVarMap(config: SiteConfig): Record<string, string> {
   const bodyFallback = t.bodyFont ? getFontFallback(t.bodyFont) : 'sans-serif'
   const spacing = SPACING_SCALE[t.spacing]
 
+  const accent = safeColor(t.accent, MUSEUM_PALETTE.accent)
+
   return {
     '--qs-bg': safeColor(t.background, MUSEUM_PALETTE.background),
     '--qs-text': safeColor(t.text, MUSEUM_PALETTE.text),
-    '--qs-accent': safeColor(t.accent, MUSEUM_PALETTE.accent),
+    '--qs-accent': accent,
+    '--qs-on-accent': pickReadableOnColor(accent),
     '--qs-secondary-bg': safeColor(t.secondaryBg, MUSEUM_PALETTE.secondaryBg),
     '--qs-border': MUSEUM_PALETTE.border,
     '--qs-font-heading': `'${headingFamily}', ${headingFallback}`,

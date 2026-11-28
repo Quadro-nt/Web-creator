@@ -22,7 +22,7 @@ const shapeStyles: Record<ButtonShape, React.CSSProperties> = {
 const styleStyles: Record<ButtonStyle, React.CSSProperties> = {
   filled: {
     background: 'var(--color-accent)',
-    color: 'var(--color-bg)',
+    color: 'var(--color-on-accent, var(--color-bg))',
     border: 'none',
   },
   outlined: {
@@ -41,10 +41,11 @@ const baseStyle: React.CSSProperties = {
   display: 'inline-flex',
   alignItems: 'center',
   justifyContent: 'center',
-  padding: '0.5em 1.25em',
+  padding: '0.62em 1.35em',
   cursor: 'pointer',
   fontFamily: 'var(--font-body)',
   fontSize: 'var(--text-base)',
+  fontWeight: 500,
   textDecoration: 'none',
   lineHeight: 1,
 }

@@ -177,7 +177,27 @@ describe('AuthFormCard', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent(
       'La contraseña debe tener al menos 8 caracteres.'
     )
+    expect(screen.getByLabelText(/contraseña/i)).toHaveAttribute('aria-invalid', 'true')
+    expect(screen.getByLabelText(/contraseña/i)).toHaveAttribute(
+      'aria-describedby',
+      expect.stringContaining('auth-form-error')
+    )
     expect(fetchMock).not.toHaveBeenCalled()
+  })
+
+  it('links aria-invalid and aria-describedby on email when submitted empty', async () => {
+    render(<AuthFormCard mode="login" />)
+
+    fireEvent.click(screen.getByRole('button', { name: /iniciar sesión/i }))
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'Ingresa tu correo electrónico.'
+    )
+    expect(screen.getByLabelText(/correo electrónico/i)).toHaveAttribute('aria-invalid', 'true')
+    expect(screen.getByLabelText(/correo electrónico/i)).toHaveAttribute(
+      'aria-describedby',
+      'auth-form-error'
+    )
   })
 })
 
@@ -242,7 +262,22 @@ describe('OnboardingForm', () => {
 
     await waitFor(() => {
       expect(screen.getByText(/no disponible/i)).toBeInTheDocument()
+      expect(slugInput).toHaveAttribute('aria-invalid', 'true')
+      expect(slugInput).toHaveAttribute('aria-describedby', 'artist-slug-status')
     })
+  })
+
+  it('links aria-invalid and aria-describedby when submitting onboarding without displayName', async () => {
+    render(<OnboardingForm userEmail="valeria@estudio.com" />)
+
+    fireEvent.click(screen.getByRole('button', { name: /crear mi sitio/i }))
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'Ingresa tu nombre artístico o el título de tu sitio.'
+    )
+    const nameInput = screen.getByLabelText(/nombre artístico/i)
+    expect(nameInput).toHaveAttribute('aria-invalid', 'true')
+    expect(nameInput).toHaveAttribute('aria-describedby', 'onboarding-form-error')
   })
 
   it('selects template, submits POST /api/onboarding and redirects to /studio', async () => {

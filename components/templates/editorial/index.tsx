@@ -132,6 +132,9 @@ export default function EditorialTemplate({
           position: 'relative',
         }}
       >
+        <a href="#qs-main-content" className="qs-skip-link">
+          Saltar al contenido principal
+        </a>
         <AnnouncementBar config={config} inPreview={inPreview} onSelectChrome={onSelectChrome} />
         {config.header ? (
           <SiteHeader
@@ -151,6 +154,7 @@ export default function EditorialTemplate({
         )}
 
         <main
+          id="qs-main-content"
           className="qs-editorial-main"
           style={{
             maxWidth: 'min(1180px, 94vw)',

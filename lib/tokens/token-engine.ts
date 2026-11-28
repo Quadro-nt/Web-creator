@@ -1,5 +1,5 @@
 import { isSafeCssColor, type SiteConfig } from '../schemas/site-config.schema'
-import { adjustForContrast } from './contrast'
+import { adjustForContrast, pickReadableOnColor } from './contrast'
 import { buildGoogleFontsUrl, getFontFallback } from './font-catalog'
 import { TYPOGRAPHY_PAIRS } from './typography-pairs'
 
@@ -124,6 +124,7 @@ export function generateTokenStyles(config: SiteConfig, scopeSelector = ':root')
     adjustForContrast(safeAccent, safeBackground),
     safeAccent
   )
+  const onAccent = pickReadableOnColor(adjustedAccent)
 
   const pair = TYPOGRAPHY_PAIRS[fontPair] ?? TYPOGRAPHY_PAIRS['playfair-raleway']
   const resolvedHeading = headingFont ?? pair.heading
@@ -151,7 +152,15 @@ export function generateTokenStyles(config: SiteConfig, scopeSelector = ':root')
   lines.push(`  --color-bg: ${safeBackground};`)
   lines.push(`  --color-text: ${adjustedText};`)
   lines.push(`  --color-accent: ${adjustedAccent};`)
+  lines.push(`  --color-on-accent: ${onAccent};`)
   lines.push(`  --color-surface: ${surfaceBgVal};`)
+  lines.push(`  --qs-bg: var(--color-bg);`)
+  lines.push(`  --qs-text: var(--color-text);`)
+  lines.push(`  --qs-accent: var(--color-accent);`)
+  lines.push(`  --qs-on-accent: var(--color-on-accent);`)
+  lines.push(`  --qs-secondary-bg: var(--color-surface);`)
+  lines.push(`  --qs-font-heading: var(--font-heading);`)
+  lines.push(`  --qs-font-body: var(--font-body);`)
   lines.push(`  --font-heading: '${resolvedHeading}', ${headingFallback};`)
   lines.push(`  --font-body: '${resolvedBody}', ${bodyFallback};`)
   lines.push(`  --heading-transform: ${headingTransformVal};`)
@@ -185,12 +194,19 @@ export function generateTokenStyles(config: SiteConfig, scopeSelector = ':root')
   lines.push(`${treatmentPrefix}${ARTWORK_TREATMENT_CLASSES[artworkTreatment]}`)
   lines.push('')
   lines.push(`${treatmentPrefix}.qs-scheme-dark { background-color: #0d0d0d; color: #f5f5f5; }`)
-  lines.push(`${treatmentPrefix}.qs-scheme-accent { background-color: var(--color-accent); color: var(--color-bg); }`)
+  lines.push(`${treatmentPrefix}.qs-scheme-accent { background-color: var(--color-accent); color: var(--color-on-accent); }`)
   lines.push(`${treatmentPrefix}.qs-scheme-soft { background-color: var(--color-surface); color: var(--color-text); }`)
+  lines.push('')
+  lines.push(`${treatmentPrefix}:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 3px; }`)
+  lines.push(`${treatmentPrefix}.qs-skip-link { position: fixed; top: -999px; left: 1rem; z-index: 9999; background-color: var(--color-text); color: var(--color-bg); padding: 0.75rem 1.25rem; border-radius: 6px; font-size: 0.875rem; font-weight: 600; text-decoration: none; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25); }`)
+  lines.push(`${treatmentPrefix}.qs-skip-link:focus, ${treatmentPrefix}.qs-skip-link:focus-visible { top: 1rem; outline: 2px solid var(--color-accent); outline-offset: 2px; }`)
   lines.push('')
   lines.push('@keyframes qs-marquee-left { 0% { transform: translateX(0%); } 100% { transform: translateX(-50%); } }')
   lines.push('@keyframes qs-marquee-right { 0% { transform: translateX(-50%); } 100% { transform: translateX(0%); } }')
   lines.push(`${treatmentPrefix}.qs-marquee-track:hover { animation-play-state: paused; }`)
+  lines.push('@media (prefers-reduced-motion: reduce) {')
+  lines.push(`  ${treatmentPrefix}.qs-marquee-track { animation: none !important; }`)
+  lines.push('}')
   lines.push('')
   lines.push('@container qs-canvas (max-width: 760px) {')
   lines.push(`  ${treatmentPrefix}.qs-grid-responsive { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }`)
