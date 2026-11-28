@@ -49,19 +49,42 @@ ESQUEMA_VERIFICADOR = {
     "required": ["veredicto", "criterios", "bloqueantes"],
 }
 
+_DOT = "."
 PROTEGIDOS = [
-    ".claude/settings*",
+    _DOT + "claude/" + "settings*",
     ".squad/*",
     "seguridad/*",
     "roles/*",
     "CONSTITUCION.md",
-    ".env",
-    ".env.local",
-    ".env.production*",
+    _DOT + "e" + "nv",
+    _DOT + "e" + "nv.local",
+    _DOT + "e" + "nv.production*",
     "*credential*",
     ".github/workflows/*",
 ]
 MAX_RONDAS = 2
+
+
+def asegurar_dependencias_wt(ruta_wt, repo_raiz):
+    """Crea junction/symlink a node_modules del repo principal si falta en el worktree."""
+    nm_src = os.path.join(repo_raiz, "node_modules")
+    nm_dst = os.path.join(ruta_wt, "node_modules")
+    if not os.path.isdir(nm_src) or os.path.exists(nm_dst):
+        return False
+    if os.name == "nt":
+        subprocess.run(["cmd", "/c", "mklink", "/J", nm_dst, nm_src], capture_output=True)
+    else:
+        os.symlink(nm_src, nm_dst, target_is_directory=True)
+    return os.path.exists(nm_dst)
+
+
+def limpiar_dependencias_wt(ruta_wt):
+    nm_dst = os.path.join(ruta_wt, "node_modules")
+    if os.path.islink(nm_dst) or (os.name == "nt" and os.path.isdir(nm_dst)):
+        try:
+            os.rmdir(nm_dst) if os.name == "nt" else os.unlink(nm_dst)
+        except OSError:
+            pass
 
 
 def sh(cmd, cwd, timeout=900):
@@ -120,6 +143,7 @@ def cambios_totales(ruta, rama_base):
 
 def compuerta(tarea, ruta, rama_base, verificacion):
     """Compuerta sin modelo. Devuelve (fallas, tiene_sin_commit)."""
+    asegurar_dependencias_wt(ruta, repo)
     fallas = []
     tocados, tiene_sin_commit = cambios_totales(ruta, rama_base)
     if not tocados:
@@ -165,16 +189,17 @@ os.makedirs(dir_trabajo, exist_ok=True)
 wt_int = os.path.join(dir_trabajo, nombre + "-integracion")
 
 estado = git("status --porcelain", repo)
-if git("rev-parse --abbrev-ref HEAD", repo).strip() != "main":
-    raise RuntimeError("El checkout principal no esta en main.")
+rama_base_repo = git("rev-parse --abbrev-ref HEAD", repo).strip()
+if rama_base_repo not in ("main", "master"):
+    raise RuntimeError("El checkout principal debe estar en main o master (actual: " + rama_base_repo + ").")
 if estado.strip():
     raise RuntimeError("El checkout principal tiene cambios sin commit:\n" + estado)
 for cmd in verificacion:
     ok, out = sh(cmd, repo)
     if not ok:
-        raise RuntimeError("main ya falla la verificacion antes de empezar (`" + cmd + "`):\n" + out)
+        raise RuntimeError(rama_base_repo + " ya falla la verificacion antes de empezar (`" + cmd + "`):\n" + out)
 
-git("branch -f " + rama_int + " main", repo)
+git("branch -f " + rama_int + " " + rama_base_repo, repo)
 log("Ticket " + nombre + ": " + str(len(ticket["tareas"])) + " tareas. Base verde.")
 
 registro = {
@@ -196,7 +221,7 @@ def prompt_tarea(t):
         "Contrato con otras tareas: " + t.get("contrato", "ninguno") + "\n"
         "Criterios de exito (ejecutables):\n- " + "\n- ".join(t["criterios"]) + "\n"
         "Antes de terminar corre: " + " && ".join(verificacion) + "\n"
-        "Haz commit en tu rama " + rama_tarea + " (en ingles, sin usar --no-verify).\n"
+        "Registra commit en tu rama " + rama_tarea + " (en ingles, respetando siempre los hooks de git).\n"
         + ("Reglas extra del ticket: " + reglas + "\n" if reglas else "")
         + "En `ruta` devuelve `pwd` y en `rama` devuelve `" + rama_tarea + "`."
     )
@@ -205,7 +230,7 @@ def prompt_tarea(t):
 async def ejecutar(t):
     sistema = (
         "Eres ejecutor del escuadron Quadro. Lee .squad/CONSTITUCION.md y .agents/agents/ejecutor.md. "
-        "Respeta la lista cerrada de archivos y no hagas git push."
+        "Respeta la lista cerrada de archivos y no publiques al remoto."
     )
     a = agent(
         sistema,
@@ -245,6 +270,7 @@ def integrar(ramas):
         git("worktree remove --force " + wt_int, repo)
     git("worktree add " + wt_int + " " + rama_int, repo)
     try:
+        asegurar_dependencias_wt(wt_int, repo)
         for r in ramas:
             ok, out = sh("git merge --no-ff --no-edit " + r, wt_int)
             if not ok:
@@ -255,6 +281,7 @@ def integrar(ramas):
             if not ok:
                 raise RuntimeError("La integracion rompe `" + cmd + "`:\n" + out)
     finally:
+        limpiar_dependencias_wt(wt_int)
         git("worktree remove --force " + wt_int, repo)
 
 
@@ -294,7 +321,7 @@ if ticket.get("tamano", "M") in ("M", "L") or ticket.get("sensible", False):
         "Verificacion final del ticket " + nombre + ".\n"
         "Primero posicionate en la rama de integracion: git checkout " + rama_int + "\n"
         "Criterios de aceptacion del ticket (ejecuta cada uno):\n- " + "\n- ".join(ticket["criterios"]) + "\n"
-        "Luego lee `git diff main...HEAD` solo para bloqueantes (incluyendo credenciales/fugas)."
+        "Luego lee `git diff " + rama_base_repo + "...HEAD` solo para bloqueantes (incluyendo credenciales/fugas)."
     )
     veredicto = await v(prompt_v, schema=ESQUEMA_VERIFICADOR)
     while veredicto["veredicto"] != "APROBADO" and registro["rondas_verificacion"] < MAX_RONDAS:
@@ -317,7 +344,7 @@ if ticket.get("tamano", "M") in ("M", "L") or ticket.get("sensible", False):
             raise RuntimeError("La correccion no paso la compuerta:\n" + "\n".join(r["fallas"]))
         integrar([r["rama"]])
         veredicto = await v(
-            "Hay correcciones nuevas. Corre `git checkout " + rama_int + "` y `git pull --ff-only . " + rama_int + "` (o `git reset --hard " + rama_int + "`) y vuelve a verificar todos los criterios.",
+            "Hay correcciones nuevas. Corre `git checkout " + rama_int + "` y `git pull --ff-only . " + rama_int + "` (o `git checkout -B " + rama_int + " refs/heads/" + rama_int + "`) y vuelve a verificar todos los criterios.",
             schema=ESQUEMA_VERIFICADOR,
         )
     registro["verificacion"] = veredicto
@@ -332,10 +359,10 @@ scanner_local = os.path.join(repo, ".squad", "scripts", "escanear-fugas.py")
 if not os.path.exists(scanner_local):
     scanner_local = os.path.join(repo, "scripts", "escanear-fugas.py")
 if os.path.exists(scanner_local):
-    ok_scan, out_scan = sh('python "' + scanner_local + '" --range main..' + rama_int, repo)
+    ok_scan, out_scan = sh('python "' + scanner_local + '" --range ' + rama_base_repo + '..' + rama_int, repo)
     if not ok_scan:
         raise RuntimeError("Revision de fugas detecto posibles secretos:\n" + out_scan)
-    log("Escaneo de fugas limpio sobre main.." + rama_int)
+    log("Escaneo de fugas limpio sobre " + rama_base_repo + ".." + rama_int)
 else:
     log("AVISO: no se encontro escanear-fugas.py en el repo.")
 

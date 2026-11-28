@@ -34,8 +34,8 @@ TRIAGE <ticket>
 - **`Directo`, `Swarm` o `Workflow`:** continúa al Paso 2.
 
 ## PASO 2 — Preflight técnico
-1. El checkout principal está en `main` y limpio (`git status`).
-2. Los comandos de *Verificación* de `PROYECTO.md` existen y pasan en `main`.
+1. El checkout principal está en su rama principal (`main` o `master`) y limpio (`git status`).
+2. Los comandos de *Verificación* de `PROYECTO.md` existen y pasan en la rama principal.
 3. Cuota (`/usage` o `python .squad/scripts/cuota.py` si existe): bajo 30 % → avisa; bajo 15 % → no lances.
 
 ## PASO 3 — Escribir spec (solo si usas `Swarm` o `Workflow`, o si hay Gate)
@@ -68,19 +68,19 @@ Si aplica Gate: muestra a Lionel ficha `TRIAGE`, tareas/archivos, criterios ejec
 ## PASO 5 — Ejecutar según el motor elegido
 
 ### 5A · Motor `Directo` (S o M simple de 1–2 tareas)
-1. Crea rama `squad/<ticket>/integracion` desde `main` (o en `workspace: "share"` con `invoke_subagent`).
-2. Implementa o delega la tarea puntual y corre los comandos de `PROYECTO.md`.
-3. Si es **M** o **sensible**, lanza un subagente verificador (`model="pro"`) para validar criterios y revisar `git diff main...HEAD`.
+1. Crea rama `squad/<ticket>/integracion` desde la rama principal (`main` o `master`) (o en `workspace: "share"` con `invoke_subagent`).
+2. Implementa o delega la tarea puntual y corre los comandos de `PROYECTO.md` (en repos Node.js donde el worktree no tenga `node_modules`, enlazar con `cmd /c mklink /J node_modules <repo>\node_modules`).
+3. Si es **M** o **sensible**, lanza un subagente verificador (`model="pro"`) para validar criterios y revisar `git diff <rama-principal>...HEAD`.
 
 ### 5B · Motor `Swarm` (coordinado 2–5 tareas o slug exacto)
-1. Carga el skill `swarm_pane` y crea `git branch -f squad/<ticket>/integracion main`.
+1. Carga el skill `swarm_pane` y crea `git branch -f squad/<ticket>/integracion <rama-principal>` (`main` o `master`).
 2. Por capa de dependencias (máx. 3 workers en paralelo), lanza cada tarea con:
    `swarm(action="add", name="<id-minuscula>", model="gemini-4-hydrogen-medium", workspace="share", brief="...")`
    (`workspace: "share"` mantiene el worktree dentro del proyecto sin salir del Sandbox).
-   Exige en el `brief`: crear rama `squad/<ticket>/<id>` desde `squad/<ticket>/integracion`, tocar solo su lista cerrada de archivos, correr verificación de `PROYECTO.md`, hacer `git commit` en su rama (sin `push` ni `--no-verify`) y reportar en la pizarra.
+   Exige en el `brief`: crear rama `squad/<ticket>/<id>` desde `squad/<ticket>/integracion`, tocar solo su lista cerrada de archivos, correr verificación de `PROYECTO.md` (enlazando `node_modules` al checkout raíz con `cmd /c mklink /J` si falta en repos Node.js), hacer `git commit` en su rama (sin `push` ni `--no-verify`) y reportar en la pizarra.
 3. Cuando cada worker termine, corre la **compuerta sin modelo** sobre su rama (archivos permitidos, cero protegidos, verificación verde; máx. 2 rondas).
 4. Integra las ramas aprobadas en `squad/<ticket>/integracion` **antes** de llamar a `swarm(action="kill", name="...")`.
-5. En **M, L y todo ticket sensible**, lanza un worker `verificador` con `model="gemini-4-neon-high"` (`workspace="share"`) para ejecutar cada criterio sobre `squad/<ticket>/integracion` y revisar `git diff main...HEAD` (incluyendo fugas de credenciales); luego haz `kill`.
+5. En **M, L y todo ticket sensible**, lanza un worker `verificador` con `model="gemini-4-neon-high"` (`workspace="share"`) para ejecutar cada criterio sobre `squad/<ticket>/integracion` y revisar `git diff <rama-principal>...HEAD` (incluyendo fugas de credenciales); luego haz `kill`.
 
 ### 5C · Motor `Workflow` (paralelo por capas con `squad_ticket.py`)
 1. Commit de `.agents/tickets/<ticket>.json` en `squad/<ticket>/integracion` (o rama de trabajo; nunca ensucies `main` si hace auto-deploy) o sigue el preflight de `squad_ticket.py`.
